@@ -456,6 +456,14 @@ const Pvp = () => {
       setGameMessage("Opponent disconnected - You win!");
     });
 
+    newSocket.on('rps_result', (data) => {
+      console.log('RPS result received:', data);
+      setRpsResult(data.result);
+      setGameState(GAME_STATE.SUBJECT_SELECTION);
+      setTurn(data.result === 'player' ? 'player' : 'opponent');
+      setGameMessage(data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...');
+    });
+
     setSocket(newSocket);
 
     return () => {
