@@ -88,6 +88,9 @@ const Pvp = () => {
   const [showRpsResult, setShowRpsResult] = useState(false);
   const [rpsModalAnimation, setRpsModalAnimation] = useState('');
   const [subjectModalAnimation, setSubjectModalAnimation] = useState('');
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [winnerMessage, setWinnerMessage] = useState('');
+  const [winnerModalAnimation, setWinnerModalAnimation] = useState('');
 
   // Function to fetch questions from backend
   const fetchQuestions = async (subjectId) => {
@@ -95,11 +98,15 @@ const Pvp = () => {
       setIsLoadingQuestions(true);
       setError(null);
 
-      const response = await axios.get(`http://localhost:5000/api/questions/${subjectId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/questions/subject/${subjectId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
+
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Invalid response format from server');
+      }
 
       // Transform the backend question format to match our frontend format
       const transformedQuestions = response.data.map(question => ({
@@ -110,12 +117,34 @@ const Pvp = () => {
         subject: question.subject._id
       }));
 
+      if (transformedQuestions.length === 0) {
+        throw new Error('No questions found for this subject');
+      }
+
       setAvailableQuestions(transformedQuestions);
       return transformedQuestions;
     } catch (err) {
       console.error("Error fetching questions:", err);
       setError("Failed to fetch questions. Please try again.");
-      return [];
+      // Set some default questions if the API fails
+      const defaultQuestions = [
+        {
+          id: "1",
+          text: "Sample Question 1",
+          options: ["Option A", "Option B", "Option C", "Option D"],
+          correctAnswer: "Option A",
+          subject: subjectId
+        },
+        {
+          id: "2",
+          text: "Sample Question 2",
+          options: ["Option A", "Option B", "Option C", "Option D"],
+          correctAnswer: "Option B",
+          subject: subjectId
+        }
+      ];
+      setAvailableQuestions(defaultQuestions);
+      return defaultQuestions;
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -236,10 +265,13 @@ const Pvp = () => {
 
     newSocket.on('game_ended', (data) => {
       console.log('Game ended:', data);
+      const isWinner = data.winner === socket.userId;
+      const message = isWinner ? "Victory! You won the game!" : "Game Over - Opponent Wins!";
+      setWinnerMessage(message);
+      setShowWinnerModal(true);
+      setWinnerModalAnimation('show');
       setGameState(GAME_STATE.GAME_OVER);
-      setGameMessage(data.winner === socket.userId ? 
-        "Victory! You won the game!" : 
-        "Game Over - Opponent Wins!");
+      setGameMessage(message);
     });
 
     newSocket.on('player_disconnected', (data) => {
@@ -254,6 +286,10 @@ const Pvp = () => {
       setShowRpsResult(true);
       setRpsModalAnimation('show');
       
+      // Set winner message based on result
+      const message = data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...';
+      setWinnerMessage(message);
+      
       // Hide RPS result modal after 2 seconds
       setTimeout(() => {
         setRpsModalAnimation('hide');
@@ -261,7 +297,7 @@ const Pvp = () => {
           setShowRpsResult(false);
           setGameState(GAME_STATE.SUBJECT_SELECTION);
           setTurn(data.result === 'player' ? 'player' : 'opponent');
-          setGameMessage(data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...');
+          setGameMessage(message);
         }, 500);
       }, 2000);
     });
@@ -277,6 +313,37 @@ const Pvp = () => {
       }
     };
   }, [token, location.state?.lobbyId, user?.firstName]);
+
+  // Add new useEffect for opponent's subject selection
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleOpponentSubjectSelected = (data) => {
+      console.log('Opponent selected subject:', data);
+      setSelectedSubject(data.subject);
+      setSelectedSubjectName(data.subject.name);
+      setShowSubjectModal(true);
+      setSubjectModalAnimation('show');
+      
+      // Fetch questions for opponent's selection
+      fetchQuestions(data.subject.id);
+      
+      // Hide subject modal after 1.5 seconds
+      setTimeout(() => {
+        setSubjectModalAnimation('hide');
+        setTimeout(() => {
+          setShowSubjectModal(false);
+          setGameState(GAME_STATE.CARD_SELECTION);
+        }, 300);
+      }, 1500);
+    };
+
+    socket.on('subject_selected', handleOpponentSubjectSelected);
+
+    return () => {
+      socket.off('subject_selected', handleOpponentSubjectSelected);
+    };
+  }, [socket]);
 
   const startCountdown = () => {
     setCountdown(3);
@@ -326,28 +393,34 @@ const Pvp = () => {
   const handleSubjectSelect = async (subject) => {
     if (!socket || turn !== 'player') return;
     
-    setSelectedSubject(subject);
-    setSelectedSubjectName(subject.name);
-    setShowSubjectModal(true);
-    setSubjectModalAnimation('show');
-    
-    // Fetch questions immediately
-    await fetchQuestions(subject.id);
-    
-    // Emit subject selection
-    socket.emit('subject_selected', { 
-      subject,
-      lobbyId: location.state?.lobbyId
-    });
+    try {
+      // Set subject and show modal immediately
+      setSelectedSubject(subject);
+      setSelectedSubjectName(subject.name);
+      setShowSubjectModal(true);
+      setSubjectModalAnimation('show');
+      
+      // Fetch questions immediately
+      await fetchQuestions(subject.id);
+      
+      // Emit subject selection to opponent
+      socket.emit('subject_selected', { 
+        subject,
+        lobbyId: location.state?.lobbyId
+      });
 
-    // Hide subject modal after 1.5 seconds
-    setTimeout(() => {
-      setSubjectModalAnimation('hide');
+      // Hide subject modal after 1.5 seconds
       setTimeout(() => {
-        setShowSubjectModal(false);
-        setGameState(GAME_STATE.CARD_SELECTION);
-      }, 500);
-    }, 1500);
+        setSubjectModalAnimation('hide');
+        setTimeout(() => {
+          setShowSubjectModal(false);
+          setGameState(GAME_STATE.CARD_SELECTION);
+        }, 300);
+      }, 1500);
+    } catch (err) {
+      console.error("Error in subject selection:", err);
+      setError("Failed to select subject. Please try again.");
+    }
   };
 
   // Handle question selection
@@ -572,6 +645,28 @@ const Pvp = () => {
   return (
     <div className={styles.gameAreaWrapper}>
       <div className={styles.duelContainer}>
+        {/* Winner Modal */}
+        {showWinnerModal && (
+          <div className={`${styles.winnerModal} ${styles[winnerModalAnimation]}`}>
+            <div className={styles.winnerModalContent}>
+              <h2>{winnerMessage.includes('Victory') ? 'Victory!' : 'Game Over'}</h2>
+              <div className={styles.winnerMessage}>{winnerMessage}</div>
+              <button
+                className={styles.playAgainButton}
+                onClick={() => {
+                  setWinnerModalAnimation('hide');
+                  setTimeout(() => {
+                    setShowWinnerModal(false);
+                    handlePlayAgain();
+                  }, 500);
+                }}
+              >
+                Play Again
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* RPS Result Modal */}
         {showRpsResult && (
           <div className={`${styles.rpsResultModal} ${styles[rpsModalAnimation]}`}>
