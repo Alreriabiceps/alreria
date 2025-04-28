@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./Sololobby.module.css"; // Import the CSS module
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,10 @@ const formatTime = (seconds) => {
     .toString()
     .padStart(2, "0")}`;
 };
+
+// Add these constants at the top of the file
+const WS_RECONNECT_DELAY = 3000; // 3 seconds
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 const CreateLobbyModal = ({ isOpen, onClose, onSubmit, form, setForm, isLoading, hasActiveLobby }) => {
   if (!isOpen) return null;
@@ -203,61 +207,95 @@ const SoloLobby = () => {
   const [selectedLobby, setSelectedLobby] = useState(null);
   const [joinError, setJoinError] = useState(null);
   const socketRef = useRef(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const reconnectAttempts = useRef(0);
+
+  // WebSocket connection management
+  const connectWebSocket = useCallback(() => {
+    if (!token) return;
+
+    const backendurl = import.meta.env.VITE_BACKEND_URL;
+    const wsUrl = backendurl.replace(/^http/, 'ws');
+    
+    try {
+      socketRef.current = new WebSocket(wsUrl);
+
+      socketRef.current.onopen = () => {
+        console.log('WebSocket connected');
+        setWsConnected(true);
+        reconnectAttempts.current = 0;
+        
+        // Send authentication token
+        socketRef.current.send(JSON.stringify({
+          type: 'auth',
+          token
+        }));
+      };
+
+      socketRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          switch (data.type) {
+            case 'lobby:created':
+              setLobbies(prev => [...prev, data.lobby]);
+              break;
+            case 'lobby:updated':
+              setLobbies(prev => prev.map(lobby => 
+                lobby._id === data.lobby._id ? data.lobby : lobby
+              ));
+              break;
+            case 'game:start':
+              if (data.players.some(player => player._id === user._id)) {
+                navigate('/student/pvp', { 
+                  state: { 
+                    lobbyId: data.lobbyId,
+                    lobbyName: data.lobbyName
+                  }
+                });
+              }
+              break;
+          }
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      };
+
+      socketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setWsConnected(false);
+      };
+
+      socketRef.current.onclose = () => {
+        console.log('WebSocket disconnected');
+        setWsConnected(false);
+        
+        // Attempt to reconnect if we haven't exceeded max attempts
+        if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts.current += 1;
+          console.log(`Attempting to reconnect (${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS})...`);
+          setTimeout(connectWebSocket, WS_RECONNECT_DELAY);
+        } else {
+          console.error('Max reconnection attempts reached');
+          setError('Connection lost. Please refresh the page to reconnect.');
+        }
+      };
+    } catch (error) {
+      console.error('Error creating WebSocket connection:', error);
+      setWsConnected(false);
+    }
+  }, [token, user, navigate]);
 
   // Initialize WebSocket connection
   useEffect(() => {
-    const backendurl = import.meta.env.VITE_BACKEND_URL;
-    const wsUrl = backendurl.replace(/^http/, 'ws');
-    socketRef.current = new WebSocket(wsUrl);
-
-    socketRef.current.onopen = () => {
-      console.log('WebSocket connected');
-      // Send authentication token
-      socketRef.current.send(JSON.stringify({
-        type: 'auth',
-        token
-      }));
-    };
-
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      switch (data.type) {
-        case 'lobby:created':
-          setLobbies(prev => [...prev, data.lobby]);
-          break;
-        case 'lobby:updated':
-          setLobbies(prev => prev.map(lobby => 
-            lobby._id === data.lobby._id ? data.lobby : lobby
-          ));
-          break;
-        case 'game:start':
-          if (data.players.includes(user._id)) {
-            navigate('/student/pvp', { 
-              state: { 
-                lobbyId: data.lobbyId,
-                lobbyName: data.lobbyName
-              }
-            });
-          }
-          break;
-      }
-    };
-
-    socketRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    socketRef.current.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-
+    connectWebSocket();
+    
     return () => {
       if (socketRef.current) {
         socketRef.current.close();
       }
     };
-  }, [token, user, navigate]);
+  }, [connectWebSocket]);
 
   // Define fetchLobbies function
   const fetchLobbies = async () => {
@@ -398,15 +436,6 @@ const SoloLobby = () => {
       setIsLoadingAction(true);
       const backendurl = import.meta.env.VITE_BACKEND_URL;
       
-      // Prepare request body
-      const requestBody = {
-        name: lobbyForm.name || 'Open Lobby',
-        isPrivate: lobbyForm.isPrivate,
-        password: lobbyForm.isPrivate ? lobbyForm.password : undefined
-      };
-
-      console.log('Creating lobby with data:', requestBody);
-
       const response = await fetch(`${backendurl}/api/lobby`, {
         method: 'POST',
         headers: {
@@ -414,14 +443,16 @@ const SoloLobby = () => {
           'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          name: lobbyForm.name || 'Open Lobby',
+          isPrivate: lobbyForm.isPrivate,
+          password: lobbyForm.isPrivate ? lobbyForm.password : undefined
+        })
       });
 
       const data = await response.json();
-      console.log('Create lobby response:', data);
 
       if (response.status === 401) {
-        console.error('Authentication failed:', data.error);
         setError('Your session has expired. Please log in again.');
         logout();
         navigate('/login');
@@ -432,9 +463,6 @@ const SoloLobby = () => {
         throw new Error(data.error || 'Failed to create lobby');
       }
 
-      // Show success message
-      setError(null);
-      
       // Close modal and reset form
       setShowCreateLobbyModal(false);
       setLobbyForm({ name: '', isPrivate: false, password: '' });
@@ -468,7 +496,6 @@ const SoloLobby = () => {
       const data = await response.json();
 
       if (response.status === 401) {
-        console.error('Authentication failed:', data.error);
         setError('Your session has expired. Please log in again.');
         logout();
         navigate('/login');
@@ -476,31 +503,7 @@ const SoloLobby = () => {
       }
 
       if (!response.ok) {
-        let errorMessage = 'Failed to join lobby';
-        switch (data.error) {
-          case 'Lobby not found':
-            errorMessage = 'The lobby no longer exists';
-            break;
-          case 'Lobby is not available for joining':
-            errorMessage = 'The lobby is no longer accepting players';
-            break;
-          case 'Lobby has expired':
-            errorMessage = 'The lobby has expired';
-            break;
-          case 'Lobby is full':
-            errorMessage = 'The lobby is full';
-            break;
-          case 'Invalid password':
-            errorMessage = 'Incorrect password for private lobby';
-            break;
-          case 'You are already in this lobby':
-            errorMessage = 'You are already in this lobby';
-            break;
-          default:
-            errorMessage = data.error || 'Failed to join lobby';
-        }
-        setJoinError(errorMessage);
-        return;
+        throw new Error(data.error || 'Failed to join lobby');
       }
 
       setShowJoinLobbyModal(false);
@@ -515,13 +518,7 @@ const SoloLobby = () => {
       
     } catch (err) {
       console.error('Error joining lobby:', err);
-      let errorMessage = 'Failed to join lobby. Please try again later.';
-      if (err.message.includes('NetworkError')) {
-        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-      } else if (err.message.includes('Failed to fetch')) {
-        errorMessage = 'Unable to reach the server. Please check your internet connection.';
-      }
-      setJoinError(errorMessage);
+      setJoinError(err.message || 'Failed to join lobby. Please try again later.');
     } finally {
       setIsLoadingAction(false);
     }
@@ -547,6 +544,10 @@ const SoloLobby = () => {
 
   return (
     <div className={styles.pvpContainer}>
+      <div className={styles.connectionStatus}>
+        <span className={`${styles.statusDot} ${wsConnected ? styles.connected : styles.disconnected}`} />
+        {wsConnected ? 'Connected' : 'Disconnected'}
+      </div>
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Duels & Matchmaking</h1>
         <p className={styles.pageSubtitle}>
@@ -661,121 +662,24 @@ const SoloLobby = () => {
             )}
           </div>
         </div>
-        <div className={`${styles.panel} ${styles.joinLobbyPanel}`}>
-          <div className={styles.lobbyBrowserHeader}>
-            <h3 className={styles.panelHeader}>
-              <span className={styles.panelIcon}>🚪</span> Lobby
-            </h3>
-            <div className={styles.lobbySearchContainer}>
-              <span className={styles.lobbySearchIcon}>🔍</span>
-              <input
-                type="text"
-                value={lobbySearchTerm}
-                onChange={(e) => setLobbySearchTerm(e.target.value)}
-                className={styles.lobbySearchInput}
-                placeholder="Search lobbies..."
-                aria-label="Search lobbies"
-                disabled={isLoadingLobbies || isQueueing}
-              />
-            </div>
-          </div>
-          <div className={styles.lobbyListContainer}>
-            {isLoadingLobbies ? (
-              <p className={styles.noLobbiesMessage}>Loading lobbies...</p>
-            ) : currentLobbies.length > 0 ? (
-              <>
-                <ul className={styles.lobbyList}>
-                  {currentLobbies.map((lobby) => (
-                    <li key={lobby._id} className={styles.lobbyItem}>
-                      <div className={styles.lobbyInfo}>
-                        <div className={styles.lobbyHeader}>
-                          <span className={styles.lobbyName}>{lobby.name}</span>
-                          {lobby.isPrivate && (
-                            <span className={styles.privateBadge}>Private</span>
-                          )}
-                          {lobbyTimers[lobby._id] && (
-                            <span className={styles.timerBadge}>
-                              {formatTime(lobbyTimers[lobby._id])}
-                            </span>
-                          )}
-                        </div>
-                        <div className={styles.lobbyDetails}>
-                          <span className={styles.lobbyHost}>
-                            Host: {lobby.hostId ? `${lobby.hostId.firstName} ${lobby.hostId.lastName}` : 'Unknown'}
-                          </span>
-                          <span className={styles.lobbyPlayers}>
-                            Players: {lobby.players?.length || 0}/{lobby.maxPlayers}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleJoinClick(lobby)}
-                        className={`${styles.gameButton} ${styles.joinButton}`}
-                        disabled={isLoadingAction || isQueueing || (lobby.players?.length || 0) >= lobby.maxPlayers}
-                      >
-                        Join
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                {totalPages > 1 && (
-                  <div className={styles.pagination}>
-                    <button
-                      className={`${styles.gameButton} ${styles.pageButton}`}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      ←
-                    </button>
-                    <span className={styles.pageInfo}>
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                      className={`${styles.gameButton} ${styles.pageButton}`}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      →
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className={styles.noLobbiesMessage}>
-                {lobbySearchTerm ? "No lobbies match your search." : "No active lobbies found."}
-              </p>
-            )}
-          </div>
-        </div>
       </div>
-      {showCreateLobbyModal && (
-        <CreateLobbyModal
-          isOpen={showCreateLobbyModal}
-          onClose={() => {
-            setShowCreateLobbyModal(false);
-            setLobbyForm({ name: '', isPrivate: false, password: '' });
-          }}
-          onSubmit={handleCreateLobby}
-          form={lobbyForm}
-          setForm={setLobbyForm}
-          isLoading={isLoadingAction}
-          hasActiveLobby={hasActiveLobby}
-        />
-      )}
-      {showJoinLobbyModal && (
-        <JoinLobbyModal
-          isOpen={showJoinLobbyModal}
-          onClose={() => {
-            setShowJoinLobbyModal(false);
-            setSelectedLobby(null);
-            setJoinError(null);
-          }}
-          onSubmit={(password) => handleJoinLobby(selectedLobby._id, selectedLobby.name, password)}
-          lobby={selectedLobby}
-          isLoading={isLoadingAction}
-          error={joinError}
-        />
-      )}
+      <CreateLobbyModal
+        isOpen={showCreateLobbyModal}
+        onClose={() => setShowCreateLobbyModal(false)}
+        onSubmit={handleCreateLobby}
+        form={lobbyForm}
+        setForm={setLobbyForm}
+        isLoading={isLoadingAction}
+        hasActiveLobby={hasActiveLobby}
+      />
+      <JoinLobbyModal
+        isOpen={showJoinLobbyModal}
+        onClose={() => setShowJoinLobbyModal(false)}
+        onSubmit={handleJoinLobby}
+        lobby={selectedLobby}
+        isLoading={isLoadingAction}
+        error={joinError}
+      />
     </div>
   );
 };

@@ -1184,3 +1184,35 @@
      .errorIcon { font-size: 1.1rem; }
      .errorMessage p { font-size: 0.9rem; }
    }
+
+.connectionStatus {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+  z-index: 1000;
+}
+
+.statusDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.statusDot.connected {
+  background-color: #4CAF50;
+  box-shadow: 0 0 8px #4CAF50;
+}
+
+.statusDot.disconnected {
+  background-color: #f44336;
+  box-shadow: 0 0 8px #f44336;
+}
