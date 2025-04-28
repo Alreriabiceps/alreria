@@ -390,25 +390,6 @@ const Pvp = () => {
     newSocket.on('opponent_rps_choice', (choice) => {
       console.log('Opponent RPS choice:', choice);
       setOpponentRpsChoice(choice);
-      if (rpsChoice) {
-        const result = determineRpsWinner(rpsChoice, choice);
-        setRpsResult(result);
-        playRpsAnimation(result);
-        newSocket.emit('rps_result', { 
-          result,
-          lobbyId: location.state?.lobbyId 
-        });
-      }
-    });
-
-    newSocket.on('rps_result', (data) => {
-      console.log('RPS result:', data);
-      setRpsResult(data.result);
-      playRpsAnimation(data.result);
-      setTimeout(() => {
-        setGameState(GAME_STATE.SUBJECT_SELECTION);
-        setTurn(data.result === 'player' ? 'player' : 'opponent');
-      }, 3000);
     });
 
     newSocket.on('subject_selected', (data) => {
@@ -510,7 +491,7 @@ const Pvp = () => {
     
     setRpsChoice(choice);
     socket.emit('rps_choice', { 
-      gameId: location.state?.lobbyId, 
+      lobbyId: location.state?.lobbyId, 
       choice,
       playerId: user.id
     });
