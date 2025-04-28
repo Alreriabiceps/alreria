@@ -1,1378 +1,1186 @@
-/* src/components/Pvp.module.css */
-
-/* Imports */
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+/* src/components/PlayerVsPlayer.module.css */
 
 /* ==========================================================================
-   Theme Variables & Base Wrapper
+   Imports
    ========================================================================== */
 
-.gameAreaWrapper {
-  --font-game: "Press Start 2P", cursive;
-  --font-body: "VT323", monospace; /* Changed to VT323 */
-  --font-ui: "Orbitron", sans-serif; /* Specific font for UI elements like HP, Timer */
-  --font-button: "Roboto", sans-serif; /* Specific font for standard buttons */
-  --color-accent: #00ff9d;
-  --color-accent-hover: #80ffce;
-  --color-accent-secondary: #0ff; /* Cyan accent */
-  --color-accent-tertiary: #e040fb; /* Magenta accent */
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-text-dark: #1a1a2e; /* Dark background text */
-  --color-bg: #0c051a;
-  --color-panel: rgba(15, 12, 41, 0.9); /* Slightly more opaque */
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
-  --color-card-bg: rgba(40, 40, 60, 0.9); /* Default card BG */
-  --color-card-border: rgba(255, 255, 255, 0.15); /* Subtle border */
-  --color-card-hover-border: var(--color-accent-secondary);
-  --color-card-selected-border: var(--color-accent-tertiary);
-  --color-hp-full: #00ff9d; /* Green HP */
-  --color-hp-medium: #ffcc00; /* Yellow HP */
-  --color-hp-low: #ff3333; /* Red HP */
-  --color-feedback-correct: #00ff9d;
-  --color-feedback-wrong: #ff3333;
-  --color-feedback-draw: #ffcc00;
-  --color-surrender-bg: #c00;
-  --color-surrender-border: #a00;
-  --color-surrender-hover-bg: #e00;
-
-  /* Base Wrapper */
-  box-sizing: border-box; /* Apply globally */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 10px 40px 10px; /* Adjusted padding */
-  font-family: var(--font-body); /* Use VT323 as default body font */
-  background-color: var(--color-bg);
-  color: var(--color-text-base);
-  overflow-x: hidden; /* Prevent horizontal scrollbars */
-}
-
-/* Apply border-box to all elements within */
-.gameAreaWrapper *,
-.gameAreaWrapper *::before,
-.gameAreaWrapper *::after {
-  box-sizing: inherit;
-}
-
-.duelContainer {
-  width: 100%;
-  max-width: 1200px; /* Increased max-width slightly */
-  display: flex;
-  flex-direction: column;
-  /* Vertically stacks Opponent, Field, Player */
-  gap: 0; /* Remove gap, borders will handle separation */
-  flex-grow: 1; /* Allow container to grow */
-}
-
-/* ==========================================================================
-   Rock Paper Scissors Overlay
-   ========================================================================== */
-
-.rpsContainer {
-  /* Make it an overlay centered on the screen */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.95); /* Start slightly smaller */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem; /* Reduced gap */
-  padding: clamp(1.5rem, 5vw, 2.5rem); /* Responsive padding */
-  background: rgba(15, 12, 41, 0.95); /* Match panel color, more opaque */
-  border-radius: 15px;
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 0 5px 25px rgba(0, 255, 157, 0.2), 0 0 0 5px rgba(15, 12, 41, 0.8); /* Inner/Outer Glow */
-  width: 90%; /* Responsive width */
-  max-width: 600px;
-  z-index: 1000; /* Ensure it's on top */
-  animation: fadeInScaleUp 0.5s 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Bounce-in effect */
-  opacity: 0; /* Start hidden */
-}
-
-.rpsContainer h2 {
-  font-family: var(--font-game);
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
-  color: var(--color-accent);
-  text-shadow: 2px 2px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
-  margin-bottom: 15px; /* Reduced margin */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-/* Countdown Specifics */
-.countdownContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem; /* Reduced gap */
-  /* animation: fadeIn 0.5s ease-out; // Animation handled by parent */
-  text-align: center;
-  width: 100%;
-}
-
-.countdown {
-  /* Structure exists, styling refined below */
-  width: 100%;
-}
-
-.countdownNumber {
-  font-size: clamp(3rem, 15vw, 5rem);
-  font-family: var(--font-game);
-  color: var(--color-accent);
-  animation: pulse 1s infinite ease-in-out;
-  text-shadow: 0 0 15px var(--color-accent); /* Increased shadow */
-  line-height: 1; /* Prevent extra vertical space */
-  margin-bottom: 0.5rem;
-}
-
-.countdownText {
-  font-family: var(--font-body); /* Use body font */
-  font-size: clamp(1rem, 4vw, 1.4rem); /* Responsive size */
-  color: var(--color-text-muted); /* Muted color */
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-/* RPS Choices */
-.rpsChoices {
-  display: flex;
-  gap: clamp(1rem, 4vw, 2rem); /* Responsive gap */
-  margin: 1.5rem 0; /* Reduced margin */
-  transition: transform 0.3s ease; /* Smoother transition */
-  justify-content: center;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.rpsChoices.animate {
-  /* Use a slightly different shake */
-  animation: subtleShake 0.4s ease-in-out;
-}
-
-.rpsChoice {
-  width: clamp(70px, 18vw, 100px); /* Adjusted size */
-  height: clamp(70px, 18vw, 100px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--color-panel-border); /* Match panel border */
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease-out; /* Faster transition */
-  transform: scale(1);
-  flex-shrink: 0;
-}
-
-.rpsChoice:hover:not(.selected) { /* Avoid hover effect on selected */
-  transform: scale(1.1);
-  border-color: var(--color-accent-hover);
-  box-shadow: 0 0 15px var(--color-accent); /* Slightly smaller shadow */
-}
-
-.rpsChoice.selected {
-  transform: scale(1.15); /* Slightly less scale */
-  border-color: var(--color-accent);
-  box-shadow: 0 0 20px var(--color-accent), inset 0 0 10px rgba(0, 255, 157, 0.3); /* Inner glow */
-}
-
-.rpsIcon {
-  font-size: clamp(1.8rem, 6vw, 2.8rem); /* Adjusted size */
-  transition: transform 0.3s ease; /* Smooth icon transition */
-  color: var(--color-text-base); /* Base color */
-}
-.rpsChoice:hover .rpsIcon {
-    color: var(--color-accent);
-}
-.rpsChoice.selected .rpsIcon {
-    color: var(--color-accent);
-    transform: scale(1.1); /* Scale icon when selected */
-}
-
-/* RPS Result Display */
-.rpsResult {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem; /* Reduced gap */
-  padding: clamp(1rem, 4vw, 1.5rem); /* Responsive padding */
-  background: rgba(0, 0, 0, 0.7); /* Same as parent choices area */
-  border-radius: 10px; /* Match container radius */
-  border: 1px dashed var(--color-panel-border); /* Dashed border for results */
-  animation: slideUp 0.5s ease-out forwards;
-  width: 100%;
-}
-
-.rpsPlayers {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 5vw, 1.5rem); /* Adjusted gap */
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.rpsPlayer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem; /* Reduced gap */
-  min-width: 100px; /* Slightly smaller min-width */
-  text-align: center;
-}
-
-.rpsVs {
-  font-size: clamp(1.2rem, 4vw, 1.8rem);
-  color: var(--color-accent);
-  font-family: var(--font-game);
-  align-self: center; /* Ensure vertical alignment */
-  padding: 0 0.5rem;
-}
-
-.rpsPlayerChoice {
-  width: clamp(50px, 14vw, 70px); /* Smaller choice display */
-  height: clamp(50px, 14vw, 70px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4); /* Slightly lighter */
-  border: 2px solid var(--color-panel-border);
-  border-radius: 50%;
-  font-size: clamp(1.5rem, 5vw, 2.2rem); /* Adjusted icon size */
-  transition: all 0.3s ease;
-  color: var(--color-text-muted); /* Muted icon color initially */
-}
-
-.rpsPlayerChoice.winner {
-  transform: scale(1.15);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 25px var(--color-accent);
-  animation: winnerPulse 1s infinite ease-in-out;
-  color: var(--color-accent); /* Highlight winning icon color */
-}
-
-.rpsPlayerName {
-  font-size: clamp(0.8rem, 2.5vw, 1rem); /* Adjusted size */
-  font-family: var(--font-ui); /* Use Orbitron */
-  color: var(--color-text-base); /* Base color */
-  word-break: break-word; /* Prevent long names from breaking layout */
-  max-width: 100%;
-}
-
-/* RPS Result Message (WIN/LOSE/DRAW) */
-.rpsResultMessage {
-  font-size: clamp(1rem, 3.5vw, 1.4rem); /* Adjusted size */
-  font-family: var(--font-game); /* Game font */
-  text-align: center;
-  padding: 0.8rem 1.5rem; /* Adjusted padding */
-  border-radius: 5px; /* Smaller radius */
-  background: rgba(0, 0, 0, 0.6); /* Match choices background */
-  width: 100%;
-  margin-top: 1rem; /* Space above message */
-  border-width: 2px;
-  border-style: solid;
-}
-
-.rpsResultMessage.player { /* Win */
-  color: var(--color-feedback-correct);
-  border-color: var(--color-feedback-correct);
-  box-shadow: 0 0 10px var(--color-feedback-correct);
-}
-
-.rpsResultMessage.opponent { /* Lose */
-  color: var(--color-feedback-wrong);
-  border-color: var(--color-feedback-wrong);
-  box-shadow: 0 0 10px var(--color-feedback-wrong);
-}
-
-.rpsResultMessage.draw {
-  color: var(--color-feedback-draw);
-  border-color: var(--color-feedback-draw);
-  box-shadow: 0 0 10px var(--color-feedback-draw);
-}
-
-.rpsPrize {
-  font-family: var(--font-body); /* Body font */
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  color: var(--color-text-muted);
-  text-align: center;
-  padding: 0.8rem; /* Adjusted padding */
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  border: 1px dashed var(--color-divider); /* Use defined divider */
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-/* ==========================================================================
-   Base Game Layout (Opponent/Field/Player Areas)
-   ========================================================================== */
-.playerInfoArea { /* Common styles for top/bottom bars */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px; /* Default padding */
-  width: 100%;
-  position: relative;
-  background-color: var(--color-panel); /* Use panel color */
-  z-index: 5; /* Below center box */
-  flex-shrink: 0;
-  min-height: 180px; /* Adjusted min-height */
-  border-left: 2px solid var(--color-panel-border);
-  border-right: 2px solid var(--color-panel-border);
-}
-
-.opponentInfoArea { /* Top bar */
-  order: 1;
-  border-top: 2px solid var(--color-panel-border);
-  border-bottom: 1px solid var(--color-panel-border);
-}
-
-.fieldArea { /* Middle zone */
-  order: 2;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  position: relative;
-  min-height: 160px; /* Adjusted field height */
-  overflow: hidden;
-  transition: box-shadow 0.5s ease-in-out;
-  z-index: 10; /* Above player bars, below RPS/Game Over */
-  /* Optional background for field */
-  background: linear-gradient(rgba(12, 5, 26, 0.3), rgba(29, 17, 53, 0.6)), url('/path/to/field-texture.png'); /* Example texture */
-  background-size: cover;
-}
-
-.fieldArea.attackingGlow {
-  /* Apply glow during attacks - specific color/intensity TBD */
-  box-shadow: inset 0 0 25px rgba(255, 51, 51, 0.4);
-}
-
-.playerInfoAreaLocal { /* Bottom bar */
-  order: 3;
-  border-top: 1px solid var(--color-panel-border);
-  border-bottom: 2px solid var(--color-panel-border);
-}
-
-/* Center Content Wrapper (used for attack animations) */
-.centerContentContainer {
-  transition: transform 0.3s ease-in-out;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative; /* For absolute timer positioning */
-  z-index: 20; /* Above field glow */
-}
-
-/* ==========================================================================
-      Player/Opponent HP and Info
-      ========================================================================== */
-.hpContainer {
-  display: flex;
-  flex-direction: column;
-  width: 180px; /* Default width */
-  flex-shrink: 0;
-  position: relative;
-  transition: transform 0.1s ease-in-out;
-}
-
-.hpContainer.shakeHp {
-  animation: shakeHpBar 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-
-.playerInfoAreaLocal .hpContainer { /* Align Local player right */
-  align-items: flex-end;
-  text-align: right;
-}
-
-.opponentInfoArea .hpContainer { /* Align Opponent left */
-  align-items: flex-start;
-  text-align: left;
-}
-
-.username {
-  font-family: var(--font-ui); /* Orbitron */
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-text-base);
-  margin-bottom: 6px; /* Reduced margin */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-.hpBarContainer {
-  width: 100%;
-  height: 14px; /* Slightly thinner bar */
-  background-color: rgba(0, 0, 0, 0.6); /* Darker BG */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 7px; /* Match height */
-  overflow: hidden;
-  margin-bottom: 6px; /* Reduced margin */
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.5); /* Inner shadow */
-}
-
-.hpBarFill {
-  height: 100%;
-  width: 100%; /* Start full */
-  background-color: var(--color-hp-full);
-  transition: width 0.4s ease-out, background-color 0.4s ease;
-  box-shadow: 0 0 4px rgba(0, 255, 157, 0.5); /* Glow effect */
-}
-
-.hpBarFill.mediumHp {
-  background-color: var(--color-hp-medium);
-  box-shadow: 0 0 4px var(--color-hp-medium);
-}
-
-.hpBarFill.lowHp {
-  background-color: var(--color-hp-low);
-  box-shadow: 0 0 5px var(--color-hp-low);
-  animation: pulseHpLow 1.5s infinite ease-in-out;
-}
-
-.hpText {
-  font-family: var(--font-ui); /* Orbitron */
-  font-size: 0.9rem;
-  font-weight: 500; /* Medium weight */
-  color: var(--color-text-muted);
-}
-
-/* ==========================================================================
-      Hand Area & Card Count
-      ========================================================================== */
-.handArea {
-  display: flex;
-  align-items: center;
-  flex-grow: 1; /* Takes space between HP and Deck/Grave */
-  justify-content: center; /* Center cards */
-  position: relative;
-  min-width: 150px; /* Min width required */
-  padding: 0 10px;
-  margin: 0 15px;
-  overflow-x: auto; /* Enable horizontal scroll if needed */
-  overflow-y: hidden;
-  min-height: 160px; /* Default height */
-  scrollbar-width: thin; /* Firefox scrollbar */
-  scrollbar-color: var(--color-accent) rgba(0,0,0,0.3); /* Firefox */
-}
-
-.handArea::-webkit-scrollbar {
-    height: 6px; /* Thinner scrollbar for webkit */
-}
-.handArea::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.3);
-    border-radius: 3px;
-}
-.handArea::-webkit-scrollbar-thumb {
-    background-color: var(--color-panel-border);
-    border-radius: 3px;
-}
-
-.handArea>.card {
-  flex-shrink: 0; /* Prevent cards shrinking */
-  /* Margin/overlap handled by card style */
-}
-
-/* Specific alignments if needed (usually center is fine) */
-/* .playerHandArea { justify-content: center; } */
-/* .opponentHandArea { justify-content: center; } */
-
-.cardCount {
-  position: absolute;
-  bottom: 5px; /* Closer to edge */
-  right: 10px;
-  font-family: var(--font-ui); /* Orbitron */
-  font-size: 1rem;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.75);
-  color: var(--color-accent-secondary); /* Cyan */
-  padding: 2px 7px; /* Tighter padding */
-  border-radius: 50%;
-  border: 1px solid var(--color-accent-secondary);
-  min-width: 26px; /* Consistent width */
-  min-height: 26px;
-  text-align: center;
-  line-height: 22px; /* Center number vertically */
-  z-index: 50; /* Above cards */
-  box-shadow: 0 0 5px var(--color-accent-secondary);
-}
-
-.opponentHandArea .cardCount { /* Reposition for opponent */
-  top: 5px;
-  bottom: auto;
-}
-
-/* ==========================================================================
-      Card Styling - Base (Large Defaults, Scaled Down in MQ)
-      ========================================================================== */
-.card {
-  width: 120px; /* Default large size */
-  height: 170px; /* Default large size */
-  border-radius: 8px; /* Standard radius */
-  border: 1px solid var(--color-card-border);
-  box-shadow: 2px 2px 0px var(--color-pixel-shadow), 0 2px 5px rgba(0, 0, 0, 0.3); /* Pixel + Soft shadow */
-  color: var(--color-text-base);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  transition: transform 0.25s ease-out, box-shadow 0.25s ease, border-color 0.25s ease, margin-left 0.25s ease, z-index 0s 0.25s; /* Delay z-index change */
-  user-select: none;
-  cursor: default; /* Default, overridden later */
-  background-color: var(--color-card-bg);
-  margin-left: -65px; /* Default overlap */
-}
-
-.handArea>.card:first-child {
-  margin-left: 0; /* First card has no overlap */
-}
-
-/* Card targeting player's hand */
-.playerHandCard {
-  cursor: pointer;
-}
-
-/* Card Hover/Select Effects */
-.playerHandCard.selectable:hover {
-  transform: translateY(-30px) scale(1.08);
-  z-index: 200; /* Bring to front */
-  border-color: var(--color-card-hover-border);
-  box-shadow: 3px 3px 0px var(--color-pixel-shadow), 0 5px 15px rgba(0, 0, 0, 0.4), 0 0 15px var(--color-card-hover-border);
-  margin-left: -45px; /* Reduce overlap for neighbors */
-  margin-right: 20px; /* Space after hovered card */
-  transition-delay: 0s; /* Z-index immediately */
-}
-.playerHandCard.selectable:hover+.card { /* Card immediately after hovered */
-  margin-left: -45px; /* Match reduced overlap */
-}
-
-.playerHandCard.selected {
-  transform: translateY(-45px) scale(1.12); /* Lift higher */
-  border-color: var(--color-card-selected-border);
-  box-shadow: 3px 3px 0px var(--color-pixel-shadow), 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 20px var(--color-card-selected-border);
-  z-index: 199; /* Slightly below hover but above others */
-  margin-left: -45px; /* Consistent reduced overlap */
-  margin-right: 20px;
-  transition-delay: 0s; /* Z-index immediately */
-}
-.playerHandCard.selected+.card {
-  margin-left: -45px;
-}
-
-/* Opponent Hand Card Styling */
-.opponentHandCard {
-  width: 85px; /* Default size */
-  height: 120px;
-  margin-left: -45px; /* Default overlap */
-  cursor: default; /* Not interactive */
-}
-.opponentHandCard .cardArtPlaceholder,
-.opponentHandCard .cardTextPreview {
-  display: none; /* Hide internals */
-}
-.opponentHandCard .cardBack {
-  display: flex; /* Show card back */
-}
-
-
-/* Card Internals */
-.cardArtPlaceholder {
-  height: 60%; /* Default art area size */
-  font-size: 2.8rem; /* Size based on card size */
-  font-family: var(--font-ui); /* Orbitron */
-  color: var(--color-accent-secondary); /* Cyan */
-  opacity: 0.4;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid var(--color-card-border); /* Separator */
-}
-
-.cardTextPreview {
-  flex-grow: 1;
-  padding: 8px; /* Default padding */
-  font-size: 0.8rem; /* Base size */
-  line-height: 1.3;
-  color: var(--color-text-muted);
-  text-align: center;
-  overflow: hidden;
-  font-family: var(--font-body); /* Body font */
-}
-
-.cardBack {
-  display: none; /* Hidden by default */
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(145deg, #1f1a33, #3a0ca3); /* Darker gradient */
-  align-items: center;
-  justify-content: center;
-  border-radius: inherit; /* Inherit from parent */
-}
-
-.cardBack::before {
-  content: "?";
-  font-size: 3.5rem; /* Scaled symbol */
-  font-family: var(--font-game); /* Game font */
-  color: var(--color-accent-secondary);
-  opacity: 0.6;
-  text-shadow: 0 0 8px var(--color-accent-secondary);
-}
-
-.drawnCardAnimation { /* Added to card when drawn */
-  animation: drawCardAnimation 0.5s ease-out forwards;
-}
-
-/* ==========================================================================
-      Central Display Area (Question/Feedback Box)
-      ========================================================================== */
-.centerDisplayBox {
-  background-color: var(--color-panel); /* Use panel color */
-  border: 1px solid var(--color-accent-secondary); /* Cyan border */
-  padding: clamp(15px, 4vw, 25px) clamp(20px, 5vw, 30px); /* Responsive padding */
-  border-radius: 10px;
-  text-align: center;
-  max-width: 750px; /* Adjusted max width */
-  width: 90%;
-  box-shadow: 3px 3px 0px var(--color-pixel-shadow), 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0,0,0,0.3);
-  position: relative; /* For timer */
-  animation: fadeInCenterBox 0.4s ease-out forwards;
-  margin: 10px 0; /* Ensure some space */
-  z-index: 15; /* Above fieldArea glow, below animations/overlays */
-}
-
-/* Specific Box Types */
-.messageBox { /* General messages */
-  font-family: var(--font-body);
-  font-size: 1.1rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-}
-
-.feedbackBox { /* Correct/Wrong feedback */
-  font-family: var(--font-game); /* Game font for feedback */
-  font-size: clamp(1rem, 3.5vw, 1.3rem);
-  padding: 10px 15px;
-  border-radius: 5px;
-  border: 2px solid; /* Color set below */
-}
-.feedbackBox.correctFeedback {
-  color: var(--color-feedback-correct);
-  border-color: var(--color-feedback-correct);
-  background-color: rgba(0, 255, 157, 0.1);
-  box-shadow: 0 0 10px var(--color-feedback-correct);
-}
-.feedbackBox.wrongFeedback {
-  color: var(--color-feedback-wrong);
-  border-color: var(--color-feedback-wrong);
-  background-color: rgba(255, 51, 51, 0.1);
-  box-shadow: 0 0 10px var(--color-feedback-wrong);
-}
-
-.askConfirmBox { /* "Are you sure?" */
-  /* Default box style is sufficient */
-}
-.askQuestionText { /* Supporting text */
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  margin-bottom: 8px;
-  font-family: var(--font-body);
-}
-.questionTextConfirm { /* The question text being confirmed */
-  font-family: var(--font-body);
-  font-size: clamp(1.1rem, 4vw, 1.4rem);
-  color: var(--color-text-base);
-  margin-bottom: 20px;
-  font-style: italic;
-  word-wrap: break-word; /* Allow wrapping */
-}
-
-.answerBox { /* Main question display */
- /* Default box style is sufficient */
-}
-.questionText {
-  font-family: var(--font-body); /* Body font */
-  font-size: clamp(1.2rem, 4.5vw, 1.6rem); /* Larger question text */
-  color: var(--color-text-base);
-  margin-bottom: 25px; /* More space */
-  line-height: 1.5;
-  word-wrap: break-word; /* Allow wrapping */
-}
-
-.timerDisplay {
-  position: absolute;
-  top: 10px; /* Closer to top */
-  right: 12px; /* Closer to right */
-  font-family: var(--font-ui); /* Orbitron */
-  font-size: clamp(0.9rem, 3vw, 1.1rem);
-  font-weight: bold;
-  color: var(--color-accent-tertiary); /* Magenta */
-  background: rgba(0, 0, 0, 0.7);
-  padding: 3px 8px;
-  border-radius: 5px;
-  border: 1px solid var(--color-accent-tertiary);
-  z-index: 25; /* Above box content */
-  box-shadow: 0 0 5px var(--color-accent-tertiary);
-}
-
-/* Apply attack shake animations to the wrapper */
-.playerAttackingAnim .centerContentContainer {
-  animation: playerAttackShake 0.6s ease-in-out both;
-}
-.opponentAttackingAnim .centerContentContainer {
-  animation: opponentAttackShake 0.6s ease-in-out both;
-}
-
-/* ==========================================================================
-      Answer Options & Buttons
-      ========================================================================== */
-.answerOptions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjusted minmax */
-  gap: clamp(10px, 3vw, 15px); /* Responsive gap */
-  width: 100%;
-  margin-top: 20px; /* Reduced space */
-}
-
-.answerButton {
-  font-family: var(--font-button); /* Roboto */
-  padding: clamp(12px, 4vw, 16px) 15px; /* Responsive padding */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--color-text-base);
-  background-color: rgba(255, 255, 255, 0.08);
-  font-size: clamp(0.9rem, 3.5vw, 1.1rem); /* Responsive font size */
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 6px; /* Slightly less radius */
-  user-select: none;
-  text-align: center;
-  line-height: 1.4; /* Ensure text doesn't touch borders */
-}
-
-.answerButton:hover:not(:disabled):not(.selectedAnswer) {
-  background-color: rgba(0, 255, 255, 0.15);
-  border-color: var(--color-accent-secondary);
-  transform: translateY(-2px);
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.answerButton.selectedAnswer {
-  background-color: var(--color-accent-secondary);
-  color: var(--color-text-dark); /* Dark text on light bg */
-  border-color: var(--color-accent-secondary);
-  box-shadow: 0 0 10px var(--color-accent-secondary);
-  font-weight: bold;
-  transform: scale(1.02); /* Slight scale when selected */
-}
-
-.answerButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(50%);
-  transform: none !important; /* Prevent transforms */
-  box-shadow: none !important;
-}
-
-/* Generic Game Buttons (Confirm, Surrender etc.) */
-.gameButton {
-  font-family: var(--font-game); /* Use Press Start 2P */
-  padding: 10px 20px;
-  border: 1px solid var(--color-accent-secondary); /* Cyan border */
-  color: var(--color-accent-secondary);
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 4px; /* Pixel style radius */
-  user-select: none;
-  text-align: center;
-  box-shadow: 2px 2px 0px var(--color-pixel-shadow); /* Pixel shadow */
-  display: inline-flex; /* Allow icon alignment */
-  align-items: center;
-  justify-content: center;
-}
-
-.gameButton:hover:not(:disabled) {
-  background-color: var(--color-accent-secondary);
-  color: var(--color-text-dark);
-  box-shadow: 1px 1px 0px var(--color-pixel-shadow), 0 0 8px var(--color-accent-secondary); /* Adjusted hover shadow */
-  transform: translate(1px, 1px); /* Slight push */
-}
-
-.gameButton:active:not(:disabled) {
-    transform: translate(2px, 2px); /* Push further */
-    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5); /* Inner shadow */
-}
-
-.gameButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  filter: grayscale(60%);
-  box-shadow: 2px 2px 0px var(--color-pixel-shadow); /* Maintain base shadow */
-  transform: none;
-}
-
-.confirmButton { /* Styles for specific 'confirm' action */
-  margin-top: 15px; /* Space above confirm button */
-  background-color: var(--color-accent-tertiary); /* Magenta BG */
-  color: var(--color-text-base);
-  border-color: var(--color-accent-tertiary);
-}
-.confirmButton:hover:not(:disabled) {
-  background-color: #f065ff; /* Lighter Magenta */
-  border-color: #f065ff;
-  color: var(--color-text-base); /* Keep text color */
-  box-shadow: 1px 1px 0px var(--color-pixel-shadow), 0 0 8px var(--color-accent-tertiary);
-}
-
-.surrenderButton {
-  /* Position absolutely relative to parent HP container initially */
-  position: absolute;
-  bottom: 8px; /* Adjust as needed */
-  left: 0; /* Local player aligned right, so this sits left */
-  composes: gameButton; /* Inherit base button styles */
-  padding: 6px 12px;
-  font-size: 0.7rem;
-  background-color: var(--color-surrender-bg);
-  border-color: var(--color-surrender-border);
-  color: #fff;
-  z-index: 10; /* Above hand area potentially */
-}
-
-.opponentInfoArea .surrenderButton { /* Reposition for opponent */
-    left: auto;
-    right: 0;
-}
-
-.surrenderButton:hover:not(:disabled) {
-  background-color: var(--color-surrender-hover-bg);
-  border-color: var(--color-surrender-border);
-  color: #fff; /* Keep color */
-}
-
-/* ==========================================================================
-      Game Over Overlay
-      ========================================================================== */
-.gameOverOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(12, 5, 26, 0.95); /* Use background color */
-  z-index: 1000; /* Highest layer */
-  animation: fadeInOverlay 0.6s ease-out forwards;
-  padding: 20px;
-  text-align: center;
-}
-
-.gameOverOverlay h2 {
-  font-family: var(--font-game); /* Game font */
-  font-size: clamp(2rem, 8vw, 3rem); /* Responsive */
-  margin-bottom: 25px;
-  color: var(--color-accent-secondary); /* Cyan */
-  text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-secondary);
-}
-
-.gameOverOverlay p {
-  font-family: var(--font-body); /* Body font */
-  font-size: clamp(1.1rem, 4vw, 1.4rem);
-  margin-bottom: 35px; /* More space */
-  color: var(--color-text-base);
-  line-height: 1.6;
-}
-
-.playAgainButton {
-  composes: gameButton; /* Use base game button */
-  font-size: clamp(1rem, 4vw, 1.2rem); /* Larger play again */
-  padding: 15px 35px;
-  color: var(--color-accent); /* Use primary accent */
-  border-color: var(--color-accent);
-  background-color: rgba(0, 255, 157, 0.15);
-}
-.playAgainButton:hover:not(:disabled) {
-    background-color: var(--color-accent);
-    color: var(--color-text-dark);
-    border-color: var(--color-accent);
-    box-shadow: 1px 1px 0px var(--color-pixel-shadow), 0 0 10px var(--color-accent);
-}
-
-
-/* ==========================================================================
-      Subject/Card Selection Screens
-      ========================================================================== */
-
-.subjectSelectionContainer,
-.cardSelectionContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  flex-grow: 1; /* Take available space */
-  padding: clamp(1rem, 4vw, 2rem);
-  gap: 1.5rem;
-}
-
-.selectionTitle { /* Added generic title style */
-    font-family: var(--font-game);
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    color: var(--color-accent);
-    text-shadow: 2px 2px 0 var(--color-pixel-shadow);
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-/* Subject Selection */
-.subjectGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjusted minmax */
-  gap: clamp(1rem, 4vw, 1.5rem);
-  width: 100%;
-  max-width: 1000px; /* Limit width */
-  padding: 1rem 0; /* Vertical padding */
-}
-
-.subjectButton {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1.5rem, 5vw, 2rem);
-  background: var(--color-panel);
-  border-radius: 10px; /* Less round */
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--color-panel-border);
-  min-height: 150px; /* Ensure decent height */
-  text-align: center;
-  box-shadow: 2px 2px 0px var(--color-pixel-shadow);
-}
-
-.subjectButton::before { /* Shimmer effect */
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 20px;
-  height: 200%;
-  background: rgba(255, 255, 255, 0.1);
-  transform: rotate(45deg);
-  transition: left 0.6s ease;
-}
-
-.subjectButton:hover {
-  transform: translateY(-4px) scale(1.03); /* Lift and scale */
-  box-shadow: 3px 3px 0px var(--color-pixel-shadow), 0 8px 15px rgba(0, 0, 0, 0.3), 0 0 10px var(--color-panel-border);
-  border-color: var(--color-accent);
-}
-
-.subjectButton:hover::before {
-  left: 120%;
-}
-
-.subjectIcon { /* Assumes Font Awesome or similar library */
-  font-size: clamp(2.5rem, 8vw, 3rem);
-  margin-bottom: 1rem;
-  transition: transform 0.3s ease;
-  color: var(--color-accent); /* Use accent color */
-  /* Example: className="fas fa-flask" */
-}
-
-.subjectButton:hover .subjectIcon {
-  transform: scale(1.1);
-}
-
-.subjectName {
-  font-size: clamp(1rem, 3.5vw, 1.2rem);
-  color: var(--color-text-base);
-  font-family: var(--font-ui); /* Orbitron */
-}
-
-/* Card Selection */
-.cardSelectionGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two columns */
-  gap: clamp(1.5rem, 4vw, 2rem);
-  width: 100%;
-  max-width: 1200px; /* Max width */
-  padding: 1rem 0;
-  flex-grow: 1; /* Allow columns to grow vertically */
-  min-height: 400px; /* Minimum height for the grid */
-}
-
-.availableQuestions,
-.selectedQuestions {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: clamp(1rem, 3vw, 1.5rem);
-  background: rgba(15, 12, 41, 0.8); /* Use panel color with transparency */
-  border-radius: 10px;
-  min-height: 300px; /* Minimum height for columns */
-  max-height: 60vh; /* Limit max height */
-  overflow-y: auto;
-  border: 1px solid var(--color-panel-border);
-  scrollbar-width: thin; /* Consistent scrollbar */
-  scrollbar-color: var(--color-accent) rgba(0,0,0,0.3);
-}
-.availableQuestions::-webkit-scrollbar,
-.selectedQuestions::-webkit-scrollbar { height: 6px; }
-.availableQuestions::-webkit-scrollbar-track,
-.selectedQuestions::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-.availableQuestions::-webkit-scrollbar-thumb,
-.selectedQuestions::-webkit-scrollbar-thumb { background-color: var(--color-panel-border); }
-
-.columnTitle { /* Added Title for columns */
-    font-family: var(--font-game);
-    font-size: 1.1rem;
-    color: var(--color-accent);
-    margin-bottom: 1rem;
-    text-align: center;
-    border-bottom: 1px dashed var(--color-divider);
-    padding-bottom: 0.5rem;
-}
-
-.questionCard {
-  padding: 1rem; /* Adjust padding */
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  font-family: var(--font-body); /* Use body font */
-  font-size: 0.9rem; /* Base font size */
-  color: var(--color-text-muted);
-  line-height: 1.4;
-}
-/* Remove shimmer effect, simpler hover */
-.questionCard:hover {
-  background: rgba(0, 255, 157, 0.1);
-  border-color: var(--color-accent);
-  color: var(--color-text-base); /* Brighten text */
-  transform: translateX(3px); /* Slight indent */
-}
-.questionCard.selected { /* Indicate selected state */
-  background: rgba(0, 150, 136, 0.2); /* Teal background */
-  border-color: #009688;
-  color: var(--color-text-base);
-  opacity: 0.7; /* Slightly fade selected */
-  cursor: default; /* No pointer needed once moved */
-}
-
-/* Pagination (if used with card/subject selection) */
-.pagination {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap; /* Allow wrap */
-  gap: 0.8rem; /* Reduce gap */
-  margin-top: 1.5rem; /* Space above pagination */
-  z-index: 1;
-}
-
-.paginationButton {
-  composes: gameButton; /* Inherit base button style */
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  border-color: var(--color-divider);
-  background: rgba(255,255,255,0.05);
-}
-
-.paginationButton:hover:not(.active) {
-  color: var(--color-accent-secondary);
-  border-color: var(--color-accent-secondary);
-  background: rgba(0, 255, 255, 0.1);
-}
-
-.paginationButton.active {
-  color: var(--color-text-dark);
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  cursor: default;
-  transform: none;
-  box-shadow: 2px 2px 0px var(--color-pixel-shadow), inset 0 0 5px rgba(0,0,0,0.2);
-}
-
-/* ==========================================================================
-      Loading and Error States
-      ========================================================================== */
-
-.loadingContainer, .errorContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px; /* Reduced height */
-    gap: 1rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 500px; /* Max width for these states */
-    margin: 2rem auto; /* Center */
-    border-radius: 10px;
-}
-
-.loadingContainer {
-   /* No extra background needed */
-}
-
-.loadingSpinner {
-  width: 40px; /* Slightly smaller */
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.2); /* More visible base */
-  border-left-color: var(--color-accent); /* Primary accent spinner */
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loadingText { /* Optional text */
-    color: var(--color-text-muted);
-    font-family: var(--font-body);
-    font-size: 1rem;
-}
-
-.errorContainer {
-  background: rgba(255, 51, 51, 0.1); /* Use error color */
-  border: 1px solid var(--color-feedback-wrong);
-}
-
-.errorText {
-  color: var(--color-feedback-wrong);
-  font-size: 1.1rem; /* Adjusted size */
-  font-family: var(--font-body);
-  text-align: center;
-  line-height: 1.5;
-}
-
-.retryButton {
-  composes: gameButton; /* Base style */
-  padding: 10px 25px;
-  color: var(--color-text-base);
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  font-size: 0.9rem;
-}
-.retryButton:hover {
-    background: var(--color-accent-hover);
-    color: var(--color-text-dark);
-    border-color: var(--color-accent-hover);
-}
-
-
-/* ==========================================================================
-      Animations & Keyframes (Consolidated & Cleaned)
-      ========================================================================== */
-/* General */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeInScaleUp {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeInCenterBox { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* RPS */
-@keyframes pulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.05); filter: brightness(1.2); } }
-@keyframes subtleShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-@keyframes celebrate { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } } /* Simpler celebrate */
-@keyframes winnerPulse { 0%, 100% { box-shadow: 0 0 20px var(--color-accent); transform: scale(1.15); } 50% { box-shadow: 0 0 35px var(--color-accent); transform: scale(1.2); } }
-
-/* HP Bar */
-@keyframes pulseHpLow { 0%, 100% { filter: brightness(0.9); } 50% { filter: brightness(1.2); } }
-@keyframes shakeHpBar { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); } }
-
-/* Card */
-@keyframes drawCardAnimation { from { opacity: 0; transform: translateY(-60px) scale(0.8) rotate(-10deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); } }
-
-/* Attack */
-@keyframes playerAttackShake { 0%, 100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(8px) rotate(0.8deg); } 50% { transform: translateX(-4px) rotate(-0.4deg); } 75% { transform: translateX(4px) rotate(0.4deg); } }
-@keyframes opponentAttackShake { 0%, 100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-8px) rotate(-0.8deg); } 50% { transform: translateX(4px) rotate(0.4deg); } 75% { transform: translateX(-4px) rotate(-0.4deg); } }
-
-
-/* ==========================================================================
-      RESPONSIVE STYLES
-      ========================================================================== */
-
-/* Adjustments for slightly smaller desktops */
-@media (max-width: 1200px) {
-  .card { width: 110px; height: 155px; margin-left: -60px; }
-  .opponentHandCard { width: 80px; height: 112px; margin-left: -40px; }
-  .playerHandCard.selectable:hover, .playerHandCard.selected { margin-left: -40px; margin-right: 15px; }
-  .playerHandCard.selectable:hover + .card, .playerHandCard.selected + .card { margin-left: -40px; }
-  .playerInfoArea { min-height: 165px; }
-  .handArea { min-height: 140px; margin: 0 10px; }
-}
-
-/* Tablet */
-@media (max-width: 992px) {
-  .hpContainer { width: 150px; }
-  .username { font-size: 1rem; }
-  .playerInfoArea { min-height: 150px; padding: 8px 12px; }
-  .handArea { min-height: 130px; margin: 0 8px; }
-  .card { width: 90px; height: 128px; margin-left: -50px; }
-  .opponentHandCard { width: 70px; height: 98px; margin-left: -35px; }
-  .playerHandCard.selectable:hover, .playerHandCard.selected { transform: translateY(-25px) scale(1.08); margin-left: -30px; margin-right: 15px; }
-  .playerHandCard.selectable:hover + .card, .playerHandCard.selected + .card { margin-left: -30px; }
-  .cardArtPlaceholder { font-size: 2.2rem; }
-  .cardTextPreview { font-size: 0.7rem; }
-  .cardBack::before { font-size: 2.8rem; }
-  .questionText { font-size: clamp(1.1rem, 4vw, 1.4rem); }
-  .answerOptions { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-  .answerButton { font-size: clamp(0.85rem, 3vw, 1rem); padding: 12px 14px; }
-
-  /* Selection Screens */
-   .cardSelectionGrid { grid-template-columns: 1fr; max-height: none; } /* Stack columns */
-   .availableQuestions, .selectedQuestions { max-height: 45vh; min-height: 250px; }
-}
-
-/* Large Phones / Small Tablets (Portrait) */
-@media (max-width: 768px) {
-  .gameAreaWrapper { padding: 10px 5px 30px 5px; }
-  .hpContainer { width: 120px; }
-  .username { font-size: 0.9rem; }
-  .hpBarContainer { height: 12px; border-radius: 6px; }
-  .hpText { font-size: 0.8rem; }
-  .playerInfoArea { min-height: 130px; padding: 6px 8px; }
-  .handArea { min-height: 120px; margin: 0 5px; }
-  .card { width: 80px; height: 115px; margin-left: -45px; border-radius: 6px; }
-  .opponentHandCard { width: 65px; height: 92px; margin-left: -33px; border-radius: 6px; }
-  .playerHandCard.selectable:hover, .playerHandCard.selected { transform: translateY(-20px) scale(1.06); margin-left: -28px; margin-right: 12px; }
-  .playerHandCard.selectable:hover + .card, .playerHandCard.selected + .card { margin-left: -28px; }
-  .cardCount { font-size: 0.8rem; min-width: 22px; min-height: 22px; line-height: 18px; bottom: 3px; right: 5px; }
-  .opponentHandArea .cardCount { top: 3px; }
-  .fieldArea { min-height: 140px; }
-  .centerDisplayBox { padding: 12px 15px; max-width: 95%; }
-  .questionText { font-size: clamp(1rem, 4vw, 1.3rem); margin-bottom: 15px; }
-  .answerOptions { grid-template-columns: 1fr; gap: 10px; } /* Stack answers sooner */
-  .answerButton { font-size: clamp(0.8rem, 3.5vw, 1rem); padding: 10px 12px; }
-  .gameButton { font-size: 0.7rem; padding: 8px 15px; }
-  .timerDisplay { font-size: 0.9rem; top: 6px; right: 8px; }
-  .surrenderButton { padding: 5px 10px; font-size: 0.6rem; bottom: 5px; }
-  .gameOverOverlay h2 { font-size: clamp(1.8rem, 7vw, 2.5rem); }
-  .gameOverOverlay p { font-size: clamp(1rem, 3.5vw, 1.2rem); }
-  .playAgainButton { font-size: clamp(0.9rem, 3.5vw, 1.1rem); padding: 12px 30px; }
-
-  /* RPS on mobile */
-  .rpsContainer { width: 95%; gap: 1rem; }
-  .rpsChoices { gap: 1rem; margin: 1rem 0; }
-  .rpsChoice { width: clamp(60px, 16vw, 80px); height: clamp(60px, 16vw, 80px); }
-  .rpsIcon { font-size: clamp(1.5rem, 5vw, 2.5rem); }
-  .rpsResult { padding: 0.8rem; gap: 0.8rem; }
-  .rpsPlayers { gap: clamp(0.5rem, 3vw, 1rem); }
-  .rpsPlayer { min-width: 80px; }
-  .rpsVs { font-size: clamp(1rem, 3.5vw, 1.5rem); }
-  .rpsPlayerChoice { width: clamp(45px, 12vw, 60px); height: clamp(45px, 12vw, 60px); font-size: clamp(1.3rem, 4vw, 1.8rem); }
-  .rpsPlayerName { font-size: clamp(0.7rem, 2vw, 0.9rem); }
-  .rpsResultMessage { font-size: clamp(0.9rem, 3vw, 1.2rem); padding: 0.6rem 1rem; }
-
-  /* Selection screens */
-   .subjectGrid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-   .subjectButton { padding: 1rem; min-height: 120px; }
-   .subjectIcon { font-size: clamp(2rem, 7vw, 2.5rem); margin-bottom: 0.8rem; }
-   .subjectName { font-size: clamp(0.9rem, 3vw, 1.1rem); }
-   .cardSelectionGrid { gap: 1rem; padding: 0.5rem 0; }
-   .availableQuestions, .selectedQuestions { padding: 0.8rem; max-height: 40vh; min-height: 200px; }
-   .columnTitle { font-size: 1rem; }
-   .questionCard { padding: 0.8rem; font-size: 0.8rem; }
-}
-
-
-/* Small Mobiles - Aggressive Adjustments */
-@media (max-width: 480px) {
-  /* Use the layout shift from the original CSS - Player Info stacking */
-  .playerInfoArea {
-    min-height: auto; /* Allow shrinking */
-    padding: 8px 5px; /* Reduce padding */
-    flex-direction: column; /* Stack HP and Hand vertically */
-    align-items: stretch; /* Full width children */
-  }
-  .opponentInfoArea { /* Keep opponent horizontal for contrast? Or stack too? Stack for space */
-      flex-direction: column;
-      align-items: stretch;
-  }
-  .hpContainer {
-    width: 100%; /* Full width */
-    align-items: center !important; /* Center HP Bar/Text */
-    text-align: center !important;
-    margin-bottom: 5px; /* Space between HP and Hand */
-    order: 1; /* HP first */
-  }
-  .handArea {
-    order: 2; /* Hand below HP */
-    width: 100%;
-    justify-content: center; /* Center cards if space */
-    padding: 5px 5px 5px 5px; /* Reduced padding */
-    min-height: 105px; /* Further reduce height */
-    margin: 0;
-    flex-grow: 0; /* Don't let it grow excessively */
-    scrollbar-width: none; /* Hide scrollbar on tiny screens */
-    -ms-overflow-style: none;
-  }
-  .handArea::-webkit-scrollbar { display: none; }
-
-  .card {
-    width: 70px; /* Smaller cards */
-    height: 100px;
-    margin-left: -40px; /* Adjust overlap */
-    border-radius: 4px;
-  }
-  .handArea > .card:first-child { margin-left: 5px; } /* Prevent cutting off first */
-
-  .opponentHandCard {
-    width: 55px;
-    height: 78px;
-    margin-left: -30px;
-    border-radius: 4px;
-  }
-
-  /* Reduce hover/select effect drastically */
-  .playerHandCard.selectable:hover, .playerHandCard.selected {
-    transform: translateY(-12px) scale(1.05);
-    margin-left: -25px;
-    margin-right: 10px;
-  }
-  .playerHandCard.selectable:hover + .card, .playerHandCard.selected + .card {
-    margin-left: -25px;
-  }
-  .cardArtPlaceholder { font-size: 1.8rem; }
-  .cardTextPreview { font-size: 0.6rem; padding: 3px; }
-  .cardBack::before { font-size: 2.2rem; }
-  .cardCount { right: 3px; bottom: 3px; }
-
-  .fieldArea { min-height: 120px; padding: 5px; }
-  .centerDisplayBox { padding: 10px; width: 96%; }
-  .questionText { font-size: clamp(0.9rem, 3.5vw, 1.1rem); margin-bottom: 10px; }
-  .answerButton { font-size: 0.8rem; padding: 8px 10px; }
-  .feedbackBox { font-size: 0.9rem; }
-  .timerDisplay { font-size: 0.8rem; padding: 2px 5px; top: 4px; right: 5px;}
-
-  /* Position surrender button statically within the player's area flow */
-  .surrenderButton {
-    position: static; /* Remove absolute positioning */
-    width: 80%;
-    max-width: 150px; /* Max width */
-    margin: 10px auto 0 auto; /* Center below hand */
-    order: 3; /* Ensure it's last in the flex column */
-  }
-}
+   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+   @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+   
+   /* ==========================================================================
+         CSS Variables (Scoped to Container)
+         ========================================================================== */
+   .pvpContainer {
+     /* Theme Variables */
+     --font-game: 'Press Start 2P', cursive;
+     --font-body: 'VT323', monospace;
+     --color-accent: #00ff9d;
+     --color-accent-hover: #80ffce;
+     --color-text-base: #e0e0e0;
+     --color-text-muted: #a0a0a0;
+     --color-text-dark: #333333;
+     --color-bg-start: #0c051a;
+     --color-bg-mid: #1d1135;
+     --color-panel: rgba(30, 25, 65, 0.95);
+     --color-panel-border: rgba(0, 255, 157, 0.6);
+     --color-panel-border-glow: rgba(0, 255, 157, 0.3);
+     --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+     --color-input-bg: rgba(40, 35, 75, 0.8);
+     --color-input-border: rgba(0, 255, 157, 0.5);
+     --color-selected-border: #ffcc00;
+     --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
+     --color-button-secondary-border: rgba(255, 255, 255, 0.3);
+     --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
+     --color-cancel-button-bg: rgba(100, 100, 100, 0.6); /* Added for Cancel button */
+     --color-cancel-button-border: rgba(150, 150, 150, 0.8); /* Added */
+     --color-cancel-button-hover-bg: rgba(130, 130, 130, 0.7); /* Added */
+     --color-error: #ff6b6b;
+     --color-divider: rgba(255, 255, 255, 0.2); /* Added divider color */
+   
+     /* Base Styles */
+     box-sizing: border-box; /* Ensure padding/border are included in width/height */
+     min-height: 100vh;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     padding: 30px 15px 40px 15px; /* Slightly reduced padding */
+     font-family: var(--font-game);
+     background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+     color: var(--color-text-base);
+     overflow-x: hidden; /* Prevent horizontal scroll */
+   }
+   
+   /* Apply border-box to all elements within */
+   .pvpContainer *,
+   .pvpContainer *::before,
+   .pvpContainer *::after {
+     box-sizing: inherit;
+   }
+   
+   
+   /* ==========================================================================
+         Base Layout & Page Header
+         ========================================================================== */
+   
+   .pageHeader {
+     width: 100%;
+     max-width: 1100px;
+     margin-bottom: 30px;
+     text-align: left;
+     padding: 0 5px; /* Add slight horizontal padding if needed */
+   }
+   
+   .pageTitle {
+     font-size: clamp(1.8rem, 5vw, 2rem); /* Responsive font size */
+     color: var(--color-accent);
+     margin-bottom: 8px;
+     text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
+     word-break: break-word; /* Allow long titles to wrap */
+   }
+   
+   .pageSubtitle {
+     font-family: var(--font-body);
+     font-size: clamp(1rem, 4vw, 1.2rem); /* Responsive font size */
+     color: var(--color-text-muted);
+   }
+   
+   /* ==========================================================================
+         Main Grid and Panel Structure
+         ========================================================================== */
+   
+   .actionsGrid {
+     width: 100%;
+     max-width: 1100px;
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 30px;
+     margin-top: 10px;
+   }
+   
+   .panel {
+     background-color: var(--color-panel);
+     border: 2px solid var(--color-panel-border);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+                 0 0 15px var(--color-panel-border-glow),
+                 inset 0 0 10px rgba(0, 0, 0, 0.6);
+     padding: 25px 30px;
+     border-radius: 0;
+     animation: fadeIn 0.5s ease-out forwards;
+     display: flex;
+     flex-direction: column;
+     min-height: 280px; /* Revisit this, might remove in mobile */
+     /* Prevent panels from shrinking too much */
+     min-width: 0; /* Allows flex/grid items to shrink below content size if needed */
+   }
+   
+   .panelHeader {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+     color: var(--color-accent);
+     font-size: 1.1rem;
+     margin-bottom: 20px;
+     padding-bottom: 15px;
+     border-bottom: 1px dashed var(--color-divider);
+     width: 100%;
+   }
+   
+   .panelIcon {
+     font-size: 1.3rem;
+     opacity: 0.9;
+     flex-shrink: 0;
+     /* Ensure icon font is included or use SVGs/images */
+   }
+   
+   /* Grid placement (remains the same) */
+   .joinLobbyPanel { grid-column: span 1; }
+   .queuePanel { grid-column: span 1; }
+   
+   /* ==========================================================================
+         Generic Button Style
+         ========================================================================== */
+   
+   .gameButton {
+     font-family: var(--font-game);
+     padding: 12px 20px; /* Slightly larger padding for better tap target */
+     border: 2px solid var(--color-accent);
+     color: var(--color-accent);
+     background-color: rgba(0, 0, 0, 0.6);
+     text-transform: uppercase;
+     letter-spacing: 1.2px;
+     font-size: 0.8rem;
+     cursor: pointer;
+     transition: all 0.15s ease;
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+     border-radius: 0;
+     user-select: none;
+     white-space: nowrap;
+     text-align: center;
+     display: inline-flex; /* Better alignment if using icons */
+     align-items: center;
+     justify-content: center;
+     min-width: 100px; /* Minimum width for readability */
+   }
+   
+   .gameButton:hover:not(:disabled) {
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover);
+     transform: translate(-1px, -1px);
+   }
+   
+   .gameButton:active:not(:disabled) {
+     transform: translate(2px, 2px);
+     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+     background-color: var(--color-accent-hover);
+     color: var(--color-bg-start);
+   }
+   
+   /* Disabled state (consolidated) */
+   .gameButton:disabled,
+   .gameButton:disabled:hover,
+   .gameButton:disabled:active {
+     opacity: 0.4;
+     cursor: not-allowed;
+     filter: grayscale(50%);
+     background-color: rgba(0, 0, 0, 0.6);
+     color: var(--color-accent);
+     border-color: var(--color-accent);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+     transform: none;
+     /* Animation removal added later */
+   }
+   
+   /* Loading animation specifically for disabled buttons */
+   .gameButton:disabled.loading {
+       animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+   }
+   
+   /* Override disabled animation when not loading */
+   .gameButton:disabled:not(.loading) {
+       animation: none;
+   }
+   
+   
+   /* ==========================================================================
+         Inputs (Generic Improvements)
+         ========================================================================== */
+   
+   /* Base style for common inputs */
+   .textInputBase {
+     width: 100%; /* Default to full width */
+     padding: 12px 15px;
+     background-color: var(--color-input-bg);
+     border: 1px solid var(--color-input-border);
+     color: var(--color-text-base);
+     border-radius: 0;
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+     font-family: var(--font-body); /* Most text inputs should use body font */
+     font-size: 1.1rem; /* Consistent base size */
+     transition: all 0.2s ease;
+   }
+   
+   .textInputBase::placeholder {
+     color: var(--color-text-muted);
+     opacity: 0.8;
+   }
+   
+   .textInputBase:focus {
+     outline: none;
+     border-color: var(--color-selected-border);
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
+   }
+   
+   
+   /* ==========================================================================
+         Invite Friend Panel
+         ========================================================================== */
+   
+   .inviteForm {
+     display: flex;
+     flex-direction: column;
+     gap: 15px;
+     flex-grow: 1;
+   }
+   
+   .inviteInput {
+     composes: textInputBase; /* Use base input style */
+     font-size: 1.2rem; /* Keep specific size if desired */
+   }
+   
+   .inviteButton {
+     composes: gameButton;
+     align-self: flex-start;
+     margin-top: auto; /* Push to bottom */
+   }
+   
+   /* ==========================================================================
+         Create Lobby Panel
+         ========================================================================== */
+   
+   .createDescription {
+     font-family: var(--font-body);
+     font-size: 1.1rem;
+     color: var(--color-text-muted);
+     line-height: 1.6;
+     flex-grow: 1;
+     margin-bottom: 20px;
+   }
+   
+   .createButton {
+     composes: gameButton;
+     align-self: center;
+     padding: 12px 25px;
+     font-size: 0.9rem;
+   }
+   
+   /* ==========================================================================
+         Matchmaking Queue Panel
+         ========================================================================== */
+   
+   .queuePanelContent {
+     flex-grow: 1;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-align: center;
+   }
+   
+   .queueStatus {
+     font-family: var(--font-body);
+     font-size: 1.3rem;
+     color: var(--color-text-muted);
+     margin-bottom: 10px;
+   }
+   
+   .queueTime {
+     font-family: var(--font-game);
+     font-size: 2.2rem;
+     color: var(--color-accent);
+     margin-bottom: 30px;
+     text-shadow: 0 0 8px var(--color-accent);
+   }
+   
+   .queueButton {
+     composes: gameButton;
+     padding: 14px 30px;
+     font-size: 1rem;
+   }
+   
+   .cancelQueueButton {
+     composes: gameButton;
+     margin-top: 15px; /* Space from queue time/button */
+     padding: 10px 20px;
+     font-size: 0.8rem;
+     background-color: var(--color-cancel-button-bg);
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 0, 0, 0.5);
+   }
+   
+   .cancelQueueButton:hover:not(:disabled) {
+     background-color: var(--color-cancel-button-hover-bg);
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+     transform: translate(-1px, -1px);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-cancel-button-border);
+   }
+   
+   .cancelQueueButton:active:not(:disabled) {
+     transform: translate(2px, 2px);
+     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+     background-color: var(--color-cancel-button-hover-bg); /* Use hover color */
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+   }
+   
+   
+   /* ==========================================================================
+         Join Lobby Panel
+         ========================================================================== */
+   
+   .lobbyBrowserHeader {
+     display: flex;
+     /* Default: side-by-side */
+     justify-content: space-between;
+     align-items: center;
+     flex-wrap: wrap;
+     /* Allow wrapping */
+     gap: 15px;
+     margin-bottom: 15px;
+   }
+   
+   /* Keep header content aligned */
+   .lobbyBrowserHeader .panelHeader {
+     margin-bottom: 0;
+     padding-bottom: 0;
+     border-bottom: none;
+     width: auto; /* Don't force 100% width here */
+     flex-shrink: 0; /* Prevent title from shrinking too much */
+   }
+   
+   .lobbySearchContainer {
+     position: relative;
+     flex-grow: 1; /* Allow search to take remaining space */
+     min-width: 200px; /* Reduced min-width */
+     max-width: 100%; /* Prevent overflow */
+   }
+   
+   .lobbySearchInput {
+     composes: textInputBase; /* Use base input style */
+     padding: 8px 12px 8px 35px; /* Keep specific padding for icon */
+     font-size: 1rem; /* Slightly smaller search */
+   }
+   
+   .lobbySearchIcon {
+     position: absolute;
+     left: 10px;
+     top: 50%;
+     transform: translateY(-50%);
+     color: var(--color-text-muted);
+     font-size: 1.1rem;
+     pointer-events: none;
+     /* Add icon library (e.g., Font Awesome: <i className={`fas fa-search ${styles.lobbySearchIcon}`}></i>) */
+   }
+   
+   .lobbyListContainer {
+     border: 1px solid var(--color-divider);
+     padding: 0.75rem;
+     background-color: rgba(0, 0, 0, 0.1);
+     max-height: 300px; /* Limit height */
+     overflow-y: auto; /* Enable scroll */
+     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+     flex-grow: 1; /* Take available vertical space */
+     min-height: 150px; /* Ensure it has some height even when empty */
+     display: flex; /* Needed for centering the no lobbies message */
+     flex-direction: column; /* Stack items vertically */
+   }
+   
+   .lobbyList {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     display: flex;
+     flex-direction: column;
+     gap: 0.75rem;
+     /* Animation applied here */
+      animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+   }
+   
+   .lobbyItem {
+     background-color: var(--color-panel); /* Slight adjustment */
+     border: 1px solid var(--color-panel-border);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow),
+                 inset 0 0 5px rgba(0, 0, 0, 0.4); /* Simplified base shadow */
+     padding: 10px 15px; /* Adjusted padding */
+     transition: all 0.3s ease-out; /* Faster transition */
+     position: relative;
+     display: flex;
+     flex-wrap: wrap; /* Allow wrapping on small screens */
+     justify-content: space-between;
+     align-items: center;
+     gap: 10px; /* Gap between elements when wrapping */
+     overflow: hidden; /* For hover effect */
+   }
+   
+   /* Existing hover effect - looks good */
+   .lobbyItem:hover {
+     transform: translateY(-3px);
+     box-shadow: 3px 6px 8px rgba(0, 0, 0, 0.5), /* Adjusted hover shadow */
+                 0 6px 15px rgba(0, 255, 157, 0.2),
+                 inset 0 0 5px rgba(0, 0, 0, 0.4);
+     background-color: rgba(40, 35, 75, 0.9);
+   }
+   /* Existing hover effect gradient */
+   .lobbyItem::before {
+     content: '';
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.05), transparent);
+     transform: translateX(-100%);
+     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+     pointer-events: none;
+   }
+   .lobbyItem:hover::before {
+     transform: translateX(100%);
+   }
+   
+   
+   .lobbyDetails {
+     display: flex;
+     flex-direction: column;
+     gap: 4px; /* Reduced gap */
+     flex-grow: 1; /* Take available horizontal space */
+     min-width: 150px; /* Prevent collapsing too much */
+     margin-right: 1rem; /* Space before buttons/info */
+   }
+   
+   .lobbyName {
+     font-size: 0.9rem;
+     font-weight: 600;
+     color: var(--color-text-base); /* Use base text color */
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     word-break: break-word; /* Allow long names to wrap */
+   }
+   
+   .lobbyHost {
+     font-size: 0.8rem;
+     color: var(--color-text-muted);
+   }
+   
+   /* Container for Player count and Buttons */
+   .lobbyActions {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     flex-shrink: 0; /* Prevent shrinking */
+   }
+   
+   .lobbyPlayers {
+     font-size: 0.9rem;
+     color: var(--color-text-muted);
+     min-width: 40px; /* Keep alignment */
+     text-align: right;
+   }
+   
+   .lobbyButtons {
+       display: flex;
+       gap: 0.5rem;
+   }
+   
+   .joinButton {
+     composes: gameButton;
+     padding: 6px 14px; /* Slightly adjusted padding */
+     font-size: 0.7rem;
+     flex-shrink: 0; /* Prevent shrinking */
+   }
+   
+   .privateBadge {
+     background-color: rgba(0, 255, 157, 0.15); /* Subtle background */
+     color: var(--color-accent);
+     padding: 3px 6px;
+     border-radius: 4px;
+     font-size: 0.7rem; /* Slightly smaller */
+     font-weight: 500;
+     font-family: var(--font-body); /* Use body font */
+     /* margin-left: 0.5rem; Combined into gap */
+     border: 1px solid var(--color-panel-border);
+     box-shadow: 0 0 5px rgba(0, 255, 157, 0.2);
+     /* Removed pulse animation - can be distracting */
+     display: inline-flex;
+     align-items: center;
+     gap: 0.25rem;
+   }
+   
+   .privateBadge::before {
+     content: '🔒'; /* Use actual lock character */
+     font-size: 0.8rem;
+     opacity: 0.8;
+   }
+   
+   .noLobbiesMessage {
+     flex-grow: 1;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-family: var(--font-body);
+     font-size: 1.3rem;
+     color: var(--color-text-muted);
+     text-align: center;
+     padding: 20px;
+     opacity: 0.8;
+     margin-top: auto; /* Push down if list container is larger */
+     margin-bottom: auto; /* Center vertically */
+   }
+   
+   
+   /* ==========================================================================
+         Pagination
+         ========================================================================== */
+   
+   .pagination {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     gap: 1rem;
+     margin-top: 1rem;
+     padding: 0.5rem;
+     border-top: 1px solid var(--color-divider);
+     /* Animation */
+     animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards; /* Delay slightly */
+     opacity: 0; /* Start hidden for animation */
+   }
+   
+   .pageButton {
+     composes: gameButton;
+     padding: 6px 14px; /* Consistent with join button */
+     font-size: 0.8rem;
+     min-width: 45px; /* Ensure minimum size */
+     transition: all 0.3s ease;
+   }
+   
+   .pageButton:hover:not(:disabled) {
+     transform: scale(1.1);
+     background-color: rgba(0, 255, 157, 0.1);
+   }
+   
+   .pageInfo {
+     font-family: var(--font-body);
+     font-size: 0.9rem;
+     color: var(--color-text-muted);
+   }
+   
+   /* ==========================================================================
+         Modal Styles (General)
+         ========================================================================== */
+   
+   .modalOverlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background-color: rgba(0, 0, 0, 0.75);
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     z-index: 1000;
+     padding: 15px; /* Add padding for smaller screens */
+     animation: fadeIn 0.3s ease-out forwards;
+   }
+   
+   /* Base Modal Structure */
+   .modal {
+     background-color: var(--color-panel);
+     border: 2px solid var(--color-panel-border);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+                 inset 0 0 10px rgba(0, 0, 0, 0.6),
+                 0 0 20px var(--color-accent);
+     width: 100%; /* Use full width available */
+     max-width: 450px; /* Set max width */
+     border-radius: 0;
+     position: relative; /* For positioning content/absolute elements */
+     padding: 20px; /* Default padding */
+     display: flex;
+     flex-direction: column;
+      /* Animation applied selectively */
+   }
+   
+   /* Join Modal specific animation */
+   .joinModal {
+       max-width: 500px;
+       animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+   }
+   
+   .modalHeader {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding-bottom: 15px;
+     border-bottom: 1px dashed var(--color-divider);
+     margin-bottom: 15px;
+     flex-shrink: 0; /* Prevent header shrinking */
+   }
+   
+   .modalHeader h2 {
+     color: var(--color-accent);
+     font-size: 1.2rem;
+     margin: 0;
+     text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+     font-family: var(--font-game);
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+   }
+   
+   .closeButton {
+     background: none;
+     border: none;
+     color: var(--color-text-muted);
+     font-size: 1.8rem; /* Larger, easier tap target */
+     cursor: pointer;
+     padding: 0;
+     width: 35px; /* Larger touch area */
+     height: 35px; /* Larger touch area */
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     transition: color 0.2s ease, transform 0.2s ease;
+     font-family: var(--font-body);
+     line-height: 1; /* Ensure X is centered */
+   }
+   
+   .closeButton:hover {
+     color: var(--color-accent);
+     transform: scale(1.1);
+   }
+   
+   .modalContent {
+     display: flex;
+     flex-direction: column;
+     gap: 1rem;
+     overflow-y: auto; /* Allow content scrolling if needed */
+     /* flex-grow: 1; Let modal size determine height usually */
+     min-height: 0; /* Allow shrinking */
+   }
+   
+   .formGroup {
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+     margin-bottom: 0.5rem; /* Reduced bottom margin */
+   }
+   
+   .formGroup label,
+   .passwordLabel {
+     display: block; /* Ensure label takes its own line */
+     color: var(--color-text-muted);
+     font-size: 0.9rem;
+     font-weight: 500;
+     font-family: var(--font-body); /* Ensure correct font */
+     transition: all 0.2s ease;
+   }
+   
+   .modalInput {
+     /* No compose needed - define specific style */
+     width: 100%;
+     padding: 10px; /* Standard padding */
+     background-color: var(--color-input-bg);
+     border: 1px solid var(--color-input-border);
+     border-radius: 0px; /* Consistent */
+     color: var(--color-text-base);
+     font-family: var(--font-body);
+     font-size: 1rem; /* Slightly larger for readability */
+     transition: all 0.3s ease; /* Smooth transition */
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+     /* Remove animated focus ring for general input */
+   }
+   
+   .modalInput:focus {
+     outline: none;
+     border-color: var(--color-accent);
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 10px var(--color-accent);
+   }
+   
+   .modalInput:focus + .passwordLabel {
+     transform: translateY(-3px); /* Slightly less transform */
+     color: var(--color-accent);
+     text-shadow: 0 0 5px rgba(0, 255, 157, 0.5);
+   }
+   
+   .modalFooter {
+     display: flex;
+     /* Default: row layout */
+     flex-wrap: wrap; /* Allow buttons to wrap */
+     justify-content: flex-end; /* Align buttons right by default */
+     gap: 1rem;
+     margin-top: 1rem;
+     padding-top: 15px;
+     border-top: 1px dashed var(--color-divider);
+     flex-shrink: 0; /* Prevent footer shrinking */
+   }
+   
+   .submitButton {
+     composes: gameButton; /* Inherit base */
+     /* Adjust specifics */
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     border-color: var(--color-accent);
+     font-size: 0.9rem; /* Slightly larger */
+     padding: 10px 25px; /* Adjust padding */
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Base shadow */
+     order: 1; /* Submit usually last */
+   }
+   
+   .submitButton:hover:not(:disabled) {
+     background-color: var(--color-accent-hover);
+     transform: translate(-1px, -1px);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+   }
+   
+   .cancelButton {
+     composes: gameButton; /* Inherit base */
+     /* Adjust specifics */
+     background-color: transparent;
+     border: 2px solid var(--color-text-muted);
+     color: var(--color-text-muted);
+     font-size: 0.9rem; /* Match submit */
+     padding: 10px 20px; /* Adjust padding */
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Base shadow */
+     order: 0; /* Cancel usually first */
+   }
+   
+   .cancelButton:hover:not(:disabled) {
+     background-color: var(--color-text-muted);
+     color: var(--color-bg-start);
+     transform: translate(-1px, -1px);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+   }
+   
+   
+   /* ==========================================================================
+         Join Lobby Modal Specific Styles
+         ========================================================================== */
+   
+   .lobbyDetail {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px 5px; /* Vertical padding, less horizontal */
+     border-bottom: 1px solid var(--color-divider);
+     font-family: var(--font-body); /* Ensure correct font */
+     /* Add hover effects back if desired, but maybe simpler on mobile */
+   }
+   
+   .lobbyDetail:last-child {
+     border-bottom: none;
+   }
+   
+   .detailLabel {
+     color: var(--color-text-muted);
+     font-size: 0.9rem;
+     font-weight: 500;
+     margin-right: 10px; /* Space between label and value */
+     flex-shrink: 0;
+   }
+   
+   .detailValue {
+     color: var(--color-text-base);
+     font-size: 1rem; /* Make value slightly larger */
+     font-weight: 600;
+     text-align: right;
+     word-break: break-all; /* Prevent long values breaking layout */
+   }
+   
+   /* ==========================================================================
+         Status/Info/Error Messages
+         ========================================================================== */
+   
+   .infoMessage {
+     background-color: rgba(0, 255, 157, 0.1);
+     border: 1px solid var(--color-accent);
+     padding: 12px;
+     margin: 1rem 0;
+     border-radius: 0px; /* Consistent */
+   }
+   
+   .infoMessage p {
+     margin: 0;
+     font-size: 0.9rem;
+     color: var(--color-accent);
+     font-family: var(--font-body);
+     line-height: 1.5;
+   }
+   
+   .errorMessage {
+     background-color: rgba(255, 107, 107, 0.15); /* Use var(--color-error) alpha */
+     border: 1px solid var(--color-error);
+     border-left: 4px solid var(--color-error); /* Accent border */
+     border-radius: 0px;
+     padding: 12px 15px;
+     margin: 1rem 0;
+     display: flex;
+     align-items: flex-start; /* Align icon top */
+     gap: 10px;
+     animation: errorShake 0.6s cubic-bezier(.36, .07, .19, .97) both;
+     font-family: var(--font-body);
+   }
+   
+   .errorIcon {
+     font-size: 1.3rem;
+     color: var(--color-error);
+     margin-top: 2px; /* Align icon nicely */
+     flex-shrink: 0;
+      /* Needs icon setup (e.g. Font Awesome: <i className={`fas fa-exclamation-circle ${styles.errorIcon}`}></i>) */
+   }
+   
+   .errorMessage p {
+     margin: 0;
+     color: var(--color-error); /* Use variable */
+     font-size: 0.95rem; /* Slightly larger error text */
+     line-height: 1.5;
+     flex-grow: 1;
+   }
+   
+   .errorCloseButton { /* If adding a close button to error messages */
+     composes: closeButton; /* Use modal close style base */
+     font-size: 1.2rem; /* Adjust size */
+     color: var(--color-error);
+     opacity: 0.7;
+     width: 25px;
+     height: 25px;
+     align-self: center; /* Center vertically */
+   }
+   .errorCloseButton:hover {
+       opacity: 1;
+       color: var(--color-error); /* Keep error color on hover */
+   }
+   
+   
+   /* ==========================================================================
+         Helper Classes & Badges
+         ========================================================================== */
+   
+   .timerBadge {
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     padding: 0.25rem 0.5rem;
+     border-radius: 4px;
+     font-size: 0.8rem;
+     font-weight: 500;
+     font-family: var(--font-game);
+     animation: pulseGlow 2s infinite ease-in-out;
+   }
+   
+   .loadingSpinner { /* Example usage: Add as a span inside disabled buttons */
+     display: inline-block;
+     width: 1em; /* Scale with font size */
+     height: 1em;
+     border: 2px solid currentColor;
+     border-bottom-color: transparent;
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+     margin-left: 0.5em; /* Space from button text */
+   }
+   
+   .visuallyHidden { /* For accessibility */
+     border: 0;
+     clip: rect(0 0 0 0);
+     height: 1px;
+     margin: -1px;
+     overflow: hidden;
+     padding: 0;
+     position: absolute;
+     width: 1px;
+   }
+   
+   /* ==========================================================================
+         Keyframes (Consolidated & Checked)
+         ========================================================================== */
+   
+   @keyframes fadeIn {
+     from { opacity: 0; }
+     to { opacity: 1; }
+   }
+   
+   /* Keep slideIn for panel entry */
+   @keyframes slideInPanel { /* Renamed to avoid conflict */
+     from {
+       opacity: 0;
+       transform: translateY(15px);
+     }
+     to {
+       opacity: 1;
+       transform: translateY(0);
+     }
+   }
+   /* Apply the renamed animation to panels */
+   .panel {
+     animation: slideInPanel 0.5s ease-out forwards;
+   }
+   
+   
+   @keyframes slideIn { /* Standard modal slide-in */
+     from { transform: translateY(-20px); opacity: 0; }
+     to { transform: translateY(0); opacity: 1; }
+   }
+   
+   @keyframes modalSlideIn { /* Join modal specific */
+     from { transform: translateY(-30px) scale(0.95) rotate(-1deg); opacity: 0; }
+     to { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+   }
+   
+   @keyframes fadeInUp {
+     from { opacity: 0; transform: translateY(20px); } /* Less distance */
+     to { opacity: 1; transform: translateY(0); }
+   }
+   
+   @keyframes pulse { /* For loading disabled buttons */
+     0%, 100% { opacity: 0.6; transform: scale(1); }
+     50% { opacity: 1; transform: scale(1.03); }
+   }
+   
+   @keyframes pulseGlow { /* For timer badge */
+     0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); opacity: 0.9; }
+     50% { box-shadow: 0 0 0 8px rgba(0, 255, 157, 0); opacity: 1; }
+     100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); opacity: 0.9; }
+   }
+   
+   @keyframes spin {
+     to { transform: rotate(360deg); }
+   }
+   
+   @keyframes errorShake {
+     10%, 90% { transform: translateX(-1px); }
+     20%, 80% { transform: translateX(2px); }
+     30%, 50%, 70% { transform: translateX(-3px); }
+     40%, 60% { transform: translateX(3px); }
+   }
+   
+   /* Success animation for buttons */
+   @keyframes successPulse {
+     0% { transform: scale(1); }
+     50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(0, 255, 157, 0.2); }
+     100% { transform: scale(1); box-shadow: none; }
+   }
+   .gameButton.success:not(:disabled) { /* Only apply if not disabled */
+     background-color: var(--color-score-excellent);
+     border-color: var(--color-score-excellent);
+     color: var(--color-bg-start);
+     animation: successPulse 0.8s ease-out forwards;
+   }
+   
+   /* ==========================================================================
+         RESPONSIVE STYLES
+         ========================================================================== */
+   
+   /* Tablet and smaller (Stacking grid) */
+   @media (max-width: 992px) {
+     .actionsGrid {
+       grid-template-columns: 1fr; /* Stack panels */
+       gap: 25px; /* Slightly reduce gap */
+     }
+   
+     .panel {
+       min-height: auto; /* Allow panels to shrink vertically */
+     }
+   
+      /* Adjust lobby list height slightly if needed */
+     .lobbyListContainer {
+        max-height: 280px;
+     }
+   
+     /* Center the create button text since button itself might be full width later */
+      .createButton {
+         text-align: center;
+     }
+   }
+   
+   /* Larger Mobiles / Small Tablets */
+   @media (max-width: 768px) {
+       .pvpContainer {
+           padding: 20px 10px 30px 10px; /* Reduce padding further */
+       }
+   
+       .pageHeader {
+         margin-bottom: 20px;
+       }
+   
+       .panel {
+           padding: 20px 20px; /* Reduce panel padding */
+       }
+   
+       .lobbyBrowserHeader {
+          /* Stack title and search vertically if needed, wrap is often ok */
+          /* flex-direction: column; */
+          /* align-items: stretch; */
+       }
+   
+       .lobbyBrowserHeader .panelHeader {
+           font-size: 1rem; /* Slightly smaller header in lobby browser */
+           margin-bottom: 10px; /* Add space if stacking */
+       }
+   
+       .lobbySearchContainer {
+         min-width: 150px; /* Allow further shrinking */
+       }
+   
+       .lobbyItem {
+         padding: 12px;
+       }
+   
+       /* Slightly reduce main button padding */
+       .gameButton {
+         padding: 10px 18px;
+         font-size: 0.75rem;
+       }
+       .inviteButton, .queueButton {
+            font-size: 0.8rem; /* Keep main actions slightly larger */
+            padding: 12px 20px;
+       }
+       .createButton {
+           padding: 10px 20px;
+           font-size: 0.8rem;
+       }
+   
+       .modal {
+           padding: 15px;
+       }
+   
+       .modalHeader h2 {
+         font-size: 1.1rem;
+       }
+   
+       .modalFooter {
+         justify-content: space-between; /* Space out buttons */
+       }
+   
+       .submitButton, .cancelButton {
+          font-size: 0.8rem;
+          padding: 10px 15px;
+          flex-grow: 1; /* Make footer buttons take equal space */
+          text-align: center;
+       }
+   }
+   
+   /* Small Mobiles */
+   @media (max-width: 480px) {
+     .pageTitle {
+        font-size: clamp(1.5rem, 7vw, 1.8rem); /* Adjust clamp */
+     }
+   
+     .pageSubtitle {
+        font-size: clamp(0.9rem, 4vw, 1rem); /* Adjust clamp */
+     }
+   
+     .panel {
+       padding: 15px; /* Further reduce panel padding */
+     }
+   
+     .panelHeader {
+       font-size: 1rem;
+       gap: 8px;
+       margin-bottom: 15px;
+       padding-bottom: 10px;
+     }
+     .panelIcon {
+        font-size: 1.1rem;
+     }
+   
+     .inviteInput, .modalInput {
+       font-size: 1rem;
+       padding: 10px 12px;
+     }
+     .lobbySearchInput {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+     }
+   
+     .createDescription {
+       font-size: 1rem;
+       margin-bottom: 15px;
+     }
+   
+     .queueStatus { font-size: 1.1rem; }
+     .queueTime { font-size: 1.8rem; margin-bottom: 20px;}
+   
+     /* Make key action buttons full width for easier tapping */
+     .inviteButton, .createButton, .queueButton, .cancelQueueButton {
+        width: 100%;
+        align-self: stretch; /* Override previous aligns */
+        font-size: 0.9rem; /* Slightly larger font for full width */
+        padding: 12px;
+     }
+     .createButton { margin-top: auto; } /* Push to bottom if desc shrinks */
+   
+      /* Lobby List adjustments */
+     .lobbyListContainer {
+         min-height: 100px; /* Lower min height */
+         padding: 0.5rem;
+         max-height: 250px; /* Further reduce max height */
+     }
+   
+     .lobbyItem {
+         flex-direction: column; /* Stack content vertically */
+         align-items: stretch; /* Align items full width */
+         gap: 8px; /* Gap between stacked elements */
+         padding: 10px;
+     }
+     .lobbyDetails {
+         margin-right: 0; /* Remove margin */
+         width: 100%; /* Take full width */
+         gap: 2px;
+     }
+     .lobbyName { font-size: 0.85rem; }
+     .lobbyHost { font-size: 0.75rem; }
+   
+     .lobbyActions {
+         width: 100%; /* Take full width */
+         justify-content: space-between; /* Space out players and button */
+         margin-top: 5px; /* Add slight space */
+         gap: 0.5rem;
+     }
+     .lobbyPlayers { font-size: 0.8rem; text-align: left; min-width: 0;} /* Reset min-width */
+     .lobbyButtons { justify-content: flex-end; /* Align buttons to the right */}
+   
+     .joinButton {
+         padding: 5px 12px; /* Small join button */
+         font-size: 0.7rem;
+     }
+   
+     .privateBadge { font-size: 0.65rem;}
+     .privateBadge::before { font-size: 0.7rem; }
+   
+     /* Pagination on small screens */
+     .pagination { gap: 0.5rem; }
+     .pageButton { padding: 5px 10px; min-width: 35px; }
+     .pageInfo { font-size: 0.8rem; }
+   
+     /* Modal Adjustments */
+     .modalFooter {
+       flex-direction: column; /* Stack buttons vertically */
+       align-items: stretch; /* Make buttons full width */
+     }
+     .submitButton, .cancelButton {
+       width: 100%; /* Full width */
+       margin: 0; /* Remove potential horizontal margins */
+       order: 0; /* Reset order for vertical stack if desired (or keep default) */
+     }
+   
+     .lobbyDetail {
+        padding: 8px 0; /* Adjust padding */
+     }
+     .detailLabel { font-size: 0.8rem; }
+     .detailValue { font-size: 0.9rem; }
+   
+     .errorMessage { padding: 10px; gap: 8px; }
+     .errorIcon { font-size: 1.1rem; }
+     .errorMessage p { font-size: 0.9rem; }
+   }
