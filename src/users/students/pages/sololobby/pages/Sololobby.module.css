@@ -57,32 +57,35 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px 60px 20px;
+  padding: clamp(1rem, 3vw, 2rem);
   font-family: var(--font-game);
   background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
   color: var(--color-text-base);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .pageHeader {
   width: 100%;
   max-width: 1100px;
   /* Match grid width */
-  margin-bottom: 30px;
-  text-align: left;
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  text-align: center;
 }
 
 .pageTitle {
-  font-size: 2rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   color: var(--color-accent);
-  margin-bottom: 8px;
-  text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
   /* Font family inherited */
 }
 
 .pageSubtitle {
   font-family: var(--font-body);
   /* Use body font */
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: var(--color-text-muted);
 }
 
@@ -94,38 +97,30 @@
   width: 100%;
   max-width: 1100px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  /* Default 2 columns */
-  gap: 30px;
-  margin-top: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  margin-bottom: 2rem;
 }
 
 .panel {
   background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 
-              0 0 15px var(--color-panel-border-glow), 
-              inset 0 0 10px rgba(0, 0, 0, 0.6);
-  padding: 25px 30px;
-  border-radius: 0;
+  border: 1px solid var(--color-panel-border);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 200px;
   animation: fadeIn 0.5s ease-out forwards;
   display: flex;
   flex-direction: column;
-  min-height: 280px;
 }
 
 .panelHeader {
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  margin-bottom: 1rem;
+  color: var(--color-accent);
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--color-accent);
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed var(--color-divider);
-  width: 100%;
-  /* Ensure border spans width */
-  /* Font family inherited */
+  gap: 0.5rem;
 }
 
 .panelIcon {
@@ -153,13 +148,13 @@
 
 .gameButton {
   font-family: var(--font-game);
-  padding: 10px 18px;
+  padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
   border: 2px solid var(--color-accent);
   color: var(--color-accent);
   background-color: rgba(0, 0, 0, 0.6);
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  font-size: 0.8rem;
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
@@ -212,21 +207,18 @@
 .inviteForm {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  flex-grow: 1;
-  /* Use available space */
+  gap: 1rem;
+  margin-top: auto;
 }
 
 .inviteInput {
-  font-size: 1.2rem;
-  padding: 12px 15px;
-  background-color: var(--color-input-bg);
+  width: 100%;
+  padding: clamp(0.5rem, 2vw, 0.75rem);
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   border: 1px solid var(--color-input-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
   color: var(--color-text-base);
-  border-radius: 0;
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
-  font-family: var(--font-body);
-  /* Use body font */
 }
 
 .inviteInput::placeholder {
@@ -278,32 +270,26 @@
       ========================================================================== */
 
 .queuePanelContent {
-  flex-grow: 1;
-  /* Center content vertically */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  gap: 1rem;
+  margin-top: auto;
 }
 
 .queueStatus {
   font-family: var(--font-body);
   /* Use body font */
-  font-size: 1.3rem;
-  color: var(--color-text-muted);
-  margin-bottom: 10px;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  text-align: center;
 }
 
 .queueTime {
   font-family: var(--font-game);
   /* Use game font */
-  font-size: 2.2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   /* Larger time */
   color: var(--color-accent);
-  margin-bottom: 30px;
-  /* More space */
-  text-shadow: 0 0 8px var(--color-accent);
+  text-align: center;
 }
 
 .queueButton {
@@ -347,12 +333,9 @@
 
 .lobbyBrowserHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 15px;
-  /* Space below header/search */
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 /* Reposition header within the browser div */
@@ -363,54 +346,30 @@
 }
 
 .lobbySearchContainer {
+  width: 100%;
   position: relative;
-  min-width: 250px;
 }
 
 .lobbySearchInput {
   width: 100%;
-  font-family: var(--font-body);
-  /* Use body font */
-  font-size: 1.1rem;
-  padding: 8px 12px 8px 35px;
-  background-color: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  color: var(--color-text-base);
-  border-radius: 0;
-  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4);
-}
-
-.lobbySearchInput::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.8;
-}
-
-.lobbySearchInput:focus {
-  outline: none;
-  border-color: var(--color-selected-border);
-  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
+  padding: clamp(0.5rem, 2vw, 0.75rem) clamp(2rem, 5vw, 3rem);
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
 .lobbySearchIcon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-  font-size: 1.1rem;
-  pointer-events: none;
-  /* Icon font needs setup (e.g., Font Awesome) */
+  left: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
 }
 
 .lobbyListContainer {
   border: 1px solid var(--color-divider);
   padding: 0.75rem;
   background-color: rgba(0, 0, 0, 0.1);
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
   box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
   flex-grow: 1;
-  min-height: 150px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
 }
@@ -430,12 +389,12 @@
   box-shadow: 3px 3px 0 0 var(--color-pixel-shadow),
               inset 0 0 5px rgba(0, 0, 0, 0.4),
               0 0 10px rgba(0, 255, 157, 0.1);
-  padding: 0.75rem;
+  padding: clamp(0.75rem, 2vw, 1rem);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .lobbyItem:hover {
@@ -446,15 +405,12 @@
 }
 
 .lobbyDetails {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
-  margin-right: 1rem;
+  width: 100%;
+  margin-right: 0;
 }
 
 .lobbyName {
-  font-size: 0.9rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   font-weight: 600;
   color: var(--color-text);
   display: flex;
@@ -463,18 +419,18 @@
 }
 
 .lobbyHost {
-  font-size: 0.8rem;
+  font-size: clamp(0.8rem, 2.5vw, 0.9rem);
   color: var(--color-text-muted);
 }
 
 .lobbyInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .lobbyPlayers {
-  font-size: 0.9rem;
+  font-size: clamp(0.9rem, 2.5vw, 0.9rem);
   color: var(--color-text-muted);
   min-width: 40px;
   text-align: right;
@@ -518,28 +474,42 @@
   }
 }
 
-@media (max-width: 992px) {
-
-  /* Adjust breakpoint for stacking */
+@media (max-width: 768px) {
   .actionsGrid {
     grid-template-columns: 1fr;
-    /* Stack all panels */
   }
 
-  .panel {
-    min-height: auto;
+  .lobbyButtons, .queueButtons {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .createDescription {
-    margin-bottom: 20px;
+  .gameButton {
+    width: 100%;
   }
 
-  /* Ensure space */
+  .lobbyItem {
+    align-items: stretch;
+  }
+
+  .joinButton {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .pvpContainer {
+    padding: 1rem;
+  }
+
   .panel {
-    padding: 20px;
+    padding: 1rem;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 0 1rem;
   }
 
   .pageTitle {
@@ -651,12 +621,12 @@
               inset 0 0 10px rgba(0, 0, 0, 0.6),
               0 0 20px var(--color-accent);
   width: 90%;
-  max-width: 400px;
+  max-width: 500px;
   border-radius: 0;
   animation: slideIn 0.3s ease-out;
   position: relative;
   margin: auto;
-  padding: 1.25rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
 }
 
 .modalHeader {
@@ -670,7 +640,7 @@
 
 .modalHeader h2 {
   color: var(--color-accent);
-  font-size: 1.2rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   margin: 0;
   text-shadow: 2px 2px 0 var(--color-pixel-shadow);
   font-family: var(--font-game);
@@ -703,6 +673,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: clamp(0.5rem, 2vw, 1rem) 0;
 }
 
 .formGroup {

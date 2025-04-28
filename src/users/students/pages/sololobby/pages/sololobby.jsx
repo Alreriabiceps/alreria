@@ -373,12 +373,31 @@ const SoloLobby = () => {
 
       setShowCreateLobbyModal(false);
       setLobbyForm({ name: '', isPrivate: false, password: '' });
-      // Refresh lobbies
-      fetchLobbies();
+      
+      // Automatically join the lobby after creation
+      const joinResponse = await fetch(`${backendurl}/api/lobby/${data.data._id}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ password: lobbyForm.password })
+      });
+
+      const joinData = await joinResponse.json();
+
+      if (!joinResponse.ok) {
+        throw new Error(joinData.error || 'Failed to join lobby');
+      }
+
+      // Navigate to the game page
+      navigate('/student/pvp', { state: { lobbyId: data.data._id, lobbyName: data.data.name } });
+      
     } catch (err) {
-      console.error('Error creating lobby:', err);
+      console.error('Error creating/joining lobby:', err);
       console.error('Error details:', err.message);
-      setError(err.message || 'Failed to create lobby. Please try again later.');
+      setError(err.message || 'Failed to create/join lobby. Please try again later.');
     } finally {
       setIsLoadingAction(false);
     }

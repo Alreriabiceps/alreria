@@ -54,22 +54,20 @@
   border-radius: 1rem;
   border: 2px solid var(--color-accent);
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 400px;
-  z-index: 10;
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
 }
 
 .rpsContainer h2 {
   font-family: var(--font-game);
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 4vw, 1.6rem);
   color: var(--color-accent);
   text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
   margin-bottom: 20px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  text-align: center;
 }
 
 .countdownContainer {
@@ -80,6 +78,7 @@
   gap: 1rem;
   animation: fadeIn 0.5s ease-out;
   text-align: center;
+  width: 100%;
 }
 
 .countdown {
@@ -88,10 +87,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  width: 100%;
 }
 
 .countdownNumber {
-  font-size: 5rem;
+  font-size: clamp(3rem, 10vw, 5rem);
   font-family: 'Press Start 2P', cursive;
   color: var(--color-accent);
   animation: pulse 1s infinite;
@@ -99,7 +99,7 @@
 }
 
 .countdownText {
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 3vw, 1.5rem);
   color: var(--color-text);
   opacity: 0.8;
   text-transform: uppercase;
@@ -108,10 +108,12 @@
 
 .rpsChoices {
   display: flex;
-  gap: 3rem;
+  gap: clamp(1rem, 3vw, 3rem);
   margin: 2rem 0;
   transition: all 0.3s ease;
   justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .rpsChoices.animate {
@@ -119,8 +121,8 @@
 }
 
 .rpsChoice {
-  width: 100px;
-  height: 100px;
+  width: clamp(80px, 20vw, 100px);
+  height: clamp(80px, 20vw, 100px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,6 +132,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   transform: scale(1);
+  flex-shrink: 0;
 }
 
 .rpsChoice:hover {
@@ -143,7 +146,7 @@
 }
 
 .rpsIcon {
-  font-size: 3rem;
+  font-size: clamp(2rem, 6vw, 3rem);
   transition: all 0.3s ease;
 }
 
@@ -157,6 +160,7 @@
   border-radius: 1rem;
   border: 2px solid var(--color-accent);
   animation: slideUp 0.5s ease-out;
+  width: 100%;
 }
 
 .rpsResult.animate {
@@ -166,7 +170,9 @@
 .rpsPlayers {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: clamp(1rem, 3vw, 2rem);
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .rpsPlayer {
@@ -174,24 +180,25 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  min-width: 120px;
 }
 
 .rpsVs {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   color: var(--color-accent);
   font-family: 'Press Start 2P', cursive;
 }
 
 .rpsPlayerChoice {
-  width: 80px;
-  height: 80px;
+  width: clamp(60px, 15vw, 80px);
+  height: clamp(60px, 15vw, 80px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid var(--color-accent);
   border-radius: 50%;
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   transition: all 0.3s ease;
 }
 
@@ -202,18 +209,19 @@
 }
 
 .rpsPlayerName {
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
   color: var(--color-text);
 }
 
 .rpsResultMessage {
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   font-family: 'Press Start 2P', cursive;
   color: var(--color-accent);
   text-align: center;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
   background: rgba(0, 0, 0, 0.5);
+  width: 100%;
 }
 
 .rpsResultMessage.player {
@@ -232,13 +240,14 @@
 }
 
 .rpsPrize {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: var(--color-text);
   text-align: center;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 0.5rem;
   border: 2px solid var(--color-accent);
+  width: 100%;
 }
 
 @keyframes pulse {
