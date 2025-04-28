@@ -498,6 +498,7 @@ const Pvp = () => {
 
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
+      countdownRef.current = null;
     }
 
     countdownRef.current = setInterval(() => {
@@ -505,7 +506,12 @@ const Pvp = () => {
         console.log('Countdown tick:', prev);
         if (prev <= 1) {
           clearInterval(countdownRef.current);
+          countdownRef.current = null;
           setShowChoices(true);
+          // Transition to subject selection after countdown
+          setTimeout(() => {
+            setGameState(GAME_STATE.SUBJECT_SELECTION);
+          }, 1000);
           return 0;
         }
         return prev - 1;
@@ -537,6 +543,10 @@ const Pvp = () => {
         result,
         lobbyId: location.state?.lobbyId
       });
+      // Transition to subject selection after RPS result
+      setTimeout(() => {
+        setGameState(GAME_STATE.SUBJECT_SELECTION);
+      }, 2000);
     }
   };
 
@@ -753,12 +763,16 @@ const Pvp = () => {
     }
   };
 
-  // Cleanup timer on component unmount
+  // Cleanup all timers on component unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
     };
   }, []);
