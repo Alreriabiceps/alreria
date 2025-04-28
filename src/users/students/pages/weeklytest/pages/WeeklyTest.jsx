@@ -78,6 +78,7 @@ const WeeklyTest = () => {
   const [pointsChange, setPointsChange] = useState(0);
   const [testResult, setTestResult] = useState(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [filteredWeeks, setFilteredWeeks] = useState([]);
 
   // Fetch subjects and weeks on component mount
   useEffect(() => {
@@ -115,12 +116,14 @@ const WeeklyTest = () => {
             name: item.subjectId.subject || `Subject ${item.subjectId._id}`
           })))];
 
+        // Filter weeks based on the selected subject
         const uniqueWeeks = [...new Set(scheduleArray
           .filter(item => item && item.weekNumber && item.isActive)
           .map(item => ({
             number: item.weekNumber,
             display: `Week ${item.weekNumber}`,
-            year: item.year
+            year: item.year,
+            subjectId: item.subjectId._id // Add subjectId to each week
           })))].sort((a, b) => a.number - b.number);
 
         console.log('Extracted subjects:', uniqueSubjects);
@@ -141,6 +144,16 @@ const WeeklyTest = () => {
 
     fetchSchedule();
   }, []);
+
+  // Add this useEffect to filter weeks when subject changes
+  useEffect(() => {
+    if (selectedSubject) {
+      const filteredWeeks = weeks.filter(week => week.subjectId === selectedSubject.id);
+      setFilteredWeeks(filteredWeeks);
+    } else {
+      setFilteredWeeks([]);
+    }
+  }, [selectedSubject, weeks]);
 
   // --- Effect to Fetch Tests when Filters Change ---
   useEffect(() => {
@@ -333,10 +346,11 @@ const WeeklyTest = () => {
 
     try {
       const backendurl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${backendurl}/api/weeklytest/results`, {
+      const response = await fetch(`${backendurl}/api/weekly-test/results`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(requestData),
       });
@@ -347,7 +361,12 @@ const WeeklyTest = () => {
         if (data.message === 'You have already completed this test') {
           try {
             const previousResultsResponse = await fetch(
-              `${backendurl}/api/weeklytest/results?studentId=${user.id}&weekScheduleId=${currentSchedule._id}`
+              `${backendurl}/api/weekly-test/results/${user.id}?weekScheduleId=${currentSchedule._id}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+              }
             );
 
             if (previousResultsResponse.ok) {
@@ -361,17 +380,27 @@ const WeeklyTest = () => {
             }
           } catch (fetchErr) {
             console.error('Error fetching previous results:', fetchErr);
+            throw new Error('Failed to fetch previous test results');
           }
         }
-        throw new Error(data.message || 'Failed to save test result');
+        throw new Error(data.message || `Failed to save test result: ${response.status} ${response.statusText}`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.message || 'Server returned an error');
       }
 
       console.log('Test result saved successfully:', data);
 
-      setScore(finalScore);
+      // Update state with the response data
+      setScore(data.data.testResult.score);
       setPointsEarned(data.data.pointsEarned);
       setCurrentRank(getRank(data.data.totalPoints));
-      setTestResult(data.data);
+      setTestResult({
+        ...data.data.testResult,
+        score: data.data.testResult.score,
+        totalQuestions: data.data.testResult.totalQuestions
+      });
       setShowResultModal(true);
     } catch (err) {
       console.error('Error saving test result:', err);
@@ -514,15 +543,15 @@ const WeeklyTest = () => {
             <select
               value={selectedWeek ? selectedWeek.number : ''}
               onChange={(e) => {
-                const week = weeks.find(w => w.number === parseInt(e.target.value));
+                const week = filteredWeeks.find(w => w.number === parseInt(e.target.value));
                 setSelectedWeek(week || '');
               }}
               className={styles.filterSelect}
               disabled={isLoading || isTestStarted}
             >
               <option key="default-week" value="">Select Week</option>
-              {Array.isArray(weeks) && weeks.length > 0 ? (
-                weeks.map((week, index) => (
+              {Array.isArray(filteredWeeks) && filteredWeeks.length > 0 ? (
+                filteredWeeks.map((week, index) => (
                   <option key={`week-${week.number}-${week.year}-${index}`} value={week.number}>
                     {week.display}
                   </option>
@@ -669,7 +698,8 @@ const WeeklyTest = () => {
                   {testResult.score}/{testResult.totalQuestions}
                 </span>
                 <span className={styles.scorePercentage}>
-                  {Math.round((testResult.score / testResult.totalQuestions) * 100)}%
+                  {testResult.score && testResult.totalQuestions ? 
+                    Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%
                 </span>
               </div>
             </div>
@@ -677,20 +707,20 @@ const WeeklyTest = () => {
             <div className={styles.pointsSection}>
               <div className={styles.pointsDisplay}>
                 <span className={styles.pointsLabel}>PR Points</span>
-                <span className={`${styles.pointsValue} ${getPointsColor(testResult.pointsEarned)}`}>
-                  {testResult.pointsEarned > 0 ? '+' : ''}{testResult.pointsEarned}
+                <span className={`${styles.pointsValue} ${getPointsColor(pointsEarned)}`}>
+                  {pointsEarned > 0 ? '+' : ''}{pointsEarned}
                 </span>
               </div>
               <div className={styles.totalPoints}>
                 <span className={styles.totalPointsLabel}>Total PR Points</span>
-                <span className={styles.totalPointsValue}>{testResult.totalPoints}</span>
+                <span className={styles.totalPointsValue}>{pointsEarned}</span>
               </div>
             </div>
 
             <div className={styles.rankSection}>
               <span className={styles.rankLabel}>Current Rank</span>
-              <span className={`${styles.rankValue} ${styles[`rank${testResult.rank}`]}`}>
-                {testResult.rank}
+              <span className={`${styles.rankValue} ${styles[`rank${currentRank?.name || 'Apprentice'}`]}`}>
+                {currentRank?.name || 'Apprentice'}
               </span>
             </div>
 
@@ -751,7 +781,8 @@ const WeeklyTest = () => {
                   {testResult.score}/{testResult.totalQuestions}
                 </span>
                 <span className={styles.scorePercentage}>
-                  {Math.round((testResult.score / testResult.totalQuestions) * 100)}%
+                  {testResult.score && testResult.totalQuestions ? 
+                    Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%
                 </span>
               </div>
             </div>
@@ -759,20 +790,20 @@ const WeeklyTest = () => {
             <div className={styles.pointsSection}>
               <div className={styles.pointsDisplay}>
                 <span className={styles.pointsLabel}>PR Points</span>
-                <span className={`${styles.pointsValue} ${getPointsColor(testResult.pointsEarned)}`}>
-                  {testResult.pointsEarned > 0 ? '+' : ''}{testResult.pointsEarned}
+                <span className={`${styles.pointsValue} ${getPointsColor(pointsEarned)}`}>
+                  {pointsEarned > 0 ? '+' : ''}{pointsEarned}
                 </span>
               </div>
               <div className={styles.totalPoints}>
                 <span className={styles.totalPointsLabel}>Total PR Points</span>
-                <span className={styles.totalPointsValue}>{testResult.totalPoints}</span>
+                <span className={styles.totalPointsValue}>{pointsEarned}</span>
               </div>
             </div>
 
             <div className={styles.rankSection}>
               <span className={styles.rankLabel}>Current Rank</span>
-              <span className={`${styles.rankValue} ${styles[`rank${testResult.rank}`]}`}>
-                {testResult.rank}
+              <span className={`${styles.rankValue} ${styles[`rank${currentRank?.name || 'Apprentice'}`]}`}>
+                {currentRank?.name || 'Apprentice'}
               </span>
             </div>
 
