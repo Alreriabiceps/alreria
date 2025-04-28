@@ -202,6 +202,62 @@ const SoloLobby = () => {
   const [showJoinLobbyModal, setShowJoinLobbyModal] = useState(false);
   const [selectedLobby, setSelectedLobby] = useState(null);
   const [joinError, setJoinError] = useState(null);
+  const socketRef = useRef(null);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const backendurl = import.meta.env.VITE_BACKEND_URL;
+    const wsUrl = backendurl.replace(/^http/, 'ws');
+    socketRef.current = new WebSocket(wsUrl);
+
+    socketRef.current.onopen = () => {
+      console.log('WebSocket connected');
+      // Send authentication token
+      socketRef.current.send(JSON.stringify({
+        type: 'auth',
+        token
+      }));
+    };
+
+    socketRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      switch (data.type) {
+        case 'lobby:created':
+          setLobbies(prev => [...prev, data.lobby]);
+          break;
+        case 'lobby:updated':
+          setLobbies(prev => prev.map(lobby => 
+            lobby._id === data.lobby._id ? data.lobby : lobby
+          ));
+          break;
+        case 'game:start':
+          if (data.players.includes(user._id)) {
+            navigate('/student/pvp', { 
+              state: { 
+                lobbyId: data.lobbyId,
+                lobbyName: data.lobbyName
+              }
+            });
+          }
+          break;
+      }
+    };
+
+    socketRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    socketRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, [token, user, navigate]);
 
   // Define fetchLobbies function
   const fetchLobbies = async () => {
