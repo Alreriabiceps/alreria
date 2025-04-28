@@ -488,35 +488,8 @@ const Pvp = () => {
   }, [token, location.state?.lobbyId, user?.firstName]);
 
   const startCountdown = () => {
-    console.log('Starting countdown');
-    setCountdown(10);
-    setShowChoices(false);
-    setRpsChoice(null);
-    setOpponentRpsChoice(null);
-    setRpsResult(null);
-    setRpsAnimation('');
-
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-      countdownRef.current = null;
-    }
-
-    countdownRef.current = setInterval(() => {
-      setCountdown(prev => {
-        console.log('Countdown tick:', prev);
-        if (prev <= 1) {
-          clearInterval(countdownRef.current);
-          countdownRef.current = null;
-          setShowChoices(true);
-          // Transition to subject selection after countdown
-          setTimeout(() => {
-            setGameState(GAME_STATE.SUBJECT_SELECTION);
-          }, 1000);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    setCountdown(0);
+    setGameState(GAME_STATE.RPS);
   };
 
   const playRpsAnimation = (result) => {
@@ -527,27 +500,21 @@ const Pvp = () => {
   };
 
   const handleRpsChoice = (choice) => {
-    if (!socket || !showChoices || rpsChoice) return;
+    if (gameState !== GAME_STATE.RPS) return;
     
     setRpsChoice(choice);
     socket.emit('rps_choice', { 
+      gameId: location.state?.lobbyId, 
       choice,
-      lobbyId: location.state?.lobbyId
+      playerId: user.id
     });
+  };
+
+  const handleOpponentRPSChoice = (data) => {
+    if (gameState !== GAME_STATE.RPS) return;
     
-    if (opponentRpsChoice) {
-      const result = determineRpsWinner(choice, opponentRpsChoice);
-      setRpsResult(result);
-      playRpsAnimation(result);
-      socket.emit('rps_result', { 
-        result,
-        lobbyId: location.state?.lobbyId
-      });
-      // Transition to subject selection after RPS result
-      setTimeout(() => {
-        setGameState(GAME_STATE.SUBJECT_SELECTION);
-      }, 2000);
-    }
+    setOpponentRpsChoice(data.choice);
+    setGameState(GAME_STATE.SUBJECT_SELECTION);
   };
 
   // Function to fetch questions from backend
