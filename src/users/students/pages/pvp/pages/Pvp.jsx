@@ -346,10 +346,15 @@ const Pvp = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000', {
       auth: {
         token: token
-      }
+      },
+      path: '/socket.io/',
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     newSocket.on('connect', () => {
@@ -362,6 +367,14 @@ const Pvp = () => {
       } else {
         console.error('No lobbyId found in location state');
       }
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket.IO connection error:', error);
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('Socket.IO error:', error);
     });
 
     newSocket.on('opponent_joined', (data) => {
@@ -462,18 +475,15 @@ const Pvp = () => {
       setGameMessage("Opponent disconnected - You win!");
     });
 
-    newSocket.on('error', (error) => {
-      console.error('Socket error:', error);
-      setError(error.message);
-    });
-
     setSocket(newSocket);
 
     return () => {
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
       }
-      newSocket.disconnect();
+      if (newSocket) {
+        newSocket.disconnect();
+      }
     };
   }, [token, location.state?.lobbyId, user?.firstName]);
 
