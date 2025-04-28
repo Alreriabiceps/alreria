@@ -4,1246 +4,1183 @@
    Imports
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
-/* --- Removed global variable definition block --- */
-
-/* ==========================================================================
-      Base Layout & Page Header
-      ========================================================================== */
-
-.pvpContainer {
-  /* Theme Variables Scoped */
-  --font-game: 'Press Start 2P', cursive;
-  --font-body: 'VT323', monospace;
-  --color-accent: #00ff9d;
-  --color-accent-hover: #80ffce;
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-text-dark: #333333;
-  --color-bg-start: #0c051a;
-  --color-bg-mid: #1d1135;
-  --color-panel: rgba(30, 25, 65, 0.95);
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-panel-border-glow: rgba(0, 255, 157, 0.3);
-  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
-  --color-input-bg: rgba(40, 35, 75, 0.8);
-  --color-input-border: rgba(0, 255, 157, 0.5);
-  --color-selected-border: #ffcc00;
-  --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
-  --color-button-secondary-border: rgba(255, 255, 255, 0.3);
-  --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
-  --color-error: #ff6b6b;
-  --color-score-excellent: #00ff9d;
-  --color-score-good: #80ffce;
-  --color-score-average: #ffcc00;
-  --color-score-poor: #ff6b6b;
-  --color-points-positive: #00ff9d;
-  --color-points-negative: #ff6b6b;
-  --color-points-neutral: #ffcc00;
-  --color-rank-bronze: #cd7f32;
-  --color-rank-silver: #c0c0c0;
-  --color-rank-gold: #ffd700;
-  --color-rank-platinum: #e5e4e2;
-  --color-rank-diamond: #b9f2ff;
-  --color-rank-master: #ff00ff;
-  --color-rank-grandmaster: #ff0000;
-  --color-card-bg: rgba(30, 25, 65, 0.8);
-  --color-card-border: rgba(0, 255, 157, 0.4);
-
-  /* Base Styles */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: clamp(1rem, 3vw, 2rem);
-  font-family: var(--font-game);
-  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
-  color: var(--color-text-base);
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.pageHeader {
-  width: 100%;
-  max-width: 1100px;
-  /* Match grid width */
-  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
-  text-align: center;
-}
-
-.pageTitle {
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
-  color: var(--color-accent);
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
-  /* Font family inherited */
-}
-
-.pageSubtitle {
-  font-family: var(--font-body);
-  /* Use body font */
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
-  color: var(--color-text-muted);
-}
-
-/* ==========================================================================
-      Main Grid and Panel Structure
-      ========================================================================== */
-
-.actionsGrid {
-  width: 100%;
-  max-width: 1100px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
-  margin-bottom: 2rem;
-}
-
-.panel {
-  background-color: var(--color-panel);
-  border: 1px solid var(--color-panel-border);
-  padding: clamp(1rem, 3vw, 1.5rem);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-height: 200px;
-  animation: fadeIn 0.5s ease-out forwards;
-  display: flex;
-  flex-direction: column;
-}
-
-.panelHeader {
-  font-size: clamp(1.1rem, 3vw, 1.3rem);
-  margin-bottom: 1rem;
-  color: var(--color-accent);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.panelIcon {
-  font-size: 1.3rem;
-  opacity: 0.9;
-  flex-shrink: 0;
-  /* Prevent icon shrinking */
-  /* Icon font needs setup (e.g., Font Awesome) */
-}
-
-/* Specific panel grid placement (adjust if needed) */
-.joinLobbyPanel {
-  grid-column: span 1;
-  /* Default */
-}
-
-.queuePanel {
-  grid-column: span 1;
-  /* Default */
-}
-
-/* ==========================================================================
-      Generic Button Style
-      ========================================================================== */
-
-.gameButton {
-  font-family: var(--font-game);
-  padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-  border: 2px solid var(--color-accent);
-  color: var(--color-accent);
-  background-color: rgba(0, 0, 0, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  font-size: clamp(0.8rem, 2.5vw, 1rem);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
-  border-radius: 0;
-  user-select: none;
-  white-space: nowrap;
-  text-align: center;
-}
-
-.gameButton:hover:not(:disabled) {
-  background-color: var(--color-accent);
-  color: var(--color-bg-start);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover);
-  transform: translate(-1px, -1px);
-}
-
-.gameButton:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
-  /* Use hover colors for active state for simplicity */
-  background-color: var(--color-accent-hover);
-  color: var(--color-bg-start);
-}
-
-.gameButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  filter: grayscale(50%);
-  /* Ensure disabled state retains base styles */
-  background-color: rgba(0, 0, 0, 0.6);
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
-  transform: none;
-}
-
-.gameButton:disabled:hover {
-  /* Prevent hover effect when disabled */
-  transform: none;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: var(--color-accent);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
-}
-
-
-/* ==========================================================================
-      Invite Friend Panel
-      ========================================================================== */
-
-.inviteForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: auto;
-}
-
-.inviteInput {
-  width: 100%;
-  padding: clamp(0.5rem, 2vw, 0.75rem);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  border: 1px solid var(--color-input-border);
-  border-radius: 4px;
-  background: var(--color-input-bg);
-  color: var(--color-text-base);
-}
-
-.inviteInput::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.8;
-}
-
-.inviteInput:focus {
-  outline: none;
-  border-color: var(--color-selected-border);
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
-}
-
-.inviteButton {
-  composes: gameButton;
-  /* Inherit base button styles */
-  align-self: flex-start;
-  /* Align button left */
-  margin-top: auto;
-  /* Push to bottom of flex container */
-}
-
-/* ==========================================================================
-      Create Lobby Panel
-      ========================================================================== */
-
-.createDescription {
-  font-family: var(--font-body);
-  /* Use body font */
-  font-size: 1.1rem;
-  color: var(--color-text-muted);
-  line-height: 1.6;
-  flex-grow: 1;
-  /* Take space */
-  margin-bottom: 20px;
-  /* Space above button */
-}
-
-.createButton {
-  composes: gameButton;
-  /* Inherit base button styles */
-  align-self: center;
-  padding: 12px 25px;
-  font-size: 0.9rem;
-}
-
-/* ==========================================================================
-      Matchmaking Queue Panel
-      ========================================================================== */
-
-.queuePanelContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: auto;
-}
-
-.queueStatus {
-  font-family: var(--font-body);
-  /* Use body font */
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
-  text-align: center;
-}
-
-.queueTime {
-  font-family: var(--font-game);
-  /* Use game font */
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  /* Larger time */
-  color: var(--color-accent);
-  text-align: center;
-}
-
-.queueButton {
-  composes: gameButton;
-  /* Inherit base button styles */
-  padding: 14px 30px;
-  font-size: 1rem;
-}
-
-.cancelQueueButton {
-  composes: gameButton;
-  /* Inherit base button styles */
-  padding: 10px 20px;
-  font-size: 0.8rem;
-  background-color: var(--color-cancel-button-bg);
-  border-color: var(--color-cancel-button-border);
-  color: var(--color-text-base);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 0, 0, 0.5);
-}
-
-.cancelQueueButton:hover:not(:disabled) {
-  background-color: var(--color-cancel-button-hover-bg);
-  border-color: var(--color-cancel-button-border);
-  color: var(--color-text-base);
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-cancel-button-border);
-}
-
-.cancelQueueButton:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
-  /* Keep hover bg for active */
-  background-color: var(--color-cancel-button-hover-bg);
-  border-color: var(--color-cancel-button-border);
-  color: var(--color-text-base);
-}
-
-/* ==========================================================================
-      Join Lobby Panel
-      ========================================================================== */
-
-.lobbyBrowserHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-/* Reposition header within the browser div */
-.lobbyBrowserHeader .panelHeader {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.lobbySearchContainer {
-  width: 100%;
-  position: relative;
-}
-
-.lobbySearchInput {
-  width: 100%;
-  padding: clamp(0.5rem, 2vw, 0.75rem) clamp(2rem, 5vw, 3rem);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-}
-
-.lobbySearchIcon {
-  left: clamp(0.5rem, 2vw, 1rem);
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
-}
-
-.lobbyListContainer {
-  border: 1px solid var(--color-divider);
-  padding: 0.75rem;
-  background-color: rgba(0, 0, 0, 0.1);
-  max-height: 400px;
-  overflow-y: auto;
-  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
-  flex-grow: 1;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-}
-
-.lobbyList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.lobbyItem {
-  background-color: var(--color-panel);
-  border: 1px solid var(--color-panel-border);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow),
-              inset 0 0 5px rgba(0, 0, 0, 0.4),
-              0 0 10px rgba(0, 255, 157, 0.1);
-  padding: clamp(0.75rem, 2vw, 1rem);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.lobbyItem:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 255, 157, 0.2),
-              inset 0 0 5px rgba(0, 0, 0, 0.4);
-  background-color: rgba(40, 35, 75, 0.9);
-}
-
-.lobbyDetails {
-  width: 100%;
-  margin-right: 0;
-}
-
-.lobbyName {
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  font-weight: 600;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.lobbyHost {
-  font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-  color: var(--color-text-muted);
-}
-
-.lobbyInfo {
-  width: 100%;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.lobbyPlayers {
-  font-size: clamp(0.9rem, 2.5vw, 0.9rem);
-  color: var(--color-text-muted);
-  min-width: 40px;
-  text-align: right;
-}
-
-.joinButton {
-  composes: gameButton;
-  /* Inherit base button styles */
-  padding: 4px 12px;
-  font-size: 0.7rem;
-  flex-shrink: 0;
-}
-
-.noLobbiesMessage {
-  flex-grow: 1;
-  /* Takes up space in container */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-body);
-  font-size: 1.3rem;
-  color: var(--color-text-muted);
-  text-align: center;
-  padding: 20px;
-  opacity: 0.8;
-}
-
-/* ==========================================================================
-      Keyframes & Responsive
-      ========================================================================== */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 768px) {
-  .actionsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .lobbyButtons, .queueButtons {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .gameButton {
-    width: 100%;
-  }
-
-  .lobbyItem {
-    align-items: stretch;
-  }
-
-  .joinButton {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .pvpContainer {
-    padding: 1rem;
-  }
-
-  .panel {
-    padding: 1rem;
-  }
-
-  .modal {
-    width: 95%;
-    margin: 0 1rem;
-  }
-
-  .pageTitle {
-    font-size: 1.6rem;
-  }
-
-  .pageSubtitle {
-    font-size: 1rem;
-  }
-
-  .panelHeader {
-    font-size: 1rem;
-  }
-
-  .inviteInput {
-    font-size: 1rem;
-  }
-
-  .createDescription {
-    font-size: 1rem;
-  }
-
-  .lobbyName {
-    font-size: 0.8rem;
-  }
-
-  .lobbyHost {
-    font-size: 0.7rem;
-  }
-
-  .lobbyPlayers {
-    font-size: 0.9rem;
-  }
-
-  .joinButton {
-    padding: 5px 10px;
-    font-size: 0.7rem;
-  }
-
-  .queueTime {
-    font-size: 1.8rem;
-  }
-
-  .lobbyItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  /* Stack lobby item content */
-  .lobbyInfo {
-    align-self: flex-end;
-  }
-
-  /* Move players/button to right */
-  .lobbyDetails {
-    margin-right: 0;
-    width: 100%;
-  }
-
-  /* Allow details to take full width */
-}
-
-.lobbyButtons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.privateBadge {
-  background-color: var(--color-panel-border);
-  color: var(--color-text);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-left: 0.5rem;
-  border: 1px solid var(--color-accent);
-  box-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
-  animation: pulse 2s infinite;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.privateBadge::before {
-  content: '🔒';
-  font-size: 0.9rem;
-}
-
-/* Modal Styles */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.modal {
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
-              inset 0 0 10px rgba(0, 0, 0, 0.6),
-              0 0 20px var(--color-accent);
-  width: 90%;
-  max-width: 500px;
-  border-radius: 0;
-  animation: slideIn 0.3s ease-out;
-  position: relative;
-  margin: auto;
-  padding: clamp(1rem, 3vw, 1.5rem);
-}
-
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px dashed var(--color-divider);
-  margin-bottom: 1rem;
-}
-
-.modalHeader h2 {
-  color: var(--color-accent);
-  font-size: clamp(1.2rem, 3vw, 1.5rem);
-  margin: 0;
-  text-shadow: 2px 2px 0 var(--color-pixel-shadow);
-  font-family: var(--font-game);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  font-family: var(--font-body);
-}
-
-.closeButton:hover {
-  color: var(--color-accent);
-}
-
-.modalContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: clamp(0.5rem, 2vw, 1rem) 0;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.formGroup label {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.modalInput {
-  width: 100%;
-  padding: 0.5rem;
-  background-color: var(--color-input-bg);
-  border: 2px solid var(--color-input-border);
-  color: var(--color-text-base);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  border-radius: 0;
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
-}
-
-.modalInput:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 10px var(--color-accent);
-  transform: translateY(-1px);
-}
-
-.modalFooter {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--color-divider);
-}
-
-.submitButton {
-  background-color: var(--color-accent);
-  color: var(--color-bg-start);
-  font-family: var(--font-game);
-  padding: 10px 20px;
-  border: 2px solid var(--color-accent);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-}
-
-.submitButton:hover:not(:disabled) {
-  background-color: var(--color-accent-hover);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
-}
-
-.submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-}
-
-.cancelButton {
-  background-color: transparent;
-  border: 2px solid var(--color-text-muted);
-  color: var(--color-text-muted);
-  font-family: var(--font-game);
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-}
-
-.cancelButton:hover:not(:disabled) {
-  background-color: var(--color-text-muted);
-  color: var(--color-bg-start);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.timerBadge {
-  background-color: var(--color-accent);
-  color: var(--color-bg-start);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-family: var(--font-game);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.errorMessage {
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid var(--color-error);
-  border-radius: 4px;
-  padding: 12px;
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: errorShake 0.7s cubic-bezier(0.36, 0, 0.66, -0.56);
-}
-
-.errorMessage p {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.errorCloseButton {
-  background: none;
-  border: none;
-  color: #c62828;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0 0.5rem;
-}
-
-.errorCloseButton:hover {
-  color: #b71c1c;
-}
-
-.infoMessage {
-  background-color: rgba(0, 255, 157, 0.1);
-  border: 1px solid var(--color-accent);
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 4px;
-}
-
-.infoMessage p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--color-accent);
-  font-family: var(--font-body);
-  line-height: 1.4;
-}
-
-/* Pagination Styles */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 0.5rem;
-  border-top: 1px solid var(--color-divider);
-}
-
-.pageButton {
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  min-width: 40px;
-}
-
-.pageInfo {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-
-/* Join Lobby Modal Styles */
-.joinModal {
-  max-width: 500px;
-  width: 90%;
-  background: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
-              inset 0 0 10px rgba(0, 0, 0, 0.6),
-              0 0 20px var(--color-accent);
-  animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes modalSlideIn {
-  from {
-    transform: translateY(-30px) scale(0.95) rotate(-1deg);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-.lobbyDetail {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-divider);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.lobbyDetail:last-child {
-  border-bottom: none;
-}
-
-.lobbyDetail:hover {
-  transform: translateX(5px);
-  background-color: rgba(0, 255, 157, 0.05);
-}
-
-.lobbyDetail::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.05), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
-}
-
-.lobbyDetail:hover::before {
-  transform: translateX(100%);
-}
-
-.lobbyDetail::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-accent), transparent);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lobbyDetail:hover::after {
-  width: 100%;
-}
-
-.detailLabel {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.detailValue {
-  color: var(--color-text);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.passwordLabel {
-  display: block;
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.modalInput:focus + .passwordLabel {
-  transform: translateY(-5px);
-  color: var(--color-accent);
-  text-shadow: 0 0 5px rgba(0, 255, 157, 0.5);
-}
-
-.errorMessage {
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid var(--color-error);
-  border-radius: 4px;
-  padding: 12px;
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: errorShake 0.7s cubic-bezier(0.36, 0, 0.66, -0.56);
-}
-
-@keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.errorIcon {
-  font-size: 1.2rem;
-}
-
-.errorMessage p {
-  color: var(--color-error);
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.modalInput {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--color-input-border);
-  border-radius: 4px;
-  background-color: var(--color-input-bg);
-  color: var(--color-text-base);
-  font-size: 0.9rem;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.modalInput:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.2);
-  transform: scale(1.02);
-}
-
-.modalInput::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.modalInput:focus::placeholder {
-  opacity: 0.5;
-}
-
-.modalInput::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-accent), transparent);
-  transform: scaleX(0);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modalInput:focus::after {
-  transform: scaleX(1);
-}
-
-/* Disabled state for buttons */
-.gameButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* Loading state animation */
-@keyframes pulse {
-  0% { 
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 1;
-    transform: scale(1.05);
-  }
-  100% { 
-    opacity: 0.6;
-    transform: scale(1);
-  }
-}
-
-.gameButton:disabled {
-  animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Success state animation */
-@keyframes successPulse {
-  0% { 
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
-  }
-  50% { 
-    transform: scale(1.05);
-    box-shadow: 0 0 0 12px rgba(0, 255, 157, 0);
-  }
-  100% { 
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
-  }
-}
-
-.gameButton.success {
-  animation: successPulse 1.2s cubic-bezier(0.4, 0, 0.6, 1);
-}
-
-/* Modal overlay animation */
-.modalOverlay {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    background-color: rgba(0, 0, 0, 0);
-  }
-  to {
-    background-color: rgba(0, 0, 0, 0.75);
-  }
-}
-
-/* Password input animation */
-.passwordLabel {
-  transition: all 0.2s ease;
-}
-
-.modalInput:focus + .passwordLabel {
-  transform: translateY(-5px);
-  color: var(--color-accent);
-  text-shadow: 0 0 5px rgba(0, 255, 157, 0.5);
-}
-
-/* New Lobby List Animations */
-.lobbyList {
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.lobbyItem {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.lobbyItem:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 255, 157, 0.2);
-}
-
-/* New Search Input Animation */
-.lobbySearchInput {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lobbySearchInput:focus {
-  transform: scale(1.02);
-  box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.2);
-}
-
-/* New Pagination Animations */
-.pagination {
-  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.pageButton {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pageButton:hover:not(:disabled) {
-  transform: scale(1.1);
-  background-color: rgba(0, 255, 157, 0.1);
-}
-
-/* New Status Badge Animation */
-.timerBadge {
-  animation: pulseGlow 2.5s infinite;
-}
-
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(0, 255, 157, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
-  }
-}
-
-/* New Loading Spinner Animation */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loadingSpinner {
-  animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-/* New Success Animation */
-@keyframes successPulse {
-  0% { 
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
-  }
-  50% { 
-    transform: scale(1.05);
-    box-shadow: 0 0 0 12px rgba(0, 255, 157, 0);
-  }
-  100% { 
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
-  }
-}
-
-.gameButton.success {
-  animation: successPulse 1.2s cubic-bezier(0.4, 0, 0.6, 1);
-}
-
-/* New Hover Card Effect */
-.lobbyItem::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.05), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lobbyItem:hover::before {
-  transform: translateX(100%);
-}
-
-/* New Focus Ring Animation */
-@keyframes focusRing {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 255, 157, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
-  }
-}
-
-.modalInput:focus {
-  animation: focusRing 1.5s infinite;
-}
+   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+   @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+   
+   /* ==========================================================================
+         CSS Variables (Scoped to Container)
+         ========================================================================== */
+   .pvpContainer {
+     /* Theme Variables */
+     --font-game: 'Press Start 2P', cursive;
+     --font-body: 'VT323', monospace;
+     --color-accent: #00ff9d;
+     --color-accent-hover: #80ffce;
+     --color-text-base: #e0e0e0;
+     --color-text-muted: #a0a0a0;
+     --color-text-dark: #333333;
+     --color-bg-start: #0c051a;
+     --color-bg-mid: #1d1135;
+     --color-panel: rgba(30, 25, 65, 0.95);
+     --color-panel-border: rgba(0, 255, 157, 0.6);
+     --color-panel-border-glow: rgba(0, 255, 157, 0.3);
+     --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+     --color-input-bg: rgba(40, 35, 75, 0.8);
+     --color-input-border: rgba(0, 255, 157, 0.5);
+     --color-selected-border: #ffcc00;
+     --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
+     --color-button-secondary-border: rgba(255, 255, 255, 0.3);
+     --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
+     --color-cancel-button-bg: rgba(100, 100, 100, 0.6); /* Added for Cancel button */
+     --color-cancel-button-border: rgba(150, 150, 150, 0.8); /* Added */
+     --color-cancel-button-hover-bg: rgba(130, 130, 130, 0.7); /* Added */
+     --color-error: #ff6b6b;
+     --color-divider: rgba(255, 255, 255, 0.2); /* Added divider color */
+   
+     /* Base Styles */
+     box-sizing: border-box; /* Ensure padding/border are included in width/height */
+     min-height: 100vh;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     padding: 30px 15px 40px 15px; /* Slightly reduced padding */
+     font-family: var(--font-game);
+     background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+     color: var(--color-text-base);
+     overflow-x: hidden; /* Prevent horizontal scroll */
+   }
+   
+   /* Apply border-box to all elements within */
+   .pvpContainer *,
+   .pvpContainer *::before,
+   .pvpContainer *::after {
+     box-sizing: inherit;
+   }
+   
+   
+   /* ==========================================================================
+         Base Layout & Page Header
+         ========================================================================== */
+   
+   .pageHeader {
+     width: 100%;
+     max-width: 1100px;
+     margin-bottom: 30px;
+     text-align: left;
+     padding: 0 5px; /* Add slight horizontal padding if needed */
+   }
+   
+   .pageTitle {
+     font-size: clamp(1.8rem, 5vw, 2rem); /* Responsive font size */
+     color: var(--color-accent);
+     margin-bottom: 8px;
+     text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
+     word-break: break-word; /* Allow long titles to wrap */
+   }
+   
+   .pageSubtitle {
+     font-family: var(--font-body);
+     font-size: clamp(1rem, 4vw, 1.2rem); /* Responsive font size */
+     color: var(--color-text-muted);
+   }
+   
+   /* ==========================================================================
+         Main Grid and Panel Structure
+         ========================================================================== */
+   
+   .actionsGrid {
+     width: 100%;
+     max-width: 1100px;
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 30px;
+     margin-top: 10px;
+   }
+   
+   .panel {
+     background-color: var(--color-panel);
+     border: 2px solid var(--color-panel-border);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+                 0 0 15px var(--color-panel-border-glow),
+                 inset 0 0 10px rgba(0, 0, 0, 0.6);
+     padding: 25px 30px;
+     border-radius: 0;
+     animation: fadeIn 0.5s ease-out forwards;
+     display: flex;
+     flex-direction: column;
+     min-height: 280px; /* Revisit this, might remove in mobile */
+     /* Prevent panels from shrinking too much */
+     min-width: 0; /* Allows flex/grid items to shrink below content size if needed */
+   }
+   
+   .panelHeader {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+     color: var(--color-accent);
+     font-size: 1.1rem;
+     margin-bottom: 20px;
+     padding-bottom: 15px;
+     border-bottom: 1px dashed var(--color-divider);
+     width: 100%;
+   }
+   
+   .panelIcon {
+     font-size: 1.3rem;
+     opacity: 0.9;
+     flex-shrink: 0;
+     /* Ensure icon font is included or use SVGs/images */
+   }
+   
+   /* Grid placement (remains the same) */
+   .joinLobbyPanel { grid-column: span 1; }
+   .queuePanel { grid-column: span 1; }
+   
+   /* ==========================================================================
+         Generic Button Style
+         ========================================================================== */
+   
+   .gameButton {
+     font-family: var(--font-game);
+     padding: 12px 20px; /* Slightly larger padding for better tap target */
+     border: 2px solid var(--color-accent);
+     color: var(--color-accent);
+     background-color: rgba(0, 0, 0, 0.6);
+     text-transform: uppercase;
+     letter-spacing: 1.2px;
+     font-size: 0.8rem;
+     cursor: pointer;
+     transition: all 0.15s ease;
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+     border-radius: 0;
+     user-select: none;
+     white-space: nowrap;
+     text-align: center;
+     display: inline-flex; /* Better alignment if using icons */
+     align-items: center;
+     justify-content: center;
+     min-width: 100px; /* Minimum width for readability */
+   }
+   
+   .gameButton:hover:not(:disabled) {
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover);
+     transform: translate(-1px, -1px);
+   }
+   
+   .gameButton:active:not(:disabled) {
+     transform: translate(2px, 2px);
+     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+     background-color: var(--color-accent-hover);
+     color: var(--color-bg-start);
+   }
+   
+   /* Disabled state (consolidated) */
+   .gameButton:disabled,
+   .gameButton:disabled:hover,
+   .gameButton:disabled:active {
+     opacity: 0.4;
+     cursor: not-allowed;
+     filter: grayscale(50%);
+     background-color: rgba(0, 0, 0, 0.6);
+     color: var(--color-accent);
+     border-color: var(--color-accent);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+     transform: none;
+     /* Animation removal added later */
+   }
+   
+   /* Loading animation specifically for disabled buttons */
+   .gameButton:disabled.loading {
+       animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+   }
+   
+   /* Override disabled animation when not loading */
+   .gameButton:disabled:not(.loading) {
+       animation: none;
+   }
+   
+   
+   /* ==========================================================================
+         Inputs (Generic Improvements)
+         ========================================================================== */
+   
+   /* Base style for common inputs */
+   .textInputBase {
+     width: 100%; /* Default to full width */
+     padding: 12px 15px;
+     background-color: var(--color-input-bg);
+     border: 1px solid var(--color-input-border);
+     color: var(--color-text-base);
+     border-radius: 0;
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+     font-family: var(--font-body); /* Most text inputs should use body font */
+     font-size: 1.1rem; /* Consistent base size */
+     transition: all 0.2s ease;
+   }
+   
+   .textInputBase::placeholder {
+     color: var(--color-text-muted);
+     opacity: 0.8;
+   }
+   
+   .textInputBase:focus {
+     outline: none;
+     border-color: var(--color-selected-border);
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
+   }
+   
+   
+   /* ==========================================================================
+         Invite Friend Panel
+         ========================================================================== */
+   
+   .inviteForm {
+     display: flex;
+     flex-direction: column;
+     gap: 15px;
+     flex-grow: 1;
+   }
+   
+   .inviteInput {
+     composes: textInputBase; /* Use base input style */
+     font-size: 1.2rem; /* Keep specific size if desired */
+   }
+   
+   .inviteButton {
+     composes: gameButton;
+     align-self: flex-start;
+     margin-top: auto; /* Push to bottom */
+   }
+   
+   /* ==========================================================================
+         Create Lobby Panel
+         ========================================================================== */
+   
+   .createDescription {
+     font-family: var(--font-body);
+     font-size: 1.1rem;
+     color: var(--color-text-muted);
+     line-height: 1.6;
+     flex-grow: 1;
+     margin-bottom: 20px;
+   }
+   
+   .createButton {
+     composes: gameButton;
+     align-self: center;
+     padding: 12px 25px;
+     font-size: 0.9rem;
+   }
+   
+   /* ==========================================================================
+         Matchmaking Queue Panel
+         ========================================================================== */
+   
+   .queuePanelContent {
+     flex-grow: 1;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-align: center;
+   }
+   
+   .queueStatus {
+     font-family: var(--font-body);
+     font-size: 1.3rem;
+     color: var(--color-text-muted);
+     margin-bottom: 10px;
+   }
+   
+   .queueTime {
+     font-family: var(--font-game);
+     font-size: 2.2rem;
+     color: var(--color-accent);
+     margin-bottom: 30px;
+     text-shadow: 0 0 8px var(--color-accent);
+   }
+   
+   .queueButton {
+     composes: gameButton;
+     padding: 14px 30px;
+     font-size: 1rem;
+   }
+   
+   .cancelQueueButton {
+     composes: gameButton;
+     margin-top: 15px; /* Space from queue time/button */
+     padding: 10px 20px;
+     font-size: 0.8rem;
+     background-color: var(--color-cancel-button-bg);
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 0, 0, 0.5);
+   }
+   
+   .cancelQueueButton:hover:not(:disabled) {
+     background-color: var(--color-cancel-button-hover-bg);
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+     transform: translate(-1px, -1px);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-cancel-button-border);
+   }
+   
+   .cancelQueueButton:active:not(:disabled) {
+     transform: translate(2px, 2px);
+     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+     background-color: var(--color-cancel-button-hover-bg); /* Use hover color */
+     border-color: var(--color-cancel-button-border);
+     color: var(--color-text-base);
+   }
+   
+   
+   /* ==========================================================================
+         Join Lobby Panel
+         ========================================================================== */
+   
+   .lobbyBrowserHeader {
+     display: flex;
+     /* Default: side-by-side */
+     justify-content: space-between;
+     align-items: center;
+     flex-wrap: wrap;
+     /* Allow wrapping */
+     gap: 15px;
+     margin-bottom: 15px;
+   }
+   
+   /* Keep header content aligned */
+   .lobbyBrowserHeader .panelHeader {
+     margin-bottom: 0;
+     padding-bottom: 0;
+     border-bottom: none;
+     width: auto; /* Don't force 100% width here */
+     flex-shrink: 0; /* Prevent title from shrinking too much */
+   }
+   
+   .lobbySearchContainer {
+     position: relative;
+     flex-grow: 1; /* Allow search to take remaining space */
+     min-width: 200px; /* Reduced min-width */
+     max-width: 100%; /* Prevent overflow */
+   }
+   
+   .lobbySearchInput {
+     composes: textInputBase; /* Use base input style */
+     padding: 8px 12px 8px 35px; /* Keep specific padding for icon */
+     font-size: 1rem; /* Slightly smaller search */
+   }
+   
+   .lobbySearchIcon {
+     position: absolute;
+     left: 10px;
+     top: 50%;
+     transform: translateY(-50%);
+     color: var(--color-text-muted);
+     font-size: 1.1rem;
+     pointer-events: none;
+     /* Add icon library (e.g., Font Awesome: <i className={`fas fa-search ${styles.lobbySearchIcon}`}></i>) */
+   }
+   
+   .lobbyListContainer {
+     border: 1px solid var(--color-divider);
+     padding: 0.75rem;
+     background-color: rgba(0, 0, 0, 0.1);
+     max-height: 300px; /* Limit height */
+     overflow-y: auto; /* Enable scroll */
+     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+     flex-grow: 1; /* Take available vertical space */
+     min-height: 150px; /* Ensure it has some height even when empty */
+     display: flex; /* Needed for centering the no lobbies message */
+     flex-direction: column; /* Stack items vertically */
+   }
+   
+   .lobbyList {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     display: flex;
+     flex-direction: column;
+     gap: 0.75rem;
+     /* Animation applied here */
+      animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+   }
+   
+   .lobbyItem {
+     background-color: var(--color-panel); /* Slight adjustment */
+     border: 1px solid var(--color-panel-border);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow),
+                 inset 0 0 5px rgba(0, 0, 0, 0.4); /* Simplified base shadow */
+     padding: 10px 15px; /* Adjusted padding */
+     transition: all 0.3s ease-out; /* Faster transition */
+     position: relative;
+     display: flex;
+     flex-wrap: wrap; /* Allow wrapping on small screens */
+     justify-content: space-between;
+     align-items: center;
+     gap: 10px; /* Gap between elements when wrapping */
+     overflow: hidden; /* For hover effect */
+   }
+   
+   /* Existing hover effect - looks good */
+   .lobbyItem:hover {
+     transform: translateY(-3px);
+     box-shadow: 3px 6px 8px rgba(0, 0, 0, 0.5), /* Adjusted hover shadow */
+                 0 6px 15px rgba(0, 255, 157, 0.2),
+                 inset 0 0 5px rgba(0, 0, 0, 0.4);
+     background-color: rgba(40, 35, 75, 0.9);
+   }
+   /* Existing hover effect gradient */
+   .lobbyItem::before {
+     content: '';
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.05), transparent);
+     transform: translateX(-100%);
+     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+     pointer-events: none;
+   }
+   .lobbyItem:hover::before {
+     transform: translateX(100%);
+   }
+   
+   
+   .lobbyDetails {
+     display: flex;
+     flex-direction: column;
+     gap: 4px; /* Reduced gap */
+     flex-grow: 1; /* Take available horizontal space */
+     min-width: 150px; /* Prevent collapsing too much */
+     margin-right: 1rem; /* Space before buttons/info */
+   }
+   
+   .lobbyName {
+     font-size: 0.9rem;
+     font-weight: 600;
+     color: var(--color-text-base); /* Use base text color */
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     word-break: break-word; /* Allow long names to wrap */
+   }
+   
+   .lobbyHost {
+     font-size: 0.8rem;
+     color: var(--color-text-muted);
+   }
+   
+   /* Container for Player count and Buttons */
+   .lobbyActions {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     flex-shrink: 0; /* Prevent shrinking */
+   }
+   
+   .lobbyPlayers {
+     font-size: 0.9rem;
+     color: var(--color-text-muted);
+     min-width: 40px; /* Keep alignment */
+     text-align: right;
+   }
+   
+   .lobbyButtons {
+       display: flex;
+       gap: 0.5rem;
+   }
+   
+   .joinButton {
+     composes: gameButton;
+     padding: 6px 14px; /* Slightly adjusted padding */
+     font-size: 0.7rem;
+     flex-shrink: 0; /* Prevent shrinking */
+   }
+   
+   .privateBadge {
+     background-color: rgba(0, 255, 157, 0.15); /* Subtle background */
+     color: var(--color-accent);
+     padding: 3px 6px;
+     border-radius: 4px;
+     font-size: 0.7rem; /* Slightly smaller */
+     font-weight: 500;
+     font-family: var(--font-body); /* Use body font */
+     /* margin-left: 0.5rem; Combined into gap */
+     border: 1px solid var(--color-panel-border);
+     box-shadow: 0 0 5px rgba(0, 255, 157, 0.2);
+     /* Removed pulse animation - can be distracting */
+     display: inline-flex;
+     align-items: center;
+     gap: 0.25rem;
+   }
+   
+   .privateBadge::before {
+     content: '🔒'; /* Use actual lock character */
+     font-size: 0.8rem;
+     opacity: 0.8;
+   }
+   
+   .noLobbiesMessage {
+     flex-grow: 1;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-family: var(--font-body);
+     font-size: 1.3rem;
+     color: var(--color-text-muted);
+     text-align: center;
+     padding: 20px;
+     opacity: 0.8;
+     margin-top: auto; /* Push down if list container is larger */
+     margin-bottom: auto; /* Center vertically */
+   }
+   
+   
+   /* ==========================================================================
+         Pagination
+         ========================================================================== */
+   
+   .pagination {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     gap: 1rem;
+     margin-top: 1rem;
+     padding: 0.5rem;
+     border-top: 1px solid var(--color-divider);
+     /* Animation */
+     animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards; /* Delay slightly */
+     opacity: 0; /* Start hidden for animation */
+   }
+   
+   .pageButton {
+     composes: gameButton;
+     padding: 6px 14px; /* Consistent with join button */
+     font-size: 0.8rem;
+     min-width: 45px; /* Ensure minimum size */
+     transition: all 0.3s ease;
+   }
+   
+   .pageButton:hover:not(:disabled) {
+     transform: scale(1.1);
+     background-color: rgba(0, 255, 157, 0.1);
+   }
+   
+   .pageInfo {
+     font-family: var(--font-body);
+     font-size: 0.9rem;
+     color: var(--color-text-muted);
+   }
+   
+   /* ==========================================================================
+         Modal Styles (General)
+         ========================================================================== */
+   
+   .modalOverlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background-color: rgba(0, 0, 0, 0.75);
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     z-index: 1000;
+     padding: 15px; /* Add padding for smaller screens */
+     animation: fadeIn 0.3s ease-out forwards;
+   }
+   
+   /* Base Modal Structure */
+   .modal {
+     background-color: var(--color-panel);
+     border: 2px solid var(--color-panel-border);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+                 inset 0 0 10px rgba(0, 0, 0, 0.6),
+                 0 0 20px var(--color-accent);
+     width: 100%; /* Use full width available */
+     max-width: 450px; /* Set max width */
+     border-radius: 0;
+     position: relative; /* For positioning content/absolute elements */
+     padding: 20px; /* Default padding */
+     display: flex;
+     flex-direction: column;
+      /* Animation applied selectively */
+   }
+   
+   /* Join Modal specific animation */
+   .joinModal {
+       max-width: 500px;
+       animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+   }
+   
+   .modalHeader {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding-bottom: 15px;
+     border-bottom: 1px dashed var(--color-divider);
+     margin-bottom: 15px;
+     flex-shrink: 0; /* Prevent header shrinking */
+   }
+   
+   .modalHeader h2 {
+     color: var(--color-accent);
+     font-size: 1.2rem;
+     margin: 0;
+     text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+     font-family: var(--font-game);
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+   }
+   
+   .closeButton {
+     background: none;
+     border: none;
+     color: var(--color-text-muted);
+     font-size: 1.8rem; /* Larger, easier tap target */
+     cursor: pointer;
+     padding: 0;
+     width: 35px; /* Larger touch area */
+     height: 35px; /* Larger touch area */
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     transition: color 0.2s ease, transform 0.2s ease;
+     font-family: var(--font-body);
+     line-height: 1; /* Ensure X is centered */
+   }
+   
+   .closeButton:hover {
+     color: var(--color-accent);
+     transform: scale(1.1);
+   }
+   
+   .modalContent {
+     display: flex;
+     flex-direction: column;
+     gap: 1rem;
+     overflow-y: auto; /* Allow content scrolling if needed */
+     /* flex-grow: 1; Let modal size determine height usually */
+     min-height: 0; /* Allow shrinking */
+   }
+   
+   .formGroup {
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+     margin-bottom: 0.5rem; /* Reduced bottom margin */
+   }
+   
+   .formGroup label,
+   .passwordLabel {
+     display: block; /* Ensure label takes its own line */
+     color: var(--color-text-muted);
+     font-size: 0.9rem;
+     font-weight: 500;
+     font-family: var(--font-body); /* Ensure correct font */
+     transition: all 0.2s ease;
+   }
+   
+   .modalInput {
+     /* No compose needed - define specific style */
+     width: 100%;
+     padding: 10px; /* Standard padding */
+     background-color: var(--color-input-bg);
+     border: 1px solid var(--color-input-border);
+     border-radius: 0px; /* Consistent */
+     color: var(--color-text-base);
+     font-family: var(--font-body);
+     font-size: 1rem; /* Slightly larger for readability */
+     transition: all 0.3s ease; /* Smooth transition */
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+     /* Remove animated focus ring for general input */
+   }
+   
+   .modalInput:focus {
+     outline: none;
+     border-color: var(--color-accent);
+     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 10px var(--color-accent);
+   }
+   
+   .modalInput:focus + .passwordLabel {
+     transform: translateY(-3px); /* Slightly less transform */
+     color: var(--color-accent);
+     text-shadow: 0 0 5px rgba(0, 255, 157, 0.5);
+   }
+   
+   .modalFooter {
+     display: flex;
+     /* Default: row layout */
+     flex-wrap: wrap; /* Allow buttons to wrap */
+     justify-content: flex-end; /* Align buttons right by default */
+     gap: 1rem;
+     margin-top: 1rem;
+     padding-top: 15px;
+     border-top: 1px dashed var(--color-divider);
+     flex-shrink: 0; /* Prevent footer shrinking */
+   }
+   
+   .submitButton {
+     composes: gameButton; /* Inherit base */
+     /* Adjust specifics */
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     border-color: var(--color-accent);
+     font-size: 0.9rem; /* Slightly larger */
+     padding: 10px 25px; /* Adjust padding */
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Base shadow */
+     order: 1; /* Submit usually last */
+   }
+   
+   .submitButton:hover:not(:disabled) {
+     background-color: var(--color-accent-hover);
+     transform: translate(-1px, -1px);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+   }
+   
+   .cancelButton {
+     composes: gameButton; /* Inherit base */
+     /* Adjust specifics */
+     background-color: transparent;
+     border: 2px solid var(--color-text-muted);
+     color: var(--color-text-muted);
+     font-size: 0.9rem; /* Match submit */
+     padding: 10px 20px; /* Adjust padding */
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Base shadow */
+     order: 0; /* Cancel usually first */
+   }
+   
+   .cancelButton:hover:not(:disabled) {
+     background-color: var(--color-text-muted);
+     color: var(--color-bg-start);
+     transform: translate(-1px, -1px);
+     box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+   }
+   
+   
+   /* ==========================================================================
+         Join Lobby Modal Specific Styles
+         ========================================================================== */
+   
+   .lobbyDetail {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px 5px; /* Vertical padding, less horizontal */
+     border-bottom: 1px solid var(--color-divider);
+     font-family: var(--font-body); /* Ensure correct font */
+     /* Add hover effects back if desired, but maybe simpler on mobile */
+   }
+   
+   .lobbyDetail:last-child {
+     border-bottom: none;
+   }
+   
+   .detailLabel {
+     color: var(--color-text-muted);
+     font-size: 0.9rem;
+     font-weight: 500;
+     margin-right: 10px; /* Space between label and value */
+     flex-shrink: 0;
+   }
+   
+   .detailValue {
+     color: var(--color-text-base);
+     font-size: 1rem; /* Make value slightly larger */
+     font-weight: 600;
+     text-align: right;
+     word-break: break-all; /* Prevent long values breaking layout */
+   }
+   
+   /* ==========================================================================
+         Status/Info/Error Messages
+         ========================================================================== */
+   
+   .infoMessage {
+     background-color: rgba(0, 255, 157, 0.1);
+     border: 1px solid var(--color-accent);
+     padding: 12px;
+     margin: 1rem 0;
+     border-radius: 0px; /* Consistent */
+   }
+   
+   .infoMessage p {
+     margin: 0;
+     font-size: 0.9rem;
+     color: var(--color-accent);
+     font-family: var(--font-body);
+     line-height: 1.5;
+   }
+   
+   .errorMessage {
+     background-color: rgba(255, 107, 107, 0.15); /* Use var(--color-error) alpha */
+     border: 1px solid var(--color-error);
+     border-left: 4px solid var(--color-error); /* Accent border */
+     border-radius: 0px;
+     padding: 12px 15px;
+     margin: 1rem 0;
+     display: flex;
+     align-items: flex-start; /* Align icon top */
+     gap: 10px;
+     animation: errorShake 0.6s cubic-bezier(.36, .07, .19, .97) both;
+     font-family: var(--font-body);
+   }
+   
+   .errorIcon {
+     font-size: 1.3rem;
+     color: var(--color-error);
+     margin-top: 2px; /* Align icon nicely */
+     flex-shrink: 0;
+      /* Needs icon setup (e.g. Font Awesome: <i className={`fas fa-exclamation-circle ${styles.errorIcon}`}></i>) */
+   }
+   
+   .errorMessage p {
+     margin: 0;
+     color: var(--color-error); /* Use variable */
+     font-size: 0.95rem; /* Slightly larger error text */
+     line-height: 1.5;
+     flex-grow: 1;
+   }
+   
+   .errorCloseButton { /* If adding a close button to error messages */
+     composes: closeButton; /* Use modal close style base */
+     font-size: 1.2rem; /* Adjust size */
+     color: var(--color-error);
+     opacity: 0.7;
+     width: 25px;
+     height: 25px;
+     align-self: center; /* Center vertically */
+   }
+   .errorCloseButton:hover {
+       opacity: 1;
+       color: var(--color-error); /* Keep error color on hover */
+   }
+   
+   
+   /* ==========================================================================
+         Helper Classes & Badges
+         ========================================================================== */
+   
+   .timerBadge {
+     background-color: var(--color-accent);
+     color: var(--color-bg-start);
+     padding: 0.25rem 0.5rem;
+     border-radius: 4px;
+     font-size: 0.8rem;
+     font-weight: 500;
+     font-family: var(--font-game);
+     animation: pulseGlow 2s infinite ease-in-out;
+   }
+   
+   .loadingSpinner { /* Example usage: Add as a span inside disabled buttons */
+     display: inline-block;
+     width: 1em; /* Scale with font size */
+     height: 1em;
+     border: 2px solid currentColor;
+     border-bottom-color: transparent;
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+     margin-left: 0.5em; /* Space from button text */
+   }
+   
+   .visuallyHidden { /* For accessibility */
+     border: 0;
+     clip: rect(0 0 0 0);
+     height: 1px;
+     margin: -1px;
+     overflow: hidden;
+     padding: 0;
+     position: absolute;
+     width: 1px;
+   }
+   
+   /* ==========================================================================
+         Keyframes (Consolidated & Checked)
+         ========================================================================== */
+   
+   @keyframes fadeIn {
+     from { opacity: 0; }
+     to { opacity: 1; }
+   }
+   
+   /* Keep slideIn for panel entry */
+   @keyframes slideInPanel { /* Renamed to avoid conflict */
+     from {
+       opacity: 0;
+       transform: translateY(15px);
+     }
+     to {
+       opacity: 1;
+       transform: translateY(0);
+     }
+   }
+   /* Apply the renamed animation to panels */
+   .panel {
+     animation: slideInPanel 0.5s ease-out forwards;
+   }
+   
+   
+   @keyframes slideIn { /* Standard modal slide-in */
+     from { transform: translateY(-20px); opacity: 0; }
+     to { transform: translateY(0); opacity: 1; }
+   }
+   
+   @keyframes modalSlideIn { /* Join modal specific */
+     from { transform: translateY(-30px) scale(0.95) rotate(-1deg); opacity: 0; }
+     to { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+   }
+   
+   @keyframes fadeInUp {
+     from { opacity: 0; transform: translateY(20px); } /* Less distance */
+     to { opacity: 1; transform: translateY(0); }
+   }
+   
+   @keyframes pulse { /* For loading disabled buttons */
+     0%, 100% { opacity: 0.6; transform: scale(1); }
+     50% { opacity: 1; transform: scale(1.03); }
+   }
+   
+   @keyframes pulseGlow { /* For timer badge */
+     0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); opacity: 0.9; }
+     50% { box-shadow: 0 0 0 8px rgba(0, 255, 157, 0); opacity: 1; }
+     100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); opacity: 0.9; }
+   }
+   
+   @keyframes spin {
+     to { transform: rotate(360deg); }
+   }
+   
+   @keyframes errorShake {
+     10%, 90% { transform: translateX(-1px); }
+     20%, 80% { transform: translateX(2px); }
+     30%, 50%, 70% { transform: translateX(-3px); }
+     40%, 60% { transform: translateX(3px); }
+   }
+   
+   /* Success animation for buttons */
+   @keyframes successPulse {
+     0% { transform: scale(1); }
+     50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(0, 255, 157, 0.2); }
+     100% { transform: scale(1); box-shadow: none; }
+   }
+   .gameButton.success:not(:disabled) { /* Only apply if not disabled */
+     background-color: var(--color-score-excellent);
+     border-color: var(--color-score-excellent);
+     color: var(--color-bg-start);
+     animation: successPulse 0.8s ease-out forwards;
+   }
+   
+   /* ==========================================================================
+         RESPONSIVE STYLES
+         ========================================================================== */
+   
+   /* Tablet and smaller (Stacking grid) */
+   @media (max-width: 992px) {
+     .actionsGrid {
+       grid-template-columns: 1fr; /* Stack panels */
+       gap: 25px; /* Slightly reduce gap */
+     }
+   
+     .panel {
+       min-height: auto; /* Allow panels to shrink vertically */
+     }
+   
+      /* Adjust lobby list height slightly if needed */
+     .lobbyListContainer {
+        max-height: 280px;
+     }
+   
+     /* Center the create button text since button itself might be full width later */
+      .createButton {
+         text-align: center;
+     }
+   }
+   
+   /* Larger Mobiles / Small Tablets */
+   @media (max-width: 768px) {
+       .pvpContainer {
+           padding: 20px 10px 30px 10px; /* Reduce padding further */
+       }
+   
+       .pageHeader {
+         margin-bottom: 20px;
+       }
+   
+       .panel {
+           padding: 20px 20px; /* Reduce panel padding */
+       }
+   
+       .lobbyBrowserHeader {
+          /* Stack title and search vertically if needed, wrap is often ok */
+          /* flex-direction: column; */
+          /* align-items: stretch; */
+       }
+   
+       .lobbyBrowserHeader .panelHeader {
+           font-size: 1rem; /* Slightly smaller header in lobby browser */
+           margin-bottom: 10px; /* Add space if stacking */
+       }
+   
+       .lobbySearchContainer {
+         min-width: 150px; /* Allow further shrinking */
+       }
+   
+       .lobbyItem {
+         padding: 12px;
+       }
+   
+       /* Slightly reduce main button padding */
+       .gameButton {
+         padding: 10px 18px;
+         font-size: 0.75rem;
+       }
+       .inviteButton, .queueButton {
+            font-size: 0.8rem; /* Keep main actions slightly larger */
+            padding: 12px 20px;
+       }
+       .createButton {
+           padding: 10px 20px;
+           font-size: 0.8rem;
+       }
+   
+       .modal {
+           padding: 15px;
+       }
+   
+       .modalHeader h2 {
+         font-size: 1.1rem;
+       }
+   
+       .modalFooter {
+         justify-content: space-between; /* Space out buttons */
+       }
+   
+       .submitButton, .cancelButton {
+          font-size: 0.8rem;
+          padding: 10px 15px;
+          flex-grow: 1; /* Make footer buttons take equal space */
+          text-align: center;
+       }
+   }
+   
+   /* Small Mobiles */
+   @media (max-width: 480px) {
+     .pageTitle {
+        font-size: clamp(1.5rem, 7vw, 1.8rem); /* Adjust clamp */
+     }
+   
+     .pageSubtitle {
+        font-size: clamp(0.9rem, 4vw, 1rem); /* Adjust clamp */
+     }
+   
+     .panel {
+       padding: 15px; /* Further reduce panel padding */
+     }
+   
+     .panelHeader {
+       font-size: 1rem;
+       gap: 8px;
+       margin-bottom: 15px;
+       padding-bottom: 10px;
+     }
+     .panelIcon {
+        font-size: 1.1rem;
+     }
+   
+     .inviteInput, .modalInput {
+       font-size: 1rem;
+       padding: 10px 12px;
+     }
+     .lobbySearchInput {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+     }
+   
+     .createDescription {
+       font-size: 1rem;
+       margin-bottom: 15px;
+     }
+   
+     .queueStatus { font-size: 1.1rem; }
+     .queueTime { font-size: 1.8rem; margin-bottom: 20px;}
+   
+     /* Make key action buttons full width for easier tapping */
+     .inviteButton, .createButton, .queueButton, .cancelQueueButton {
+        width: 100%;
+        align-self: stretch; /* Override previous aligns */
+        font-size: 0.9rem; /* Slightly larger font for full width */
+        padding: 12px;
+     }
+     .createButton { margin-top: auto; } /* Push to bottom if desc shrinks */
+   
+      /* Lobby List adjustments */
+     .lobbyListContainer {
+         min-height: 100px; /* Lower min height */
+         padding: 0.5rem;
+         max-height: 250px; /* Further reduce max height */
+     }
+   
+     .lobbyItem {
+         flex-direction: column; /* Stack content vertically */
+         align-items: stretch; /* Align items full width */
+         gap: 8px; /* Gap between stacked elements */
+         padding: 10px;
+     }
+     .lobbyDetails {
+         margin-right: 0; /* Remove margin */
+         width: 100%; /* Take full width */
+         gap: 2px;
+     }
+     .lobbyName { font-size: 0.85rem; }
+     .lobbyHost { font-size: 0.75rem; }
+   
+     .lobbyActions {
+         width: 100%; /* Take full width */
+         justify-content: space-between; /* Space out players and button */
+         margin-top: 5px; /* Add slight space */
+         gap: 0.5rem;
+     }
+     .lobbyPlayers { font-size: 0.8rem; text-align: left; min-width: 0;} /* Reset min-width */
+     .lobbyButtons { justify-content: flex-end; /* Align buttons to the right */}
+   
+     .joinButton {
+         padding: 5px 12px; /* Small join button */
+         font-size: 0.7rem;
+     }
+   
+     .privateBadge { font-size: 0.65rem;}
+     .privateBadge::before { font-size: 0.7rem; }
+   
+     /* Pagination on small screens */
+     .pagination { gap: 0.5rem; }
+     .pageButton { padding: 5px 10px; min-width: 35px; }
+     .pageInfo { font-size: 0.8rem; }
+   
+     /* Modal Adjustments */
+     .modalFooter {
+       flex-direction: column; /* Stack buttons vertically */
+       align-items: stretch; /* Make buttons full width */
+     }
+     .submitButton, .cancelButton {
+       width: 100%; /* Full width */
+       margin: 0; /* Remove potential horizontal margins */
+       order: 0; /* Reset order for vertical stack if desired (or keep default) */
+     }
+   
+     .lobbyDetail {
+        padding: 8px 0; /* Adjust padding */
+     }
+     .detailLabel { font-size: 0.8rem; }
+     .detailValue { font-size: 0.9rem; }
+   
+     .errorMessage { padding: 10px; gap: 8px; }
+     .errorIcon { font-size: 1.1rem; }
+     .errorMessage p { font-size: 0.9rem; }
+   }

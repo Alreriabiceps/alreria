@@ -341,6 +341,16 @@ const SoloLobby = () => {
     try {
       setIsLoadingAction(true);
       const backendurl = import.meta.env.VITE_BACKEND_URL;
+      
+      // Prepare request body
+      const requestBody = {
+        name: lobbyForm.name || 'Open Lobby',
+        isPrivate: lobbyForm.isPrivate,
+        password: lobbyForm.isPrivate ? lobbyForm.password : undefined
+      };
+
+      console.log('Creating lobby with data:', requestBody);
+
       const response = await fetch(`${backendurl}/api/lobby`, {
         method: 'POST',
         headers: {
@@ -348,12 +358,7 @@ const SoloLobby = () => {
           'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
-        body: JSON.stringify({
-          name: lobbyForm.name || 'Open Lobby',
-          isPrivate: lobbyForm.isPrivate,
-          password: lobbyForm.password,
-          expiresAt: !lobbyForm.isPrivate ? new Date(Date.now() + 3 * 60 * 1000).toISOString() : undefined
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
@@ -367,37 +372,23 @@ const SoloLobby = () => {
         return;
       }
 
-      if (response.status !== 200 && response.status !== 201) {
+      if (!response.ok) {
         throw new Error(data.error || 'Failed to create lobby');
       }
 
+      // Show success message
+      setError(null);
+      
+      // Close modal and reset form
       setShowCreateLobbyModal(false);
       setLobbyForm({ name: '', isPrivate: false, password: '' });
       
-      // Automatically join the lobby after creation
-      const joinResponse = await fetch(`${backendurl}/api/lobby/${data.data._id}/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        credentials: 'include',
-        body: JSON.stringify({ password: lobbyForm.password })
-      });
-
-      const joinData = await joinResponse.json();
-
-      if (!joinResponse.ok) {
-        throw new Error(joinData.error || 'Failed to join lobby');
-      }
-
-      // Navigate to the game page
-      navigate('/student/pvp', { state: { lobbyId: data.data._id, lobbyName: data.data.name } });
+      // Refresh lobbies list
+      await fetchLobbies();
       
     } catch (err) {
-      console.error('Error creating/joining lobby:', err);
-      console.error('Error details:', err.message);
-      setError(err.message || 'Failed to create/join lobby. Please try again later.');
+      console.error('Error creating lobby:', err);
+      setError(err.message || 'Failed to create lobby. Please try again later.');
     } finally {
       setIsLoadingAction(false);
     }
@@ -449,18 +440,6 @@ const SoloLobby = () => {
           case 'You are already in this lobby':
             errorMessage = 'You are already in this lobby';
             break;
-          case 'Network error':
-            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-            break;
-          case 'Server error':
-            errorMessage = 'The server encountered an error. Please try again later.';
-            break;
-          case 'Invalid request':
-            errorMessage = 'Invalid request. Please try again.';
-            break;
-          case 'Rate limit exceeded':
-            errorMessage = 'Too many attempts. Please wait a moment before trying again.';
-            break;
           default:
             errorMessage = data.error || 'Failed to join lobby';
         }
@@ -469,8 +448,15 @@ const SoloLobby = () => {
       }
 
       setShowJoinLobbyModal(false);
-      // Navigate to the game page
-      navigate('/student/pvp', { state: { lobbyId, lobbyName } });
+      
+      // If lobby is now full (status is in-progress), navigate to game
+      if (data.data.status === 'in-progress') {
+        navigate('/student/pvp', { state: { lobbyId, lobbyName } });
+      } else {
+        // Otherwise just refresh the lobby list
+        fetchLobbies();
+      }
+      
     } catch (err) {
       console.error('Error joining lobby:', err);
       let errorMessage = 'Failed to join lobby. Please try again later.';
