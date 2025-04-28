@@ -6,232 +6,6 @@ import { io } from "socket.io-client";
 import styles from "./Pvp.module.css";
 import axios from "axios";
 
-// --- Mock Data ---
-const QUESTIONS_DATA = {
-  math: [
-    {
-      id: "math1",
-      text: "What is 15 * 3?",
-      options: ["40", "45", "50", "35"],
-      correct: "45",
-      subject: "math"
-    },
-    {
-      id: "math2",
-      text: "What is the square root of 144?",
-      options: ["12", "14", "16", "10"],
-      correct: "12",
-      subject: "math"
-    },
-    {
-      id: "math3",
-      text: "What is 20% of 150?",
-      options: ["25", "30", "35", "40"],
-      correct: "30",
-      subject: "math"
-    },
-    {
-      id: "math4",
-      text: "What is the value of π (pi) to two decimal places?",
-      options: ["3.14", "3.16", "3.12", "3.18"],
-      correct: "3.14",
-      subject: "math"
-    },
-    {
-      id: "math5",
-      text: "What is 8 squared?",
-      options: ["64", "56", "72", "48"],
-      correct: "64",
-      subject: "math"
-    }
-  ],
-  science: [
-    {
-      id: "science1",
-      text: "What is the powerhouse of the cell?",
-      options: ["Nucleus", "Ribosome", "Mitochondrion", "Chloroplast"],
-      correct: "Mitochondrion",
-      subject: "science"
-    },
-    {
-      id: "science2",
-      text: "What element does 'Fe' represent?",
-      options: ["Gold", "Silver", "Iron", "Lead"],
-      correct: "Iron",
-      subject: "science"
-    },
-    {
-      id: "science3",
-      text: "What gas do plants absorb from the atmosphere?",
-      options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
-      correct: "Carbon Dioxide",
-      subject: "science"
-    },
-    {
-      id: "science4",
-      text: "Which planet is known as the Red Planet?",
-      options: ["Jupiter", "Mars", "Venus", "Saturn"],
-      correct: "Mars",
-      subject: "science"
-    },
-    {
-      id: "science5",
-      text: "What is the chemical symbol for water?",
-      options: ["H2O", "CO2", "O2", "H2"],
-      correct: "H2O",
-      subject: "science"
-    }
-  ],
-  history: [
-    {
-      id: "history1",
-      text: "Who painted the Mona Lisa?",
-      options: ["Michelangelo", "Raphael", "Leonardo da Vinci", "Donatello"],
-      correct: "Leonardo da Vinci",
-      subject: "history"
-    },
-    {
-      id: "history2",
-      text: "In which year did World War II end?",
-      options: ["1943", "1944", "1945", "1946"],
-      correct: "1945",
-      subject: "history"
-    },
-    {
-      id: "history3",
-      text: "Who was the first President of the United States?",
-      options: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
-      correct: "George Washington",
-      subject: "history"
-    },
-    {
-      id: "history4",
-      text: "Which ancient wonder was located in Alexandria?",
-      options: ["Colossus of Rhodes", "Lighthouse", "Hanging Gardens", "Temple of Artemis"],
-      correct: "Lighthouse",
-      subject: "history"
-    },
-    {
-      id: "history5",
-      text: "Who wrote 'The Communist Manifesto'?",
-      options: ["Karl Marx", "Friedrich Engels", "Vladimir Lenin", "Joseph Stalin"],
-      correct: "Karl Marx",
-      subject: "history"
-    }
-  ],
-  geography: [
-    {
-      id: "geo1",
-      text: "Capital of Japan?",
-      options: ["Seoul", "Beijing", "Tokyo", "Bangkok"],
-      correct: "Tokyo",
-      subject: "geography"
-    },
-    {
-      id: "geo2",
-      text: "Smallest country in the world?",
-      options: ["Monaco", "Nauru", "Vatican City", "San Marino"],
-      correct: "Vatican City",
-      subject: "geography"
-    },
-    {
-      id: "geo3",
-      text: "Which is the largest ocean on Earth?",
-      options: ["Atlantic", "Indian", "Arctic", "Pacific"],
-      correct: "Pacific",
-      subject: "geography"
-    },
-    {
-      id: "geo4",
-      text: "What is the longest river in the world?",
-      options: ["Amazon", "Nile", "Yangtze", "Mississippi"],
-      correct: "Nile",
-      subject: "geography"
-    },
-    {
-      id: "geo5",
-      text: "Which country has the most natural lakes?",
-      options: ["Canada", "Russia", "United States", "Finland"],
-      correct: "Canada",
-      subject: "geography"
-    }
-  ],
-  literature: [
-    {
-      id: "lit1",
-      text: "Who wrote 'Romeo and Juliet'?",
-      options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-      correct: "William Shakespeare",
-      subject: "literature"
-    },
-    {
-      id: "lit2",
-      text: "What is the main theme of '1984' by George Orwell?",
-      options: ["Love", "Totalitarianism", "Adventure", "Family"],
-      correct: "Totalitarianism",
-      subject: "literature"
-    },
-    {
-      id: "lit3",
-      text: "Who wrote 'The Great Gatsby'?",
-      options: ["Ernest Hemingway", "F. Scott Fitzgerald", "John Steinbeck", "William Faulkner"],
-      correct: "F. Scott Fitzgerald",
-      subject: "literature"
-    },
-    {
-      id: "lit4",
-      text: "What is the first book in the Harry Potter series?",
-      options: ["Chamber of Secrets", "Philosopher's Stone", "Prisoner of Azkaban", "Goblet of Fire"],
-      correct: "Philosopher's Stone",
-      subject: "literature"
-    },
-    {
-      id: "lit5",
-      text: "Who wrote 'Pride and Prejudice'?",
-      options: ["Emily Brontë", "Charlotte Brontë", "Jane Austen", "Virginia Woolf"],
-      correct: "Jane Austen",
-      subject: "literature"
-    }
-  ],
-  technology: [
-    {
-      id: "tech1",
-      text: "What is 'const' in JavaScript?",
-      options: ["Function", "Variable (reassignable)", "Variable (constant reference)", "Loop"],
-      correct: "Variable (constant reference)",
-      subject: "technology"
-    },
-    {
-      id: "tech2",
-      text: "What does HTML stand for?",
-      options: ["HyperText Markup Language", "HighTech Machine Learning", "HyperTransfer Markup Language", "Hyperlink Text Mode Language"],
-      correct: "HyperText Markup Language",
-      subject: "technology"
-    },
-    {
-      id: "tech3",
-      text: "What is the main purpose of CSS?",
-      options: ["Structure", "Behavior", "Styling", "Data Storage"],
-      correct: "Styling",
-      subject: "technology"
-    },
-    {
-      id: "tech4",
-      text: "What does 'API' stand for?",
-      options: ["Application Programming Interface", "Advanced Program Interaction", "Applied Process Integration", "Automated Programming Input"],
-      correct: "Application Programming Interface",
-      subject: "technology"
-    },
-    {
-      id: "tech5",
-      text: "Which of these is not a programming language?",
-      options: ["Python", "Java", "HTML", "Ruby"],
-      correct: "HTML",
-      subject: "technology"
-    }
-  ]
-};
-
 const MAX_HP = 100;
 const DAMAGE = 10;
 const ANSWER_TIME_LIMIT = 30; // Seconds
@@ -311,41 +85,41 @@ const Pvp = () => {
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [selectedSubjectName, setSelectedSubjectName] = useState('');
   const [modalAnimation, setModalAnimation] = useState('');
+  const [showRpsResult, setShowRpsResult] = useState(false);
+  const [rpsModalAnimation, setRpsModalAnimation] = useState('');
+  const [subjectModalAnimation, setSubjectModalAnimation] = useState('');
 
-  // Demo questions for testing
-  const demoQuestions = [
-    {
-      id: 1,
-      text: "What is 2 + 2?",
-      options: ["3", "4", "5", "6"],
-      correctAnswer: 1,
-      subject: "math"
-    },
-    {
-      id: 2,
-      text: "What is the capital of France?",
-      options: ["London", "Berlin", "Paris", "Madrid"],
-      correctAnswer: 2,
-      subject: "geography"
-    },
-    {
-      id: 3,
-      text: "What is the chemical symbol for gold?",
-      options: ["Ag", "Au", "Fe", "Cu"],
-      correctAnswer: 1,
-      subject: "science"
+  // Function to fetch questions from backend
+  const fetchQuestions = async (subjectId) => {
+    try {
+      setIsLoadingQuestions(true);
+      setError(null);
+
+      const response = await axios.get(`http://localhost:5000/api/questions/${subjectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Transform the backend question format to match our frontend format
+      const transformedQuestions = response.data.map(question => ({
+        id: question._id,
+        text: question.questionText,
+        options: question.choices,
+        correctAnswer: question.correctAnswer,
+        subject: question.subject._id
+      }));
+
+      setAvailableQuestions(transformedQuestions);
+      return transformedQuestions;
+    } catch (err) {
+      console.error("Error fetching questions:", err);
+      setError("Failed to fetch questions. Please try again.");
+      return [];
+    } finally {
+      setIsLoadingQuestions(false);
     }
-  ];
-
-  // Initialize demo game
-  useEffect(() => {
-    setAvailableQuestions(demoQuestions);
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
+  };
 
   // Initialize socket connection
   useEffect(() => {
@@ -400,25 +174,19 @@ const Pvp = () => {
       setSelectedSubject(data.subject);
       setSelectedSubjectName(data.subject.name);
       setShowSubjectModal(true);
-      setModalAnimation('show');
+      setSubjectModalAnimation('show');
       
-      // Fetch questions for the selected subject
+      // Fetch questions immediately
       fetchQuestions(data.subject.id);
       
-      // Emit subject selection after showing modal
-      socket.emit('subject_selected', { 
-        subject: data.subject,
-        lobbyId: location.state?.lobbyId
-      });
-
-      // Hide modal and proceed to card selection after 3 seconds
+      // Hide subject modal after 1.5 seconds
       setTimeout(() => {
-        setModalAnimation('hide');
+        setSubjectModalAnimation('hide');
         setTimeout(() => {
           setShowSubjectModal(false);
           setGameState(GAME_STATE.CARD_SELECTION);
         }, 500);
-      }, 3000);
+      }, 1500);
     });
 
     newSocket.on('opponent_card_selected', (data) => {
@@ -479,11 +247,19 @@ const Pvp = () => {
     newSocket.on('rps_result', (data) => {
       console.log('RPS result received:', data);
       setRpsResult(data.result);
-      setGameState(GAME_STATE.SUBJECT_SELECTION);
-      setTurn(data.result === 'player' ? 'player' : 'opponent');
-      setGameMessage(data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...');
-      setShowChoices(false);
-      playRpsAnimation(data.result);
+      setShowRpsResult(true);
+      setRpsModalAnimation('show');
+      
+      // Hide RPS result modal after 2 seconds
+      setTimeout(() => {
+        setRpsModalAnimation('hide');
+        setTimeout(() => {
+          setShowRpsResult(false);
+          setGameState(GAME_STATE.SUBJECT_SELECTION);
+          setTurn(data.result === 'player' ? 'player' : 'opponent');
+          setGameMessage(data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...');
+        }, 500);
+      }, 2000);
     });
 
     setSocket(newSocket);
@@ -521,12 +297,12 @@ const Pvp = () => {
     if (gameState !== GAME_STATE.RPS) return;
     
     setRpsChoice(choice);
+    setShowChoices(false);
     socket.emit('rps_choice', { 
       lobbyId: location.state?.lobbyId, 
       choice,
       playerId: user.id
     });
-    setShowChoices(false);
   };
 
   const handleOpponentRPSChoice = (data) => {
@@ -536,43 +312,6 @@ const Pvp = () => {
     setShowChoices(false);
   };
 
-  // Function to fetch questions from backend
-  const fetchQuestions = async (subjectId) => {
-    try {
-      setIsLoadingQuestions(true);
-      setError(null);
-
-      const response = await axios.get(`http://localhost:5000/api/questions/${subjectId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      // Transform the backend question format to match our frontend format
-      const transformedQuestions = response.data.map(question => ({
-        id: question._id,
-        text: question.questionText,
-        options: question.choices,
-        correctAnswer: question.correctAnswer,
-        subject: question.subject._id
-      }));
-
-      setAvailableQuestions(transformedQuestions);
-      return transformedQuestions;
-    } catch (err) {
-      console.error("Error fetching questions:", err);
-      setError("Failed to fetch questions. Please try again.");
-      return [];
-    } finally {
-      setIsLoadingQuestions(false);
-    }
-  };
-
-  const determineRpsWinner = (playerChoice, opponentChoice) => {
-    if (playerChoice === opponentChoice) return 'draw';
-    return RPS_CHOICES.find(choice => choice.id === playerChoice).beats === opponentChoice ? 'player' : 'opponent';
-  };
-
   // Handle subject selection
   const handleSubjectSelect = async (subject) => {
     if (!socket || turn !== 'player') return;
@@ -580,51 +319,26 @@ const Pvp = () => {
     setSelectedSubject(subject);
     setSelectedSubjectName(subject.name);
     setShowSubjectModal(true);
-    setModalAnimation('show');
+    setSubjectModalAnimation('show');
     
-    // Fetch questions for the selected subject
+    // Fetch questions immediately
     await fetchQuestions(subject.id);
     
-    // Emit subject selection after showing modal
+    // Emit subject selection
     socket.emit('subject_selected', { 
       subject,
       lobbyId: location.state?.lobbyId
     });
 
-    // Hide modal and proceed to card selection after 3 seconds
+    // Hide subject modal after 1.5 seconds
     setTimeout(() => {
-      setModalAnimation('hide');
+      setSubjectModalAnimation('hide');
       setTimeout(() => {
         setShowSubjectModal(false);
         setGameState(GAME_STATE.CARD_SELECTION);
       }, 500);
-    }, 3000);
+    }, 1500);
   };
-
-  // Handle opponent's subject selection
-  useEffect(() => {
-    if (socket) {
-      socket.on('subject_selected', async (data) => {
-        console.log('Subject selected:', data);
-        setSelectedSubject(data.subject);
-        setSelectedSubjectName(data.subject.name);
-        setShowSubjectModal(true);
-        setModalAnimation('show');
-        
-        // Fetch questions for the selected subject
-        await fetchQuestions(data.subject.id);
-        
-        // Hide modal and proceed to card selection after 3 seconds
-        setTimeout(() => {
-          setModalAnimation('hide');
-          setTimeout(() => {
-            setShowSubjectModal(false);
-            setGameState(GAME_STATE.CARD_SELECTION);
-          }, 500);
-        }, 3000);
-      });
-    }
-  }, [socket]);
 
   // Handle question selection
   const handleQuestionSelect = (question) => {
@@ -780,7 +494,7 @@ const Pvp = () => {
     setTurn(null);
     setSelectedSubject(null);
     setSelectedQuestions([]);
-    setAvailableQuestions(demoQuestions);
+    setAvailableQuestions([]);
   };
 
   // --- Rendering Helpers ---
@@ -848,9 +562,36 @@ const Pvp = () => {
   return (
     <div className={styles.gameAreaWrapper}>
       <div className={styles.duelContainer}>
+        {/* RPS Result Modal */}
+        {showRpsResult && (
+          <div className={`${styles.rpsResultModal} ${styles[rpsModalAnimation]}`}>
+            <div className={styles.rpsResultContent}>
+              <h2>Rock Paper Scissors Result</h2>
+              <div className={styles.rpsPlayers}>
+                <div className={styles.rpsPlayer}>
+                  <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'player' ? styles.winner : ''}`}>
+                    {RPS_CHOICES.find(c => c.id === rpsChoice)?.icon}
+                  </div>
+                  <div className={styles.rpsPlayerName}>You</div>
+                </div>
+                <div className={styles.rpsVs}>VS</div>
+                <div className={styles.rpsPlayer}>
+                  <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'opponent' ? styles.winner : ''}`}>
+                    {RPS_CHOICES.find(c => c.id === opponentRpsChoice)?.icon}
+                  </div>
+                  <div className={styles.rpsPlayerName}>Opponent</div>
+                </div>
+              </div>
+              <div className={`${styles.rpsResultMessage} ${styles[rpsResult]}`}>
+                {rpsResult === 'draw' ? "It's a draw!" : `${rpsResult === 'player' ? 'You' : 'Opponent'} won!`}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Subject Selection Modal */}
         {showSubjectModal && (
-          <div className={`${styles.subjectModal} ${styles[modalAnimation]}`}>
+          <div className={`${styles.subjectModal} ${styles[subjectModalAnimation]}`}>
             <div className={styles.subjectModalContent}>
               <h2>Subject Selected!</h2>
               <div className={styles.selectedSubject}>
@@ -859,64 +600,6 @@ const Pvp = () => {
               </div>
               <p>Proceeding to question selection...</p>
             </div>
-          </div>
-        )}
-
-        {gameState === GAME_STATE.RPS && (
-          <div className={styles.rpsContainer}>
-            {!showChoices ? (
-              <div className={styles.countdownContainer}>
-                <h2>Rock Paper Scissors</h2>
-                <div className={styles.countdown}>
-                  <span className={styles.countdownNumber}>{countdown}</span>
-                  <span className={styles.countdownText}>seconds</span>
-                </div>
-                <p>Choose your move when the timer ends!</p>
-              </div>
-            ) : (
-              <>
-                <h2>Choose Your Move</h2>
-                <div className={`${styles.rpsChoices} ${rpsAnimation}`}>
-                  {RPS_CHOICES.map(choice => (
-                    <div
-                      key={choice.id}
-                      className={`${styles.rpsChoice} ${rpsChoice === choice.id ? styles.selected : ''}`}
-                      onClick={() => handleRpsChoice(choice.id)}
-                    >
-                      <span className={styles.rpsIcon}>{choice.icon}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {rpsResult && (
-                  <div className={`${styles.rpsResult} ${rpsAnimation}`}>
-                    <div className={styles.rpsPlayers}>
-                      <div className={styles.rpsPlayer}>
-                        <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'player' ? styles.winner : ''}`}>
-                          {RPS_CHOICES.find(c => c.id === rpsChoice)?.icon}
-                        </div>
-                        <div className={styles.rpsPlayerName}>You</div>
-                      </div>
-                      <div className={styles.rpsVs}>VS</div>
-                      <div className={styles.rpsPlayer}>
-                        <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'opponent' ? styles.winner : ''}`}>
-                          {RPS_CHOICES.find(c => c.id === opponentRpsChoice)?.icon}
-                        </div>
-                        <div className={styles.rpsPlayerName}>Opponent</div>
-                      </div>
-                    </div>
-                    <div className={`${styles.rpsResultMessage} ${styles[rpsResult]}`}>
-                      {rpsResult === 'draw' ? "It's a draw!" : `${rpsResult === 'player' ? 'You' : 'Opponent'} won!`}
-                    </div>
-                    {rpsResult !== 'draw' && (
-                      <div className={styles.rpsPrize}>
-                        {rpsResult === 'player' ? '🎉 You get to choose the subject!' : 'Opponent will choose the subject...'}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
           </div>
         )}
 
