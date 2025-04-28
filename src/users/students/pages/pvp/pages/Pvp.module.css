@@ -1,0 +1,1627 @@
+/* src/components/Pvp.module.css */
+
+/* Imports */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+/* Theme Variables */
+.gameAreaWrapper {
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-bg: #0c051a;
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+  --color-card-bg: rgba(0, 0, 0, 0.3);
+  --color-card-border: rgba(0, 255, 157, 0.3);
+}
+
+/* Main Container */
+.gameAreaWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 15px 60px 15px;
+  font-family: var(--font-game);
+  background-color: var(--color-bg);
+  color: var(--color-text-base);
+}
+
+.duelContainer {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Rock Paper Scissors Container */
+.rpsContainer {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6);
+  padding: 40px;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.rpsContainer h2 {
+  font-family: var(--font-game);
+  font-size: 1.6rem;
+  color: var(--color-accent);
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.rpsChoices {
+  display: flex;
+  gap: 30px;
+  margin: 20px 0;
+}
+
+.rpsChoice {
+  width: 120px;
+  height: 120px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: var(--color-card-bg);
+  border: 2px solid var(--color-card-border);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+}
+
+.rpsChoice:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+}
+
+.rpsChoice.selected {
+  background-color: rgba(0, 255, 157, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+}
+
+.rpsIcon {
+  font-size: 3rem;
+  transition: transform 0.3s ease;
+}
+
+.rpsChoice:hover .rpsIcon {
+  transform: scale(1.2);
+}
+
+.rpsResult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.rpsPlayers {
+  display: flex;
+  gap: 50px;
+  align-items: center;
+}
+
+.rpsPlayer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.rpsPlayerChoice {
+  width: 100px;
+  height: 100px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-card-bg);
+  border: 2px solid var(--color-card-border);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  animation: choiceReveal 0.5s ease-out forwards;
+}
+
+.rpsPlayerChoice.winner {
+  background-color: rgba(0, 255, 157, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+  animation: winnerPulse 1s infinite;
+}
+
+.rpsPlayerName {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  color: var(--color-text-base);
+  text-align: center;
+}
+
+.rpsResultMessage {
+  font-family: var(--font-game);
+  font-size: 1.2rem;
+  color: var(--color-accent);
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+}
+
+@keyframes choiceReveal {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes winnerPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+  }
+
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 255, 157, 0.5);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Base Layout & Container - Using Wrapper now
+   ========================================================================== */
+.playerInfoArea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  /* Increased padding */
+  width: 100%;
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.25);
+  /* Slightly darker */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 1;
+  flex-shrink: 0;
+  min-height: 250px;
+  /* Significantly increased height */
+}
+
+.opponentInfoArea {
+  order: 1;
+  border-top: none;
+}
+
+.fieldArea {
+  order: 2;
+  z-index: 100;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  /* More padding */
+  position: relative;
+  min-height: 180px;
+  /* Increase min field height too */
+  overflow: hidden;
+  /* Add subtle glow effect during attacks */
+  transition: box-shadow 0.5s ease-in-out;
+}
+
+/* Add a glow to field area during attacks */
+.fieldArea.attackingGlow {
+  box-shadow: inset 0 0 30px rgba(255, 0, 100, 0.4);
+}
+
+.playerInfoAreaLocal {
+  order: 3;
+  border-bottom: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Wrapper for center content to apply transforms easily */
+.centerContentContainer {
+  transition: transform 0.3s ease-in-out;
+  width: 100%;
+  /* Ensure it takes space for positioning */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==========================================================================
+      Player/Opponent HP and Info
+      ========================================================================== */
+.hpContainer {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  /* Wider HP */
+  flex-shrink: 0;
+  position: relative;
+  transition: transform 0.1s ease-in-out;
+  /* For shake */
+}
+
+/* HP Shake Animation Class */
+.hpContainer.shakeHp {
+  animation: shakeHpBar 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.playerInfoAreaLocal .hpContainer {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.opponentInfoArea .hpContainer {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.username {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.hpBarContainer {
+  width: 100%;
+  height: 16px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.hpBarFill {
+  height: 100%;
+  background-color: #0f9;
+  transition: width 0.4s ease-out, background-color 0.4s ease;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.hpBarFill.mediumHp {
+  background-color: #ff0;
+}
+
+.hpBarFill.lowHp {
+  background-color: #f30;
+  animation: pulseHpLow 1.5s infinite ease-in-out;
+}
+
+.hpText {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1rem;
+  color: #a0a0b0;
+}
+
+/* ==========================================================================
+      Hand Area & Card Count
+      ========================================================================== */
+.handArea {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  justify-content: center;
+  position: relative;
+  min-width: 200px;
+  padding: 0 15px;
+  /* Increased padding */
+  margin: 0 30px;
+  /* Increased margin */
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Prevent vertical scroll */
+  min-height: 190px;
+  /* Min height to fit larger cards */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.handArea::-webkit-scrollbar {
+  display: none;
+}
+
+.handArea>.card {
+  flex-shrink: 0;
+}
+
+.playerHandArea {}
+
+.opponentHandArea {}
+
+.cardCount {
+  position: absolute;
+  bottom: 10px;
+  /* Adjust */
+  right: 10px;
+  /* Adjust */
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.8);
+  color: #0ff;
+  padding: 3px 8px;
+  border-radius: 50%;
+  border: 1px solid #0ff;
+  min-width: 28px;
+  text-align: center;
+  z-index: 50;
+}
+
+.opponentHandArea .cardCount {
+  top: 10px;
+  bottom: auto;
+}
+
+/* ==========================================================================
+      Card Styling - Significantly Larger
+      ========================================================================== */
+.card {
+  width: 150px;
+  /* <<< MUCH LARGER */
+  height: 220px;
+  /* <<< MUCH LARGER */
+  border-radius: 10px;
+  /* Slightly more rounded */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease,
+    border-color 0.25s ease, margin-left 0.25s ease;
+  user-select: none;
+  cursor: pointer;
+  background-color: rgba(40, 40, 60, 0.9);
+  margin-left: -85px;
+  /* <<< ADJUSTED OVERLAP */
+}
+
+.handArea>.card:first-child {
+  margin-left: 0;
+}
+
+/* Player Hand Card Hover/Select Effects - Adjusted for size */
+.playerHandCard.selectable:hover {
+  transform: translateY(-35px) scale(1.08);
+  z-index: 200 !important;
+  border-color: #0ff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(17, 255, 255, 0.7);
+  margin-left: -60px;
+  /* Adjust */
+  margin-right: 25px;
+  /* Adjust */
+}
+
+.playerHandCard.selectable:hover+.card {
+  margin-left: -60px;
+  /* Adjust */
+}
+
+.playerHandCard.selected {
+  transform: translateY(-55px) scale(1.12);
+  border-color: #e040fb;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 20px #e040fb;
+  z-index: 99 !important;
+  margin-left: -60px;
+  /* Adjust */
+  margin-right: 25px;
+  /* Adjust */
+}
+
+.playerHandCard.selected+.card {
+  margin-left: -60px;
+  /* Adjust */
+}
+
+/* Opponent Hand Card */
+.opponentHandCard {
+  width: 100px;
+  /* Bigger opponent cards too */
+  height: 145px;
+  margin-left: -50px;
+  /* Adjust */
+  cursor: default;
+}
+
+.opponentHandCard .cardArtPlaceholder,
+.opponentHandCard .cardTextPreview {
+  display: none;
+}
+
+.opponentHandCard .cardBack {
+  display: flex;
+}
+
+/* Card Internals - Adjusted for size */
+.cardArtPlaceholder {
+  height: 65%;
+  /* More space for art */
+  font-size: 3.5rem;
+  font-family: "Orbitron", sans-serif;
+  color: #0ff;
+  opacity: 0.5;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardTextPreview {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 0.9rem;
+  /* Larger text */
+  line-height: 1.4;
+  color: #a0a0b0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.cardBack {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #4b0082, #3a0ca3);
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  /* Match outer */
+}
+
+.cardBack::before {
+  content: "?";
+  font-size: 4.5rem;
+  /* Larger symbol */
+  font-family: "Orbitron", sans-serif;
+  color: #0ff;
+  opacity: 0.6;
+  text-shadow: 0 0 8px #0ff;
+}
+
+/* Card Draw Animation */
+.drawnCardAnimation {
+  animation: drawCardAnimation 0.5s ease-out forwards;
+}
+
+/* ==========================================================================
+      Central Display Area (More space implicitly)
+      ========================================================================== */
+.centerDisplayBox {
+  /* ...styles remain mostly same, may need slight padding tweaks... */
+  background-color: rgba(26, 26, 46, 0.97);
+  border: 1px solid #0ff;
+  padding: 25px 40px;
+  /* More padding */
+  border-radius: 10px;
+  text-align: center;
+  max-width: 800px;
+  width: 90%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  animation: fadeInCenterBox 0.4s ease-out;
+  z-index: 10;
+  /* Above field glow */
+}
+
+.messageBox {
+  font-size: 1.3rem;
+  color: #a0a0b0;
+}
+
+.feedbackBox {
+  font-size: 1.4rem;
+}
+
+.feedbackBox.correctFeedback {
+  border-color: #0f9;
+  background-color: rgba(0, 255, 153, 0.1);
+}
+
+.feedbackBox.wrongFeedback {
+  border-color: #f30;
+  background-color: rgba(255, 48, 0, 0.1);
+}
+
+.askConfirmBox {}
+
+.askQuestionText {
+  font-size: 1rem;
+  color: #a0a0b0;
+  margin-bottom: 8px;
+}
+
+.questionTextConfirm {
+  font-size: 1.4rem;
+  color: #e0e0e0;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.answerBox {}
+
+.questionText {
+  font-size: 1.6rem;
+  color: #e0e0e0;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.timerDisplay {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #e040fb;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid #e040fb;
+}
+
+/* Center Attack Animations */
+.playerAttackingAnim .centerDisplayBox {
+  /* Target box *inside* container */
+  animation: playerAttackShake 0.6s ease-in-out both;
+}
+
+.opponentAttackingAnim .centerDisplayBox {
+  animation: opponentAttackShake 0.6s ease-in-out both;
+}
+
+/* ==========================================================================
+      Answer Options & Buttons - Slightly Larger
+      ========================================================================== */
+.answerOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,
+      minmax(250px, 1fr));
+  /* Wider buttons */
+  gap: 18px;
+  width: 100%;
+  margin-top: 25px;
+}
+
+.answerButton {
+  font-family: "Roboto", sans-serif;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.08);
+  font-size: 1.2rem;
+  /* Larger text */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  user-select: none;
+  text-align: center;
+}
+
+.answerButton:hover:not(:disabled) {
+  /* ... hover styles ... */
+  background-color: rgba(0, 255, 255, 0.2);
+  border-color: #0ff;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.answerButton.selectedAnswer {
+  /* ... selected styles ... */
+  background-color: #0ff;
+  color: #1a1a2e;
+  border-color: #0ff;
+  box-shadow: 0 0 10px #0ff;
+  font-weight: bold;
+}
+
+.answerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(50%);
+}
+
+.gameButton {
+  /* ... base styles ... */
+  font-family: "Orbitron", sans-serif;
+  padding: 12px 30px;
+  /* Bigger button */
+  border: 1px solid #0ff;
+  color: #0ff;
+  background-color: rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 1rem;
+  /* Bigger */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  user-select: none;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.gameButton:hover:not(:disabled) {
+  /* ... hover styles ... */
+  background-color: #0ff;
+  color: #1a1a2e;
+  border-color: #0ff;
+  box-shadow: 0 0 10px #0ff, 0 3px 5px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.gameButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(60%);
+}
+
+.confirmButton {
+  background-color: #e040fb;
+  color: #e0e0e0;
+  border-color: #e040fb;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: #f065ff;
+  color: #e0e0e0;
+  border-color: #f065ff;
+  box-shadow: 0 0 10px #e040fb, 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.surrenderButton {
+  /* Position relative to hpContainer adjusted for taller parent */
+
+  bottom: 10px;
+  right: 0;
+  padding: 8px 15px;
+  font-size: 0.8rem;
+  background-color: #c00;
+  border-color: #a00;
+  color: #fff;
+  z-index: 10;
+  margin-top: 30px;
+}
+
+.surrenderButton:hover {
+  background-color: #e00;
+  border-color: #c00;
+}
+
+/* ==========================================================================
+      Game Over Overlay (Keep styles)
+      ========================================================================== */
+.gameOverOverlay {
+  /* ... styles ... */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(26, 26, 46, 0.97);
+  z-index: 200;
+  animation: fadeInOverlay 0.6s ease-out;
+  padding: 20px;
+}
+
+.gameOverOverlay h2 {
+  font-family: "Orbitron", sans-serif;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff;
+}
+
+.gameOverOverlay p {
+  font-size: 1.4rem;
+  margin-bottom: 30px;
+  color: #e0e0e0;
+}
+
+.playAgainButton {
+  font-size: 1.2rem;
+  padding: 15px 35px;
+}
+
+/* ==========================================================================
+      Animations & Keyframes
+      ========================================================================== */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInCenterBox {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseHpLow {
+
+  0%,
+  100% {
+    filter: brightness(0.9);
+  }
+
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+/* Draw Card Animation */
+@keyframes drawCardAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.8) rotate(-15deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+/* HP Bar Shake Animation */
+@keyframes shakeHpBar {
+
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translateX(-3px);
+  }
+
+  40%,
+  60% {
+    transform: translateX(3px);
+  }
+}
+
+/* Attack Animation (Center Content) */
+@keyframes playerAttackShake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(10px) rotate(1deg);
+  }
+
+  /* Lunge effect */
+  50% {
+    transform: translateX(-5px) rotate(-0.5deg);
+  }
+
+  75% {
+    transform: translateX(5px) rotate(0.5deg);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes opponentAttackShake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px) rotate(-1deg);
+  }
+
+  /* Lunge effect */
+  50% {
+    transform: translateX(5px) rotate(0.5deg);
+  }
+
+  75% {
+    transform: translateX(-5px) rotate(-0.5deg);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+      Responsiveness (Adjusted for Larger Base Sizes)
+      ========================================================================== */
+
+@media (max-width: 1200px) {
+
+  /* Added breakpoint for slightly smaller desktops */
+  .card {
+    width: 130px;
+    height: 190px;
+    margin-left: -70px;
+  }
+
+  .opponentHandCard {
+    width: 90px;
+    height: 130px;
+    margin-left: -45px;
+  }
+
+  .playerHandCard.selectable:hover {
+    margin-left: -50px;
+    margin-right: 20px;
+  }
+
+  .playerHandCard.selectable:hover+.card {
+    margin-left: -50px;
+  }
+
+  .playerHandCard.selected {
+    margin-left: -50px;
+    margin-right: 20px;
+  }
+
+  .playerHandCard.selected+.card {
+    margin-left: -50px;
+  }
+
+  .playerInfoArea {
+    min-height: 220px;
+    padding: 10px 20px;
+  }
+
+  /* Maintain height a bit longer */
+  .handArea {
+    margin: 0 20px;
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 992px) {
+
+  /* Standard Tablet/Small Desktop */
+  .playerInfoArea {
+    min-height: 200px;
+    padding: 10px 15px;
+  }
+
+  .hpContainer {
+    width: 160px;
+  }
+
+  .username {
+    font-size: 1.1rem;
+  }
+
+  .handArea {
+    margin: 0 15px;
+    min-height: 145px;
+  }
+
+  .card {
+    width: 100px;
+    height: 145px;
+    margin-left: -55px;
+  }
+
+  .opponentHandCard {
+    width: 75px;
+    height: 110px;
+    margin-left: -35px;
+  }
+
+  .playerHandCard.selectable:hover {
+    transform: translateY(-25px) scale(1.07);
+    margin-left: -35px;
+    margin-right: 20px;
+  }
+
+  .playerHandCard.selectable:hover+.card {
+    margin-left: -35px;
+  }
+
+  .playerHandCard.selected {
+    transform: translateY(-40px) scale(1.1);
+    margin-left: -35px;
+    margin-right: 20px;
+  }
+
+  .playerHandCard.selected+.card {
+    margin-left: -35px;
+  }
+
+  .cardTextPreview {
+    font-size: 0.8rem;
+  }
+
+  .questionText {
+    font-size: 1.4rem;
+  }
+
+  .answerOptions {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .answerButton {
+    font-size: 1.1rem;
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .playerInfoArea {
+    min-height: 180px;
+    padding: 8px 10px;
+  }
+
+  .hpContainer {
+    width: 130px;
+  }
+
+  .username {
+    font-size: 1rem;
+  }
+
+  .hpBarContainer {
+    height: 12px;
+  }
+
+  .hpText {
+    font-size: 0.8rem;
+  }
+
+  .handArea {
+    margin: 0 10px;
+    min-height: 130px;
+  }
+
+  .card {
+    width: 80px;
+    height: 115px;
+    margin-left: -40px;
+  }
+
+  .handArea>.card:first-child {
+    margin-left: 0;
+  }
+
+  .playerHandCard.selectable:hover {
+    transform: translateY(-20px) scale(1.06);
+    margin-left: -25px;
+    margin-right: 15px;
+  }
+
+  .playerHandCard.selectable:hover+.card {
+    margin-left: -25px;
+  }
+
+  .playerHandCard.selected {
+    transform: translateY(-35px) scale(1.1);
+    margin-left: -25px;
+    margin-right: 15px;
+  }
+
+  .playerHandCard.selected+.card {
+    margin-left: -25px;
+  }
+
+  .opponentHandCard {
+    width: 65px;
+    height: 95px;
+    margin-left: -30px;
+  }
+
+  .cardArtPlaceholder {
+    font-size: 2.5rem;
+  }
+
+  .cardTextPreview {
+    font-size: 0.7rem;
+    padding: 5px;
+  }
+
+  .cardBack::before {
+    font-size: 3rem;
+  }
+
+  .cardCount {
+    font-size: 0.9rem;
+  }
+
+  .fieldArea {
+    min-height: 160px;
+  }
+
+  /* Ensure space */
+  .centerDisplayBox {
+    padding: 15px 20px;
+    max-width: 95%;
+  }
+
+  .questionText {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+
+  .answerOptions {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .answerButton {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  .gameButton {
+    font-size: 0.8rem;
+    padding: 8px 18px;
+  }
+
+  .timerDisplay {
+    font-size: 1rem;
+  }
+
+  .surrenderButton {
+    bottom: 5px;
+    padding: 5px 10px;
+    font-size: 0.6rem;
+  }
+
+  .gameOverOverlay h2 {
+    font-size: 2rem;
+  }
+
+  .gameOverOverlay p {
+    font-size: 1.2rem;
+  }
+
+  .playAgainButton {
+    font-size: 1rem;
+    padding: 12px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Smaller mobile - Adjust aggressively */
+  .gameAreaWrapper {
+    padding: 0 5px;
+  }
+
+  /* Less side padding */
+  .playerInfoArea {
+    min-height: 140px;
+    padding: 5px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .opponentInfoArea {
+    align-items: stretch;
+  }
+
+  .hpContainer {
+    width: 100%;
+    margin-top: 5px;
+    order: 2;
+    align-items: center !important;
+  }
+
+  .playerInfoAreaLocal .hpContainer {
+    margin-top: 0;
+    margin-bottom: 5px;
+    order: 1;
+  }
+
+  .handArea {
+    order: 1;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 5px 5px 25px 5px;
+    min-height: 115px;
+    margin: 0;
+    flex-grow: 0;
+  }
+
+  .card {
+    width: 75px;
+    height: 105px;
+    margin-left: -40px;
+    border-radius: 6px;
+  }
+
+  /* Smaller card */
+  .handArea>.card:first-child {
+    margin-left: 5px;
+  }
+
+  .opponentHandCard {
+    width: 60px;
+    height: 85px;
+    margin-left: -30px;
+    border-radius: 6px;
+  }
+
+  .playerHandCard.selectable:hover,
+  .playerHandCard.selected {
+    transform: translateY(-15px) scale(1.05);
+    margin-left: -25px;
+    margin-right: 10px;
+  }
+
+  .playerHandCard.selectable:hover+.card,
+  .playerHandCard.selected+.card {
+    margin-left: -25px;
+  }
+
+  .cardArtPlaceholder {
+    font-size: 2rem;
+  }
+
+  .cardTextPreview {
+    font-size: 0.6rem;
+    padding: 4px;
+  }
+
+  .cardBack::before {
+    font-size: 2.5rem;
+  }
+
+  .cardCount {
+    bottom: 5px;
+    right: 5px;
+  }
+
+  .opponentHandArea .cardCount {
+    top: 5px;
+  }
+
+  .fieldArea {
+    min-height: 150px;
+  }
+
+  /* Need vertical space */
+  .centerDisplayBox {
+    padding: 10px 15px;
+    width: 95%;
+  }
+
+  .questionText {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+
+  .answerOptions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .answerButton {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .feedbackBox {
+    font-size: 1rem;
+  }
+
+  .timerDisplay {
+    font-size: 0.9rem;
+    top: 5px;
+    right: 8px;
+  }
+
+  .surrenderButton {
+    position: static;
+    margin: 10px auto;
+    width: 80%;
+    display: block;
+    order: 3;
+  }
+
+  .gameButton {
+    font-size: 0.7rem;
+    padding: 6px 12px;
+  }
+
+  .gameOverOverlay h2 {
+    font-size: 1.8rem;
+  }
+
+  .gameOverOverlay p {
+    font-size: 1.1rem;
+  }
+}
+
+/* Subject Selection Screen */
+.subjectSelectionContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  padding: 2rem;
+  position: relative;
+}
+
+.subjectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.subjectButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.subjectButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: 0.5s;
+}
+
+.subjectButton:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.subjectButton:hover::before {
+  transform: translateX(100%);
+}
+
+.subjectIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.subjectButton:hover .subjectIcon {
+  transform: scale(1.2);
+}
+
+.subjectName {
+  font-size: 1.2rem;
+  color: white;
+  text-align: center;
+}
+
+/* Card Selection Screen */
+.cardSelectionContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  padding: 2rem;
+}
+
+.cardSelectionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+}
+
+.availableQuestions,
+.selectedQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  min-height: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.questionCard {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.questionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: 0.5s;
+}
+
+.questionCard:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.questionCard:hover::before {
+  transform: translateX(100%);
+}
+
+.questionCard.selected {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: #4CAF50;
+}
+
+/* Answer Selection */
+.answerOptions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.answerButton {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.answerButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: 0.5s;
+}
+
+.answerButton:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.answerButton:hover::before {
+  transform: translateX(100%);
+}
+
+.answerButton.selectedAnswer {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: #4CAF50;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Animations */
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  50% {
+    transform: rotateY(180deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes flipResult {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.paginationButton {
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.paginationButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.paginationButton.active {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: #4CAF50;
+}
+
+/* Loading and Error States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.errorText {
+  color: #ff4444;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.retryButton {
+  padding: 1rem 2rem;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.retryButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .subjectGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardSelectionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .answerOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .rpsChoices {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

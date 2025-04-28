@@ -1,0 +1,376 @@
+/* src/components/PartyMMR.module.css */
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* --- Removed global variable definition block --- */
+
+.partyContainer {
+  /* --- Theme Variables Scoped to .partyContainer --- */
+  /* Fonts */
+  --font-game: 'Press Start 2P', cursive;
+  --font-body: 'VT323', monospace;
+
+  /* Core Colors */
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-bg-start: #0c051a;
+  --color-bg-mid: #1d1135;
+
+  /* Panel & Border */
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-panel-border-glow: rgba(0, 255, 157, 0.3); /* Not used directly but kept */
+  --color-pixel-shadow: rgba(0,0,0, 0.7);
+  --color-divider: rgba(0, 255, 157, 0.2);
+  --color-glow-soft: rgba(0, 255, 157, 0.15);
+  --color-section-bg: rgba(0,0,0, 0.2);
+
+  /* Inputs & Interaction */
+  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-border: rgba(0, 255, 157, 0.5);
+  --color-selected-border: #ffcc00; /* Added from :focus state */
+  --color-item-hover-bg: rgba(0, 255, 157, 0.08);
+
+  /* Specific Colors */
+  --color-avatar-bg: rgba(0, 0, 0, 0.5);
+  --color-leave-button-bg: rgba(255, 79, 122, 0.6);
+  --color-leave-button-border: rgba(255, 79, 122, 0.8);
+  --color-leave-button-hover-bg: rgba(255, 79, 122, 0.8);
+  /* --- End of Scoped Variables --- */
+
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; padding: 40px 20px 60px 20px;
+  font-family: var(--font-game); /* Base font */
+  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+  color: var(--color-text-base); /* Base text color */
+}
+
+/* Base page header (assuming it's defined similarly elsewhere) */
+.pageHeader {
+    width: 100%;
+    max-width: 1200px; /* Match grid width */
+    margin-bottom: 30px;
+    text-align: left;
+}
+.pageTitle {
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin-bottom: 8px;
+    text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
+    /* Font family inherited */
+}
+.pageSubtitle {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1.2rem;
+    color: var(--color-text-muted);
+}
+
+/* Grid Layout for Panels */
+.panelsGrid {
+    width: 100%;
+    max-width: 1200px; /* Wider potentially */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-top: 10px;
+}
+
+/* Reusable Panel Style */
+.panel {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 25px 30px; border-radius: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+  display: flex; flex-direction: column;
+  min-height: 300px; /* Base height */
+}
+.panelHeader {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--color-accent); font-size: 1.1rem;
+  margin-bottom: 20px; padding-bottom: 15px;
+  border-bottom: 1px dashed var(--color-divider);
+  /* Font family inherited */
+}
+.panelIcon {
+   font-size: 1.3rem; opacity: 0.9;
+   /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+/* --- My Party Panel --- */
+.myPartyPanel { /* Specific styles if needed */ }
+.createPartyPrompt { /* Shown when not in a party */
+    flex-grow: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 15px;
+}
+.createPartyText {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1.1rem;
+    color: var(--color-text-muted); line-height: 1.6;
+}
+.createPartyButtons {
+    display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+}
+/* Generic Button Style (Defined below) */
+.gameButton {
+  font-family: var(--font-game); /* Use game font */
+  padding: 10px 18px;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  background-color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  /* Use accent color implicitly via RGBA */
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4); /* Accent */
+  border-radius: 0;
+  user-select: none;
+  white-space: nowrap;
+  text-align: center;
+}
+.gameButton:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover);
+  transform: translate(-1px, -1px);
+}
+.gameButton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+  background-color: var(--color-accent-hover);
+  color: var(--color-bg-start);
+}
+.gameButton:disabled {
+  opacity: 0.4; cursor: not-allowed; filter: grayscale(50%);
+  /* Ensure disabled state retains base styles */
+  background-color: rgba(0, 0, 0, 0.6);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+  transform: none;
+}
+.gameButton:disabled:hover { /* Prevent hover effect when disabled */
+ transform: none;
+ background-color: rgba(0, 0, 0, 0.6);
+ color: var(--color-accent);
+ box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+}
+
+.partySizeButton {
+    composes: gameButton; /* Inherit base styles */
+    /* Add specific size indication if needed */
+}
+
+.partyContent { /* Container when IN a party */
+    display: flex; flex-direction: column; gap: 20px; flex-grow: 1;
+}
+.memberList {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 180px; /* Limit height */
+    overflow-y: auto;
+    background-color: var(--color-section-bg);
+    border: 1px solid var(--color-divider);
+    padding: 10px;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--color-accent) rgba(0,0,0,0.3); /* Firefox */
+}
+/* Webkit scrollbar styles */
+.memberList::-webkit-scrollbar { width: 8px; }
+.memberList::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+.memberList::-webkit-scrollbar-thumb { background-color: var(--color-accent); border-radius: 0; border: 1px solid rgba(0,0,0,0.5); }
+
+.memberItem {
+    display: flex; align-items: center; gap: 10px;
+    background-color: var(--color-input-bg);
+    padding: 8px 10px;
+    border: 1px solid var(--color-input-border);
+    box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+}
+.memberAvatar {
+    width: 30px; height: 30px; flex-shrink: 0;
+    background-color: var(--color-avatar-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-accent); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 0.8rem; font-family: var(--font-game); /* Use game font */
+    text-transform: uppercase;
+    overflow: hidden; /* For img */
+}
+.memberAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.memberUsername {
+    font-size: 0.9rem; color: var(--color-text-base); flex-grow: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    /* Font family inherited */
+}
+.kickButton { /* Example for kick */
+    font-size: 0.9rem; color: var(--color-leave-button-bg); cursor: pointer;
+    background: none; border: none; padding: 0 5px;
+    opacity: 0.7; transition: opacity 0.2s ease;
+    /* Icon font needs setup (e.g., Font Awesome) */
+}
+.kickButton:hover { opacity: 1; }
+
+
+.inviteSection { margin-top: auto; /* Push to bottom */ }
+.inviteForm { display: flex; gap: 10px; align-items: center; }
+.inviteInput {
+    flex-grow: 1; font-size: 1rem; padding: 8px 10px; background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border); color: var(--color-text-base);
+    border-radius: 0; box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+    font-family: var(--font-body); /* Use body font */
+}
+.inviteInput::placeholder { color: var(--color-text-muted); opacity: 0.8; }
+.inviteInput:focus {
+   outline: none; border-color: var(--color-selected-border);
+   box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 8px var(--color-selected-border);
+}
+.inviteButton {
+    composes: gameButton; /* Inherit base styles */
+    padding: 8px 15px; font-size: 0.7rem; flex-shrink: 0; /* Prevent shrinking */
+}
+
+.partyActions {
+    margin-top: 15px; padding-top: 15px;
+    border-top: 1px dashed var(--color-divider);
+    display: flex; justify-content: space-between; align-items: center; gap: 15px;
+}
+.startQueueButton {
+    composes: gameButton; /* Inherit base styles */
+    flex-grow: 1; /* Take more space */
+    padding: 10px 15px; font-size: 0.9rem;
+    background-color: var(--color-accent); /* Override */
+    color: var(--color-bg-start); /* Override */
+}
+.startQueueButton:hover:not(:disabled) { background-color: var(--color-accent-hover); color: var(--color-bg-start);}
+.leavePartyButton {
+    composes: gameButton; /* Inherit base styles */
+    background-color: var(--color-leave-button-bg); /* Override */
+    border-color: var(--color-leave-button-border); /* Override */
+    color: var(--color-text-base); /* Override */
+    padding: 8px 15px; font-size: 0.7rem;
+}
+.leavePartyButton:hover:not(:disabled) {
+    background-color: var(--color-leave-button-hover-bg);
+    border-color: var(--color-leave-button-border);
+    color: var(--color-text-base);
+    box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-leave-button-border);
+}
+
+/* --- Public Parties Panel --- */
+.publicPartiesPanel { /* Specific styles if needed */ }
+.lobbyBrowserHeader { /* Reuse from PvP */
+   display: flex; justify-content: space-between; align-items: center;
+   flex-wrap: wrap; gap: 15px; margin-bottom: 15px;
+}
+.lobbyBrowserHeader .panelHeader { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.lobbySearchContainer { /* Reuse from PvP */ position: relative; min-width: 250px; }
+.lobbySearchInput { /* Reuse from PvP */
+    width: 100%; font-family: var(--font-body); font-size: 1.1rem;
+    padding: 8px 12px 8px 35px; background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border); color: var(--color-text-base);
+    border-radius: 0; box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+}
+.lobbySearchInput::placeholder { color: var(--color-text-muted); opacity: 0.8; }
+.lobbySearchInput:focus {
+   outline: none; border-color: var(--color-selected-border);
+   box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 8px var(--color-selected-border);
+}
+.lobbySearchIcon { /* Reuse from PvP */
+   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+   color: var(--color-text-muted); font-size: 1.1rem; pointer-events: none;
+   /* Icon font needs setup (e.g., Font Awesome) */
+}
+.lobbyListContainer { /* Reuse from PvP */
+    border: 1px solid var(--color-divider); padding: 10px;
+    background-color: rgba(0,0,0,0.1); max-height: 450px; overflow-y: auto;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); flex-grow: 1;
+    min-height: 150px; display: flex; flex-direction: column;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--color-accent) rgba(0,0,0,0.3); /* Firefox */
+}
+/* Webkit scrollbar styles */
+.lobbyListContainer::-webkit-scrollbar { width: 8px; }
+.lobbyListContainer::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+.lobbyListContainer::-webkit-scrollbar-thumb { background-color: var(--color-accent); border-radius: 0; border: 1px solid rgba(0,0,0,0.5); }
+
+.lobbyList { /* Reuse from PvP */
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 12px;
+}
+.partyItem { /* Similar to lobbyItem */
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 15px; background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.partyItem:hover {
+    background-color: var(--color-item-hover-bg); transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-glow-soft);
+}
+.partyDetails {
+    overflow: hidden; margin-right: 15px;
+}
+.partyName {
+   font-family: var(--font-game); /* Use game font */
+   font-size: 0.9rem; color: var(--color-text-base);
+   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.partyMembersInfo { /* Different from lobbyHost */
+    font-family: var(--font-body); /* Use body font */
+    font-size: 0.8rem;
+    color: var(--color-text-muted); display: block; margin-top: 3px;
+}
+.partyInfo { /* Similar to lobbyInfo */
+    display: flex; align-items: center; gap: 20px; flex-shrink: 0;
+}
+.partySize { /* Different from lobbyPlayers */
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1rem;
+    color: var(--color-text-muted); white-space: nowrap;
+    min-width: 60px; /* Ensure space for "Squad (4/5)" */ text-align: right;
+}
+.joinPartyButton {
+    composes: gameButton; /* Inherit base styles */
+    padding: 6px 14px; font-size: 0.75rem; flex-shrink: 0;
+}
+.noPartiesMessage { /* Similar to noLobbiesMessage */
+    flex-grow: 1; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-body); font-size: 1.3rem;
+    color: var(--color-text-muted); text-align: center; padding: 20px; opacity: 0.8;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 992px) { /* Adjust breakpoint */
+    .panelsGrid { grid-template-columns: 1fr; } /* Corrected class name */
+}
+@media (max-width: 480px) {
+    .panel { padding: 20px; }
+    .pageTitle { font-size: 1.6rem; }
+    .pageSubtitle { font-size: 1rem; }
+    .panelHeader { font-size: 1rem; }
+    .createPartyButtons { flex-direction: column; gap: 10px; width: 100%; }
+    .partySizeButton { width: 80%; align-self: center; } /* Center buttons */
+    .inviteInput { font-size: 1rem; }
+    .memberList { max-height: 150px; }
+    .partyActions { flex-direction: column; align-items: stretch; }
+    .startQueueButton { /* width: 100%; */ } /* Let flex handle it */
+    .leavePartyButton { /* width: 100%; */ }
+    .partyItem { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .partyInfo { align-self: flex-end; }
+    .partyDetails { margin-right: 0; width: 100%; }
+}

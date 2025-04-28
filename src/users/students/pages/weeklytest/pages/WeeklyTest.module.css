@@ -1,0 +1,727 @@
+/* src/components/WeeklyTest.module.css */
+
+/* Import Fonts (Keep if needed) */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* --- Base Container and Theme Variables --- */
+.testListContainer {
+  /* Theme Variables Scoped */
+  --font-game: 'Press Start 2P', cursive;
+  --font-body: 'VT323', monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-text-dark: #333333; /* For contrast on light bg */
+  --color-bg-start: #0c051a;
+  --color-bg-mid: #1d1135;
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-panel-border-glow: rgba(0, 255, 157, 0.3);
+  --color-pixel-shadow: rgba(0,0,0, 0.7);
+  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-border: rgba(0, 255, 157, 0.5);
+  --color-selected-border: #ffcc00;
+  --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
+  --color-button-secondary-border: rgba(255, 255, 255, 0.3);
+  --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
+  --color-error: #ff6b6b; /* Added error color variable */
+
+  /* Base Styles */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 60px 20px;
+  font-family: var(--font-game); /* Base game font */
+  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+  color: var(--color-text-base);
+}
+
+/* --- Page Header --- */
+.pageHeader {
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 25px;
+    text-align: left;
+}
+.pageTitle {
+    font-size: 1.8rem;
+    color: var(--color-accent);
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+}
+.pageSubtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+}
+
+/* --- Filter Panel --- */
+.filterPanel {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 20px 25px;
+  border-radius: 0; /* No rounded corners */
+  margin-bottom: 25px;
+  animation: fadeIn 0.5s ease-out forwards; /* Use keyframe below */
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-accent);
+  font-size: 1.1rem;
+  font-weight: normal;
+  margin-bottom: 20px;
+}
+
+.filterControls {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+   gap: 15px 20px;
+   align-items: flex-end; /* Align button nicely */
+}
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.filterLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+.filterSelect {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  padding: 8px 12px;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  color: var(--color-text-base);
+  border-radius: 0; /* No rounded corners */
+  cursor: pointer;
+  appearance: none; /* Remove default arrow */
+  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+  /* Custom arrow */
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-accent) 50%), linear-gradient(135deg, var(--color-accent) 50%, transparent 50%);
+  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px; /* Space for custom arrow */
+}
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-selected-border);
+  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
+}
+.filterSelect option {
+    background-color: #111; /* Darker background for dropdown options */
+    color: var(--color-text-base);
+}
+.filterSelect:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%), linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%); /* Dim arrow when disabled */
+}
+
+
+/* --- THEMED Button Base Style --- */
+/* This is the base style that other buttons will compose */
+.filterButton {
+  font-family: var(--font-game);
+  padding: 8px 15px; /* Base padding */
+  border: 1px solid var(--color-button-secondary-border);
+  color: var(--color-text-muted);
+  background-color: var(--color-button-secondary-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 0.75rem; /* Base font size */
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0; /* No rounded corners */
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 0 rgba(0,0,0,0.4); /* Pixel shadow */
+  text-align: center;
+}
+.filterButton:hover {
+  background-color: var(--color-button-secondary-hover-bg);
+  color: var(--color-text-base);
+  border-color: var(--color-text-muted);
+}
+.filterButton:active {
+    transform: translate(1px, 1px); /* Press effect */
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+.filterButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 2px 2px 0 0 rgba(0,0,0,0.4); /* Keep shadow but dim */
+    transform: none; /* Prevent active press effect */
+    background-color: var(--color-button-secondary-bg); /* Keep base bg */
+    color: var(--color-text-muted); /* Keep base color */
+    border-color: var(--color-button-secondary-border); /* Keep base border */
+}
+
+
+/* --- Content Panel --- */
+.contentPanel {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 30px 40px;
+  border-radius: 0; /* No rounded corners */
+  min-height: 300px; /* Ensure space even when empty */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  animation: fadeIn 0.5s ease-out 0.1s forwards; /* Use keyframe below */
+  opacity: 0; /* Start hidden for animation */
+  overflow: hidden; /* Prevent content overflow during animations */
+}
+
+/* Message Container (for loading, error, info) */
+.messageContainer {
+  text-align: center;
+  padding: 20px;
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+}
+
+.loadingMessage {
+  color: var(--color-accent);
+  font-family: var(--font-game);
+  font-size: 1.2rem;
+}
+
+.errorMessage {
+  color: var(--color-error); /* Use error color variable */
+  font-weight: bold;
+}
+
+.infoMessage {
+  color: var(--color-text-muted);
+}
+
+/* --- Start Test Screen --- */
+.startTestContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--color-text-base);
+  animation: fadeIn 0.3s ease-out; /* Fade in start screen */
+}
+
+.startTestContainer h3 {
+  font-family: var(--font-game);
+  font-size: 1.3rem;
+  color: var(--color-accent);
+  margin-bottom: 10px;
+}
+
+/* Start Test Button - Inherits from filterButton and overrides */
+.startButton {
+  composes: filterButton; /* Inherit base styles */
+  /* Specific overrides */
+  background-color: var(--color-accent);
+  color: var(--color-text-dark);
+  border-color: var(--color-accent);
+  font-size: 1rem;
+  padding: 12px 25px;
+  margin-top: 15px;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Slightly larger shadow */
+}
+
+.startButton:hover {
+  background-color: var(--color-accent-hover);
+  color: var(--color-text-dark);
+  border-color: var(--color-accent-hover);
+}
+
+.startButton:active {
+  transform: translate(2px, 2px); /* Slightly more press */
+  box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+}
+
+/* --- Quiz Area --- */
+.quizArea {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progressIndicator {
+  font-family: var(--font-game);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 25px;
+  text-align: center;
+  width: 100%;
+  border-bottom: 1px dashed var(--color-panel-border);
+  padding-bottom: 15px;
+}
+
+/* Question Container & Animation */
+.questionContainer {
+  background-color: rgba(0, 0, 0, 0.2); /* Slightly different bg for focus */
+  padding: 25px 30px;
+  border: 1px solid rgba(0, 255, 157, 0.3);
+  width: 100%;
+  max-width: 700px; /* Control max width */
+  margin-bottom: 30px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+  /* Animation properties */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.questionHidden {
+  opacity: 0;
+  transform: translateX(30px); /* Slide out */
+}
+
+.questionVisible {
+  opacity: 1;
+  transform: translateX(0); /* Slide in */
+}
+
+/* Question Text */
+.questionContainer h4 {
+  font-family: var(--font-body); /* More readable font for questions */
+  font-size: 1.4rem;
+  color: var(--color-text-base);
+  margin-bottom: 20px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* --- Choices Styling --- */
+.choicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-start; /* Align choices to the left */
+}
+
+.choiceItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 0; /* Consistent no rounded corners */
+  transition: background-color 0.2s ease;
+}
+
+.choiceItem:hover {
+  background-color: rgba(0, 255, 157, 0.08); /* Subtle hover */
+}
+
+/* Custom Radio Button */
+.radioInput {
+  margin-right: 12px;
+  appearance: none; /* Remove default style */
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%; /* Make it round */
+  background-color: var(--color-input-bg);
+  cursor: pointer;
+  position: relative;
+  top: -1px; /* Align better with text */
+  flex-shrink: 0; /* Prevent shrinking if label is long */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.radioInput:checked {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 5px var(--color-accent); /* Glow when checked */
+}
+
+/* Inner dot for checked state */
+.radioInput:checked::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-mid); /* Use a dark inner color */
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radioLabel {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--color-text-base);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+/* --- Navigation & Submit Buttons --- */
+.navigationButtons {
+  display: flex;
+  justify-content: space-between; /* Pushes Prev/Next apart */
+  width: 100%;
+  max-width: 700px; /* Align with question container */
+  margin-top: 20px; /* Space above buttons */
+}
+
+/* Navigation Button (Prev/Next) - Inherits from filterButton */
+.navButton {
+  composes: filterButton; /* Inherit base filter button styles */
+  /* Specific overrides for nav buttons */
+  font-size: 0.9rem;
+  padding: 10px 20px;
+}
+
+/* Disabled state specifically for navButton (if different needed, otherwise filterButton:disabled handles it) */
+.navButton:disabled {
+  /* Inherits disabled style from filterButton via composes */
+  /* Add specific overrides here if needed, e.g., different color */
+}
+
+/* Submit Button - Inherits from startButton */
+.submitButton {
+  composes: startButton; /* Inherit start button styles (which includes filterButton) */
+  /* Specific overrides for submit button */
+  font-size: 0.9rem;
+  padding: 10px 20px;
+}
+
+/* --- Keyframes --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+    .pageHeader { text-align: center; }
+    .filterControls { grid-template-columns: 1fr; } /* Stack filters */
+    .contentPanel { padding: 20px 15px; } /* Reduce padding */
+    .questionContainer { padding: 15px 20px; }
+    .questionContainer h4 { font-size: 1.2rem; }
+    .radioLabel { font-size: 1rem; }
+    .navigationButtons { max-width: 100%; } /* Allow buttons full width */
+    .navButton, .submitButton, .startButton, .filterButton { /* Adjust button sizes */
+        font-size: 0.8rem;
+        padding: 8px 15px;
+    }
+    .startButton, .submitButton { /* Keep start/submit slightly bigger padding if desired */
+       padding: 10px 20px;
+    }
+}
+
+.resultsContainer {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resultDetails {
+  margin: 1.5rem 0;
+  font-size: 1.1rem;
+}
+
+.resultDetails p {
+  margin: 0.5rem 0;
+  color: var(--text-color);
+}
+
+.resultActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.leaderboardButton {
+  background: var(--accent-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.leaderboardButton:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modalContent {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 30px;
+  border-radius: 0;
+  width: 90%;
+  max-width: 500px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.modalActions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.leaderboardList {
+  margin: 1.5rem 0;
+}
+
+.leaderboardItem {
+  display: grid;
+  grid-template-columns: 50px 1fr auto auto;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.rank {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.name {
+  font-weight: 500;
+}
+
+.score {
+  color: var(--text-secondary);
+}
+
+.points {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.closeButton {
+  background: var(--error-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.closeButton:hover {
+  background: var(--error-hover);
+  transform: translateY(-2px);
+}
+
+/* Test Results Section */
+.resultSection {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 30px;
+  border-radius: 0;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.resultTitle {
+  font-size: 1.4rem;
+  color: var(--color-accent);
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-game);
+}
+
+.scoreSection {
+  margin-bottom: 30px;
+}
+
+.scoreDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.score {
+  font-size: 3rem;
+  font-family: var(--font-game);
+  line-height: 1;
+}
+
+.scorePercentage {
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+
+.scoreExcellent { color: var(--color-score-excellent); }
+.scoreGood { color: var(--color-score-good); }
+.scoreAverage { color: var(--color-score-average); }
+.scorePoor { color: var(--color-score-poor); }
+
+.pointsSection {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 0;
+}
+
+.pointsDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.pointsLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-game);
+}
+
+.pointsValue {
+  font-size: 2rem;
+  font-family: var(--font-game);
+  line-height: 1;
+}
+
+.pointsPositive { color: var(--color-points-positive); }
+.pointsNegative { color: var(--color-points-negative); }
+.pointsNeutral { color: var(--color-points-neutral); }
+
+.totalPoints {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--color-panel-border);
+}
+
+.totalPointsLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-game);
+}
+
+.totalPointsValue {
+  font-size: 1.4rem;
+  color: var(--color-text-base);
+  font-family: var(--font-game);
+}
+
+.rankSection {
+  margin-bottom: 30px;
+}
+
+.rankLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-game);
+  margin-bottom: 10px;
+}
+
+.rankValue {
+  font-size: 1.4rem;
+  font-family: var(--font-game);
+  line-height: 1;
+}
+
+.rankBronze { color: var(--color-rank-bronze); }
+.rankSilver { color: var(--color-rank-silver); }
+.rankGold { color: var(--color-rank-gold); }
+.rankPlatinum { color: var(--color-rank-platinum); }
+.rankDiamond { color: var(--color-rank-diamond); }
+.rankMaster { color: var(--color-rank-master); }
+.rankGrandmaster { color: var(--color-rank-grandmaster); }
+
+.retakeButton {
+  font-family: var(--font-game);
+  padding: 10px 20px;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  background-color: transparent;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0;
+  user-select: none;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+}
+
+.retakeButton:hover {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 var(--color-pixel-shadow);
+}
+
+.retakeButton:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+}

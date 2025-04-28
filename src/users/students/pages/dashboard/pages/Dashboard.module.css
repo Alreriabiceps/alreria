@@ -1,0 +1,827 @@
+/* src/components/Dashboard.module.css */
+
+/* Import Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+/* --- Removed global variable definition block --- */
+
+.dashboardContainer {
+  /* --- Theme Variables Scoped to .dashboardContainer --- */
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-text-dark: #2d3748; /* Darker text for light backgrounds */
+  --color-bg-start: #0c051a;
+  --color-bg-mid: #1d1135;
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-panel-border-glow: rgba(
+    0,
+    255,
+    157,
+    0.3
+  ); /* Keep if used elsewhere */
+  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+  --color-card-bg: rgba(0, 0, 0, 0.3); /* Slightly darker card background */
+  --color-card-border: rgba(0, 255, 157, 0.3);
+  --color-progress-bg: rgba(0, 0, 0, 0.5);
+  --color-progress-fill: var(--color-accent); /* Default progress fill */
+  --color-progress-fill-mmr: #3b82f6; /* Blue for MMR Progress */
+  --color-streak-incomplete-bg: #ffcc00; /* Yellowish */
+  --color-streak-incomplete-text: #6d4d00; /* Dark yellow */
+  --color-streak-progress-fill: #ff6370; /* Example: Orange/Red */
+  --color-link: var(--color-accent-hover);
+  --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
+  --color-button-secondary-border: rgba(255, 255, 255, 0.3);
+  --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
+  /* Rank Colors */
+  --color-rank-bronze: #cd7f32;
+  --color-rank-silver: #c0c0c0;
+  --color-rank-gold: #ffd700;
+  --color-rank-platinum: #7cc3d8; /* Adjusted */
+  --color-rank-diamond: #b9f2ff;
+  --color-rank-master: #cf8dff; /* Adjusted */
+  --color-rank-grandmaster: #ff6370;
+  --color-correct: #00ff00; /* Added for streak status */
+  --color-input-bg: rgba(0, 0, 0, 0.4); /* Added for leaderboard avatar */
+  --color-input-border: rgba(
+    0,
+    255,
+    157,
+    0.5
+  ); /* Added for leaderboard avatar */
+  /* --- End of Scoped Variables --- */
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 15px 60px 15px;
+  font-family: var(--font-game); /* Base font */
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-start),
+    var(--color-bg-mid)
+  );
+  color: var(--color-text-base); /* Base text color */
+}
+
+/* Page Header */
+.pageHeader {
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 25px;
+  text-align: left;
+}
+.pageTitle {
+  font-size: 1.6rem;
+  color: var(--color-text-base);
+  margin-bottom: 5px;
+  font-weight: normal;
+  /* Font family inherited */
+}
+.pageTitleUsername {
+  color: var(--color-accent);
+}
+.pageSubtitle {
+  font-family: var(--font-body); /* Use body font */
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+}
+
+/* Stats Cards Row */
+.statsGrid {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.statCard {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  padding: 20px 15px;
+  border-radius: 0;
+  text-align: center;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 120px;
+}
+.statIcon {
+  font-size: 1.8rem;
+  color: var(--color-accent);
+  margin-bottom: 5px;
+  opacity: 0.8;
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+.statValue {
+  font-family: var(--font-game); /* Use game font */
+  font-size: 1.8rem;
+  line-height: 1.1;
+  color: var(--color-text-base);
+}
+.statLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  /* Font family inherited */
+}
+
+/* Main Content Layout Grid */
+.dashboardLayoutGrid {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 30px;
+  margin-bottom: 30px;
+}
+.mainContentArea {
+  grid-column: span 2; /* Takes first 2 columns */
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.sidebarArea {
+  grid-column: span 1; /* Takes last column */
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Reusable Panel Style */
+.panel {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6);
+  padding: 20px 25px;
+  border-radius: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+}
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-accent);
+  font-size: 1rem;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  /* Font family inherited */
+}
+.panelIcon {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+/* MMR Progress Panel Specifics */
+.mmrProgress {
+  /* Container if needed */
+}
+.mmrInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.currentRankMmr {
+  font-size: 1.1rem;
+  /* Font family inherited */
+}
+.currentRankMmr .rankName {
+  font-weight: bold;
+  /* Color set by dynamic rank class */
+}
+.nextRank {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  /* Font family inherited */
+}
+.progressBarContainer {
+  width: 100%;
+  height: 12px;
+  background-color: var(--color-progress-bg);
+  border: 1px solid var(--color-panel-border);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4);
+  margin-bottom: 8px;
+}
+.progressBarFill {
+  height: 100%;
+  transition: width 0.5s ease-out;
+}
+.progressBarFillMmr {
+  /* Specific MMR bar color */
+  background-color: var(--color-progress-fill-mmr);
+  box-shadow: 0 0 8px var(--color-progress-fill-mmr);
+}
+.progressText {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-body); /* Use body font */
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+.tierInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--color-panel-border);
+  text-align: center;
+}
+.tierBox {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 8px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 2px 2px 0 var(--color-pixel-shadow);
+}
+.tierName {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  /* Color set dynamically */
+  color: var(--color-text-base);
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Font family inherited */
+}
+.tierMmr {
+  display: block;
+  font-size: 0.7rem;
+  font-family: var(--font-body); /* Use body font */
+  color: var(--color-text-muted);
+}
+
+/* Weekly Challenges Panel */
+.weeklyChallengesContent {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-grow: 1;
+}
+.noTestsMessage {
+  font-family: var(--font-body);
+  font-size: 1.1rem; /* Use body font */
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+.browseButton {
+  font-family: var(--font-game);
+  padding: 8px 18px; /* Use game font */
+  border: 1px solid var(--color-button-secondary-border);
+  color: var(--color-text-muted);
+  background-color: var(--color-button-secondary-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.4);
+}
+.browseButton:hover {
+  background-color: var(--color-button-secondary-hover-bg);
+  color: var(--color-text-base);
+  border-color: var(--color-text-muted);
+}
+
+/* Daily Streak Panel */
+.dailyStreakPanel {
+  /* Class for the specific panel if needed */
+  /* Inherits general .panel styles */
+}
+.dailyStreakContent {
+  /* Container inside panel */
+}
+.streakHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.streakDays {
+  font-size: 1.8rem;
+  line-height: 1;
+  /* Font family inherited */
+}
+.streakStatus {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 0;
+  box-shadow: 1px 1px 0 var(--color-pixel-shadow);
+}
+.statusIncomplete {
+  background-color: var(--color-streak-incomplete-bg);
+  color: var(--color-streak-incomplete-text);
+  border: 1px solid var(--color-streak-incomplete-text);
+}
+.statusComplete {
+  background-color: rgba(0, 255, 0, 0.2);
+  color: var(--color-correct);
+  border: 1px solid var(--color-correct);
+}
+.streakProgressBarContainer {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-progress-bg);
+  border: 1px solid var(--color-panel-border);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4);
+  margin-bottom: 8px;
+}
+.streakProgressBarFill {
+  height: 100%;
+  background-color: var(--color-streak-progress-fill);
+  transition: width 0.5s ease-out;
+}
+.streakNextReward {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+.streakRewardList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--color-panel-border);
+}
+.streakRewardItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 5px 0;
+  color: var(--color-text-muted);
+}
+.rewardDays {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rewardDaysIcon {
+  font-size: 1rem;
+  opacity: 0.7;
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+.rewardText {
+  color: var(--color-text-base);
+  text-align: right;
+}
+
+/* Leaderboard Section */
+.leaderboardSection {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-top: 0; /* Removed margin-top, gap handles spacing */
+}
+.leaderboardPanel {
+  composes: panel; /* Inherit base panel styles */
+}
+.leaderboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.leaderboardTitle {
+  font-size: 1rem;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  /* Font family inherited */
+}
+.viewAllLink {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.viewAllLink:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+.leaderboardTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.leaderboardTable th {
+  color: var(--color-text-muted);
+  padding: 6px 4px;
+  text-align: left;
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--color-panel-border);
+  font-weight: normal;
+  text-transform: uppercase;
+}
+.leaderboardTable th.rankHeader {
+  width: 30px;
+  text-align: center;
+}
+.leaderboardTable th.mmrHeader {
+  text-align: right;
+}
+.leaderboardTable th.rankTierHeader {
+  text-align: right;
+}
+.leaderboardTable td {
+  padding: 8px 4px;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+}
+.leaderboardTable tr:last-child td {
+  border-bottom: none;
+}
+.leaderboardRankNumber {
+  font-family: var(--font-body);
+  text-align: center;
+  font-size: 1rem;
+  color: var(--color-accent);
+}
+.leaderboardRankIcon {
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  opacity: 0.8;
+  margin-right: 3px;
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+.leaderboardStudentCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.leaderboardAvatar {
+  width: 28px;
+  height: 28px;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-family: var(--font-game);
+  text-transform: uppercase;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.leaderboardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.leaderboardStudentInfo {
+  display: flex;
+  flex-direction: column;
+}
+.leaderboardUsername {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-base);
+  /* Font family inherited */
+}
+.leaderboardHandle {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+.leaderboardMmrValue {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: right;
+  color: var(--color-text-base);
+  font-weight: 600;
+}
+.leaderboardRankTierValue {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: right;
+  /* Color set dynamically via rank class */
+  /* Font family inherited */
+}
+
+/* Rank Color Classes (applied to rank names, tier values, etc.) */
+.rankBronze {
+  color: var(--color-rank-bronze);
+}
+.rankSilver {
+  color: var(--color-rank-silver);
+}
+.rankGold {
+  color: var(--color-rank-gold);
+}
+.rankPlatinum {
+  color: var(--color-rank-platinum);
+}
+.rankDiamond {
+  color: var(--color-rank-diamond);
+}
+.rankMaster {
+  color: var(--color-rank-master);
+}
+.rankGrandmaster {
+  color: var(--color-rank-grandmaster);
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .dashboardLayoutGrid, /* Apply stacking to main layout */
+    .leaderboardSection {
+    grid-template-columns: 1fr; /* Stack panels/leaderboards */
+    gap: 25px;
+  }
+  .mainContentArea,
+  .sidebarArea {
+    grid-column: span 1; /* Reset column span */
+  }
+  .dailyStreakPanel {
+    /* Adjust daily streak positioning if needed */
+    /* Example: Ensure it takes full width when stacked */
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    padding: 30px 15px 50px 15px;
+  }
+  .pageHeader {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .statsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .statCard {
+    padding: 15px 10px;
+    min-height: 100px;
+    gap: 5px;
+  }
+  .statIcon {
+    font-size: 1.6rem;
+    margin-bottom: 3px;
+  }
+  .statValue {
+    font-size: 1.5rem;
+  }
+  .statLabel {
+    font-size: 0.65rem;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .panelHeader {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  .panelIcon {
+    font-size: 1.1rem;
+  }
+  .tierInfoGrid {
+    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+  }
+  .tierName {
+    font-size: 0.65rem;
+  }
+  .tierMmr {
+    font-size: 0.65rem;
+  }
+  .streakDays {
+    font-size: 1.6rem;
+  }
+  .streakStatus {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+  .streakNextReward {
+    font-size: 0.75rem;
+    margin-bottom: 15px;
+  }
+  .streakRewardItem {
+    font-size: 0.8rem;
+  }
+  .rewardDaysIcon {
+    font-size: 0.9rem;
+  }
+  .leaderboardTitle {
+    font-size: 0.9rem;
+  }
+  .viewAllLink {
+    font-size: 0.8rem;
+  }
+  .leaderboardTable {
+    font-size: 0.75rem;
+  }
+  .leaderboardTable th {
+    font-size: 0.65rem;
+    padding: 5px 4px;
+  }
+  .leaderboardTable td {
+    padding: 6px 4px;
+  }
+  .leaderboardAvatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  .leaderboardUsername {
+    font-size: 0.75rem;
+  }
+  .leaderboardHandle {
+    font-size: 0.65rem;
+  }
+  .leaderboardMmrValue {
+    font-size: 0.9rem;
+  }
+  .leaderboardRankTierValue {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardContainer {
+    padding: 20px 10px 40px 10px;
+  }
+  .pageTitle {
+    font-size: 1.3rem;
+  }
+  .pageSubtitle {
+    font-size: 0.9rem;
+  }
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .statCard {
+    padding: 12px 8px;
+    min-height: 90px;
+    gap: 3px;
+  }
+  .statIcon {
+    font-size: 1.4rem;
+  }
+  .statValue {
+    font-size: 1.3rem;
+  }
+  .statLabel {
+    font-size: 0.6rem;
+    letter-spacing: 0px;
+  }
+  .panel {
+    padding: 15px;
+  }
+  .panelHeader {
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+    gap: 8px;
+  }
+  .panelIcon {
+    font-size: 1rem;
+  }
+  .mmrInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .currentRankMmr {
+    font-size: 1rem;
+  }
+  .nextRank {
+    font-size: 0.7rem;
+  }
+  .progressBarContainer {
+    height: 10px;
+  }
+  .progressText {
+    font-size: 0.8rem;
+  }
+  .tierInfoGrid {
+    grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+    gap: 5px;
+  }
+  .tierBox {
+    padding: 6px 4px;
+  }
+  .tierName {
+    font-size: 0.6rem;
+  }
+  .tierMmr {
+    font-size: 0.6rem;
+  }
+  .weeklyChallengesContent {
+    min-height: 120px;
+  }
+  .noTestsMessage {
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+  .browseButton {
+    font-size: 0.7rem;
+    padding: 6px 12px;
+  }
+  .streakDays {
+    font-size: 1.5rem;
+  }
+  .streakStatus {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+  }
+  .streakProgressBarContainer {
+    height: 6px;
+  }
+  .streakNextReward {
+    font-size: 0.7rem;
+  }
+  .streakRewardItem {
+    font-size: 0.8rem;
+  }
+  .rewardDays {
+    gap: 4px;
+  }
+  .rewardDaysIcon {
+    font-size: 0.8rem;
+  }
+  .leaderboardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .leaderboardTitle {
+    font-size: 0.9rem;
+  }
+  .leaderboardTable th {
+    padding: 4px 3px;
+    font-size: 0.6rem;
+  }
+  .leaderboardTable td {
+    padding: 5px 3px;
+  }
+  .leaderboardAvatar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+  }
+  .leaderboardUsername {
+    font-size: 0.7rem;
+  }
+  .leaderboardHandle {
+    font-size: 0.6rem;
+  }
+  .leaderboardMmrValue {
+    font-size: 0.85rem;
+  }
+  .leaderboardRankTierValue {
+    font-size: 0.7rem;
+  }
+}

@@ -1,0 +1,320 @@
+/* src/components/Crew.module.css */
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* --- Removed global variable definition block --- */
+
+.crewContainer {
+  /* --- Theme Variables Scoped to .crewContainer --- */
+  --font-game: 'Press Start 2P', cursive;
+  --font-body: 'VT323', monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-bg-start: #0c051a;
+  --color-bg-mid: #1d1135;
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-panel-border-glow: rgba(0, 255, 157, 0.3); /* Keep if used elsewhere */
+  --color-pixel-shadow: rgba(0,0,0, 0.7);
+  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-border: rgba(0, 255, 157, 0.5);
+  --color-selected-border: #ffcc00;
+  --color-tab-active-bg: rgba(0, 255, 157, 0.15);
+  --color-tab-inactive-bg: rgba(0, 0, 0, 0.3);
+  --color-tab-inactive-border: rgba(0, 255, 157, 0.3);
+  /* --- End of Scoped Variables --- */
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* Stack title and content */
+  align-items: center;
+  padding: 40px 20px 60px 20px; /* Add bottom padding */
+  font-family: var(--font-game); /* Base font */
+  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+  color: var(--color-text-base); /* Base text color */
+}
+
+.pageHeader {
+    width: 100%;
+    max-width: 900px; /* Match panel width or adjust */
+    margin-bottom: 25px;
+    text-align: left;
+}
+.pageTitle {
+    font-size: 1.8rem;
+    color: var(--color-accent);
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+    /* Font family inherited */
+}
+.pageSubtitle {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+}
+
+.crewPanel {
+  width: 100%;
+  max-width: 900px; /* Adjust as needed */
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  padding: 25px 30px;
+  border-radius: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+  margin-bottom: 30px; /* Space between panels */
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-accent);
+  font-size: 1.1rem;
+  font-weight: normal; /* Explicitly normal */
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed var(--color-panel-border);
+  /* Font family inherited */
+}
+.panelIcon {
+    font-size: 1.3rem; /* Adjust icon size */
+    opacity: 0.9;
+    /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+/* Add Friend Section */
+.addFriendForm {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.addFriendInput {
+    flex-grow: 1; /* Take available space */
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1.1rem;
+    padding: 10px 12px;
+    background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-text-base);
+    border-radius: 0;
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+}
+.addFriendInput::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+.addFriendInput:focus {
+    outline: none;
+    border-color: var(--color-selected-border);
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
+}
+
+/* Generic Button Style (reuse/import if global) */
+.gameButton {
+  font-family: var(--font-game); /* Use game font */
+  padding: 10px 18px; /* Adjusted padding */
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  background-color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  /* Use accent color implicitly via RGBA */
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4); /* Accent */
+  border-radius: 0;
+  user-select: none;
+  white-space: nowrap;
+}
+.gameButton:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start); /* Use bg color for contrast */
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover); /* Use hover color */
+  transform: translate(-1px, -1px);
+}
+.gameButton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+  /* Use hover colors for active */
+  background-color: var(--color-accent-hover);
+  color: var(--color-bg-start);
+}
+.gameButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+    /* Ensure disabled state retains base styles */
+    background-color: rgba(0, 0, 0, 0.6);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+    transform: none;
+}
+.gameButton:disabled:hover { /* Prevent hover effect when disabled */
+   transform: none;
+   background-color: rgba(0, 0, 0, 0.6);
+   color: var(--color-accent);
+   box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+}
+
+.sendRequestButton {
+    composes: gameButton; /* Inherit base styles */
+    /* Specific variant if needed */
+    background-color: var(--color-accent); /* Make it stand out */
+    color: var(--color-bg-start);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+.sendRequestButton:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    color: var(--color-bg-start); /* Ensure text color remains correct */
+}
+
+
+/* Friend List Section */
+.friendListHeader {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrap on small screens */
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px; /* Space between tabs and search */
+    margin-bottom: 20px;
+}
+.tabContainer {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap; /* Allow tabs to wrap */
+}
+.tabButton {
+    font-family: var(--font-game); /* Use game font */
+    font-size: 0.7rem;
+    padding: 6px 10px 5px 10px; /* Fine-tune padding */
+    border: 1px solid var(--color-tab-inactive-border);
+    background-color: var(--color-tab-inactive-bg);
+    color: var(--color-text-muted);
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex; /* Align icon and text */
+    align-items: center;
+    gap: 5px;
+}
+.tabButton:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+.tabButton.activeTab { /* Dynamic class */
+    background-color: var(--color-tab-active-bg);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    box-shadow: inset 0 0 5px rgba(0, 255, 157, 0.3);
+}
+.tabIcon {
+    font-size: 0.8rem; /* Adjust icon size */
+    opacity: 0.8;
+    /* Icon font needs setup (e.g., Font Awesome) */
+}
+.tabCount {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 0.9rem;
+    margin-left: 3px;
+}
+
+/* Wrap search input and icon together */
+.searchContainer {
+    position: relative; /* For icon positioning */
+    min-width: 200px; /* Prevent being too small */
+}
+.searchFriendsInput {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1rem;
+    padding: 6px 10px 6px 30px; /* Padding for icon */
+    background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-text-base);
+    border-radius: 0;
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+    width: 100%; /* Make input fill container */
+}
+.searchFriendsInput::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+.searchFriendsInput:focus {
+    outline: none;
+    border-color: var(--color-selected-border);
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
+}
+.searchIconContainer { /* Wrapper for search icon inside input area */
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    pointer-events: none; /* Click through icon */
+    font-size: 1rem; /* Adjust icon size */
+    /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+
+/* Friend List Area */
+.friendListArea {
+    margin-top: 0; /* Removed default margin, header has margin-bottom */
+    min-height: 150px; /* Give some space for the message */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center "No Friends" message */
+}
+.noFriendsMessage {
+    text-align: center;
+    color: var(--color-text-muted);
+    /* Font family inherited */
+}
+.noFriendsIcon {
+    font-size: 3.5rem; /* Large icon */
+    margin-bottom: 15px;
+    opacity: 0.5;
+    /* Icon font needs setup (e.g., Font Awesome) */
+}
+.noFriendsTitle {
+    font-size: 1.2rem;
+    color: var(--color-text-base);
+    margin-bottom: 5px;
+    /* Font family inherited */
+}
+.noFriendsSubtitle {
+    font-family: var(--font-body); /* Use body font */
+    font-size: 1rem;
+}
+
+/* Add .friendItem styles later when displaying the list */
+/* .friendItem { ... } */
+/* .friendItemPending { ... } */
+/* .friendItemOnline { ... } */
+/* .friendItemOffline { ... } */
+/* .friendActions { ... } */
+/* .acceptButton { ... } */
+/* .declineButton { ... } */
+/* .removeButton { ... } */
+
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .pageHeader { text-align: center; }
+    .addFriendForm { flex-direction: column; align-items: stretch; }
+    .sendRequestButton { width: 100%; } /* Make button full width */
+    .friendListHeader { justify-content: center; } /* Center tabs/search */
+    .searchContainer { width: 100%; } /* Allow search to take full width */
+}

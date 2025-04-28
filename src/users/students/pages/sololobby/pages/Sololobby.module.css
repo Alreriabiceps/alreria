@@ -1,0 +1,950 @@
+/* src/components/PlayerVsPlayer.module.css */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* --- Removed global variable definition block --- */
+
+/* ==========================================================================
+      Base Layout & Page Header
+      ========================================================================== */
+
+.pvpContainer {
+  /* --- Theme Variables Scoped to .pvpContainer --- */
+  /* Fonts */
+  --font-game: 'Press Start 2P', cursive;
+  --font-body: 'VT323', monospace;
+
+  /* Core Colors */
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-bg-start: #0c051a;
+  --color-bg-mid: #1d1135;
+
+  /* Panel & Border */
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-panel-border-glow: rgba(0, 255, 157, 0.3);
+  /* Not used in snippet but kept */
+  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+  --color-divider: rgba(0, 255, 157, 0.2);
+  --color-section-bg: rgba(0, 0, 0, 0.2);
+  /* Not used in snippet but kept */
+
+  /* Inputs & Interaction */
+  --color-input-bg: rgba(0, 0, 0, 0.4);
+  --color-input-border: rgba(0, 255, 157, 0.5);
+  --color-selected-border: #ffcc00;
+  --color-item-hover-bg: rgba(0, 255, 157, 0.08);
+  --color-glow-soft: rgba(0, 255, 157, 0.15);
+
+  /* Specific Colors */
+  --color-queue-active-bg: rgba(255, 100, 100, 0.2);
+  /* Not used in snippet but kept */
+  --color-queue-active-border: rgba(255, 100, 100, 0.5);
+  /* Not used in snippet but kept */
+  --color-cancel-button-bg: rgba(255, 79, 122, 0.6);
+  --color-cancel-button-border: rgba(255, 79, 122, 0.8);
+  --color-cancel-button-hover-bg: rgba(255, 79, 122, 0.8);
+  --color-rank-bronze: #cd7f32;
+  /* Example if needed */
+  /* --- End of Scoped Variables --- */
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 60px 20px;
+  font-family: var(--font-game);
+  /* Base font */
+  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
+  color: var(--color-text-base);
+  /* Base text color */
+}
+
+.pageHeader {
+  width: 100%;
+  max-width: 1100px;
+  /* Match grid width */
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+  text-shadow: 3px 3px 0 var(--color-pixel-shadow), 0 0 8px var(--color-accent);
+  /* Font family inherited */
+}
+
+.pageSubtitle {
+  font-family: var(--font-body);
+  /* Use body font */
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+      Main Grid and Panel Structure
+      ========================================================================== */
+
+.actionsGrid {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* Default 2 columns */
+  gap: 30px;
+  margin-top: 10px;
+}
+
+.panel {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), inset 0 0 10px rgba(0, 0, 0, 0.6);
+  padding: 25px 30px;
+  border-radius: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  /* Give panels some minimum height */
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-accent);
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed var(--color-divider);
+  width: 100%;
+  /* Ensure border spans width */
+  /* Font family inherited */
+}
+
+.panelIcon {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+  /* Prevent icon shrinking */
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+/* Specific panel grid placement (adjust if needed) */
+.joinLobbyPanel {
+  grid-column: span 1;
+  /* Default */
+}
+
+.queuePanel {
+  grid-column: span 1;
+  /* Default */
+}
+
+/* ==========================================================================
+      Generic Button Style
+      ========================================================================== */
+
+.gameButton {
+  font-family: var(--font-game);
+  /* Use game font */
+  padding: 10px 18px;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  background-color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  /* Use accent color implicitly via RGBA */
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+  /* Accent */
+  border-radius: 0;
+  user-select: none;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.gameButton:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start);
+  /* Use bg color for contrast */
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover);
+  /* Use hover color */
+  transform: translate(-1px, -1px);
+}
+
+.gameButton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+  /* Use hover colors for active state for simplicity */
+  background-color: var(--color-accent-hover);
+  color: var(--color-bg-start);
+}
+
+.gameButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(50%);
+  /* Ensure disabled state retains base styles */
+  background-color: rgba(0, 0, 0, 0.6);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+  transform: none;
+}
+
+.gameButton:disabled:hover {
+  /* Prevent hover effect when disabled */
+  transform: none;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: var(--color-accent);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
+}
+
+
+/* ==========================================================================
+      Invite Friend Panel
+      ========================================================================== */
+
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex-grow: 1;
+  /* Use available space */
+}
+
+.inviteInput {
+  font-size: 1.2rem;
+  padding: 12px 15px;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  color: var(--color-text-base);
+  border-radius: 0;
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+  font-family: var(--font-body);
+  /* Use body font */
+}
+
+.inviteInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.inviteInput:focus {
+  outline: none;
+  border-color: var(--color-selected-border);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
+}
+
+.inviteButton {
+  composes: gameButton;
+  /* Inherit base button styles */
+  align-self: flex-start;
+  /* Align button left */
+  margin-top: auto;
+  /* Push to bottom of flex container */
+}
+
+/* ==========================================================================
+      Create Lobby Panel
+      ========================================================================== */
+
+.createDescription {
+  font-family: var(--font-body);
+  /* Use body font */
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  flex-grow: 1;
+  /* Take space */
+  margin-bottom: 20px;
+  /* Space above button */
+}
+
+.createButton {
+  composes: gameButton;
+  /* Inherit base button styles */
+  align-self: center;
+  padding: 12px 25px;
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+      Matchmaking Queue Panel
+      ========================================================================== */
+
+.queuePanelContent {
+  flex-grow: 1;
+  /* Center content vertically */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.queueStatus {
+  font-family: var(--font-body);
+  /* Use body font */
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.queueTime {
+  font-family: var(--font-game);
+  /* Use game font */
+  font-size: 2.2rem;
+  /* Larger time */
+  color: var(--color-accent);
+  margin-bottom: 30px;
+  /* More space */
+  text-shadow: 0 0 8px var(--color-accent);
+}
+
+.queueButton {
+  composes: gameButton;
+  /* Inherit base button styles */
+  padding: 14px 30px;
+  font-size: 1rem;
+}
+
+.cancelQueueButton {
+  composes: gameButton;
+  /* Inherit base button styles */
+  padding: 10px 20px;
+  font-size: 0.8rem;
+  background-color: var(--color-cancel-button-bg);
+  border-color: var(--color-cancel-button-border);
+  color: var(--color-text-base);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.cancelQueueButton:hover:not(:disabled) {
+  background-color: var(--color-cancel-button-hover-bg);
+  border-color: var(--color-cancel-button-border);
+  color: var(--color-text-base);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-cancel-button-border);
+}
+
+.cancelQueueButton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+  /* Keep hover bg for active */
+  background-color: var(--color-cancel-button-hover-bg);
+  border-color: var(--color-cancel-button-border);
+  color: var(--color-text-base);
+}
+
+/* ==========================================================================
+      Join Lobby Panel
+      ========================================================================== */
+
+.lobbyBrowserHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+  /* Space below header/search */
+}
+
+/* Reposition header within the browser div */
+.lobbyBrowserHeader .panelHeader {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.lobbySearchContainer {
+  position: relative;
+  min-width: 250px;
+}
+
+.lobbySearchInput {
+  width: 100%;
+  font-family: var(--font-body);
+  /* Use body font */
+  font-size: 1.1rem;
+  padding: 8px 12px 8px 35px;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  color: var(--color-text-base);
+  border-radius: 0;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.lobbySearchInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.lobbySearchInput:focus {
+  outline: none;
+  border-color: var(--color-selected-border);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.4), 0 0 8px var(--color-selected-border);
+}
+
+.lobbySearchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  pointer-events: none;
+  /* Icon font needs setup (e.g., Font Awesome) */
+}
+
+.lobbyListContainer {
+  border: 1px solid var(--color-divider);
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+  flex-grow: 1;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lobbyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lobbyItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.lobbyItem:hover {
+  background-color: var(--color-item-hover-bg);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-glow-soft);
+}
+
+.lobbyDetails {
+  overflow: hidden;
+  /* Prevent long names breaking layout */
+  margin-right: 15px;
+  /* Space between details and button group */
+  display: flex;
+  gap: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.lobbyName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lobbyHost {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  display: block;
+  margin-top: 3px;
+}
+
+.lobbyInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+/* Prevent shrinking */
+.lobbyPlayers {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: right;
+}
+
+.joinButton {
+  composes: gameButton;
+  /* Inherit base button styles */
+  padding: 4px 12px;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.noLobbiesMessage {
+  flex-grow: 1;
+  /* Takes up space in container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 20px;
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+      Keyframes & Responsive
+      ========================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 992px) {
+
+  /* Adjust breakpoint for stacking */
+  .actionsGrid {
+    grid-template-columns: 1fr;
+    /* Stack all panels */
+  }
+
+  .panel {
+    min-height: auto;
+  }
+
+  .createDescription {
+    margin-bottom: 20px;
+  }
+
+  /* Ensure space */
+}
+
+@media (max-width: 480px) {
+  .panel {
+    padding: 20px;
+  }
+
+  .pageTitle {
+    font-size: 1.6rem;
+  }
+
+  .pageSubtitle {
+    font-size: 1rem;
+  }
+
+  .panelHeader {
+    font-size: 1rem;
+  }
+
+  .inviteInput {
+    font-size: 1rem;
+  }
+
+  .createDescription {
+    font-size: 1rem;
+  }
+
+  .lobbyName {
+    font-size: 0.8rem;
+  }
+
+  .lobbyHost {
+    font-size: 0.7rem;
+  }
+
+  .lobbyPlayers {
+    font-size: 0.9rem;
+  }
+
+  .joinButton {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+  }
+
+  .queueTime {
+    font-size: 1.8rem;
+  }
+
+  .lobbyItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Stack lobby item content */
+  .lobbyInfo {
+    align-self: flex-end;
+  }
+
+  /* Move players/button to right */
+  .lobbyDetails {
+    margin-right: 0;
+    width: 100%;
+  }
+
+  /* Allow details to take full width */
+}
+
+.lobbyButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.lobbyInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lobbyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lobbyName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.privateBadge {
+  background-color: var(--color-panel-border);
+  color: var(--color-text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.lobbyDetails {
+  display: flex;
+  gap: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.lobbyHost {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.lobbyPlayers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.lobbyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.lobbyItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.lobbyItem:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6),
+    0 0 20px var(--color-accent);
+  width: 90%;
+  max-width: 500px;
+  border-radius: 0;
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+  margin: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px dashed var(--color-divider);
+}
+
+.modalHeader h2 {
+  color: var(--color-accent);
+  font-size: 1.2rem;
+  margin: 0;
+  text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+  font-family: var(--font-game);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.closeButton:hover {
+  color: var(--color-accent);
+}
+
+.modalContent {
+  padding: 20px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  color: var(--color-text-base);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+}
+
+.modalInput {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--color-input-bg);
+  border: 2px solid var(--color-input-border);
+  color: var(--color-text-base);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4), 0 0 10px var(--color-accent);
+}
+
+.modalFooter {
+  padding: 20px;
+  border-top: 1px dashed var(--color-divider);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.submitButton {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start);
+  font-family: var(--font-game);
+  padding: 10px 20px;
+  border: 2px solid var(--color-accent);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 2px solid var(--color-text-muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-game);
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--color-text-muted);
+  color: var(--color-bg-start);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.timerBadge {
+  background-color: var(--color-accent);
+  color: var(--color-bg-start);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-game);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.errorMessage {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ef9a9a;
+}
+
+.errorMessage p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.errorCloseButton {
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.errorCloseButton:hover {
+  color: #b71c1c;
+}
+
+.infoMessage {
+  background-color: rgba(0, 255, 157, 0.1);
+  border: 1px solid var(--color-accent);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.infoMessage p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  line-height: 1.4;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--color-divider);
+}
+
+.pageButton {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  min-width: 40px;
+}
+
+.pageInfo {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,460 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+.start-screen-container {
+  /* --- Theme Variables Scoped to .start-screen-container --- */
+  --game-font-family: "Press Start 2P", cursive;
+  --body-font-family: "VT323", monospace;
+  --background-color-start: #0f0c29;
+  --background-color-end: #302b63;
+  --accent-color: #00ffdd;
+  --accent-hover-color: #99ffef;
+  --correct-color: #00ff00;
+  --wrong-color: #ff0055;
+  --text-color: #e0e0e0;
+  /* --- End of Scoped Variables --- */
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color); /* Use variable */
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom right,
+    var(--background-color-start),
+    var(--background-color-end)
+  ); /* Use variable */
+  font-family: var(--game-font-family); /* Use variable */
+  cursor: crosshair;
+}
+
+.screen-flash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.15s ease-out;
+}
+
+.screen-flash-overlay.flash-correct {
+  background-color: rgba(0, 255, 0, 0.2);
+  opacity: 1;
+}
+
+.screen-flash-overlay.flash-incorrect {
+  background-color: rgba(255, 0, 85, 0.2);
+  opacity: 1;
+}
+
+.content-wrapper {
+  text-align: center;
+  z-index: 10;
+  position: relative;
+  padding: 1rem;
+  width: 100%;
+  max-width: 42rem;
+}
+
+.title-text {
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  margin-top: -100px;
+  color: var(--accent-color);
+}
+
+.text-shadow-glow {
+  text-shadow: 0 0 5px var(--accent-color), 0 0 10px var(--accent-color),
+    0 0 15px var(--accent-color);
+}
+
+.security-check-box {
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 221, 0.3);
+  backdrop-filter: blur(2px);
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .security-check-box {
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+  }
+}
+
+.security-title {
+  font-size: clamp(1rem, 4vw, 1.3rem);
+  letter-spacing: 1px;
+  color: var(--accent-color);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .security-title {
+    margin-bottom: 1rem;
+  }
+}
+
+.security-question {
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  font-family: var(--body-font-family);
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .security-question {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.answers-container {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .answers-container {
+    gap: 1rem;
+  }
+}
+
+.feedback-message {
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  min-height: 1.5em;
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.feedback-correct {
+  color: var(--correct-color);
+  text-shadow: 0 0 5px var(--correct-color);
+}
+
+.feedback-incorrect {
+  color: var(--wrong-color);
+  text-shadow: 0 0 5px var(--wrong-color);
+}
+
+.game-button,
+.game-button-small {
+  font-family: var(--game-font-family);
+  padding: 10px 20px;
+  border: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  background-color: rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 5px var(--accent-color), inset 0 0 5px rgba(0, 255, 221, 0.5);
+  border-radius: 4px;
+  user-select: none;
+}
+
+.game-button:hover,
+.game-button-small:hover {
+  background-color: var(--accent-color);
+  color: var(--background-color-start);
+  box-shadow: 0 0 15px var(--accent-color), 0 0 25px var(--accent-color);
+}
+
+.game-button:active,
+.game-button-small:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 5px var(--accent-color);
+}
+
+.mute-button {
+  composes: game-button-small;
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  border-width: 1px;
+  color: var(--text-color);
+  border-color: var(--text-color);
+  box-shadow: none;
+  background-color: rgba(0, 0, 0, 0.6);
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+}
+
+@media (min-width: 768px) {
+  .mute-button {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+.mute-button:hover {
+  background-color: rgba(224, 224, 224, 0.2);
+  color: var(--accent-hover-color);
+  border-color: var(--accent-hover-color);
+  box-shadow: 0 0 8px var(--accent-hover-color);
+}
+
+.answer-button {
+  composes: game-button;
+  font-size: 1rem;
+  padding: 10px 20px;
+}
+
+.correct-button {
+  border-color: var(--correct-color);
+  color: var(--correct-color);
+  box-shadow: 0 0 5px var(--correct-color), inset 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.correct-button:hover {
+  background-color: var(--correct-color);
+  color: black;
+  box-shadow: 0 0 15px var(--correct-color), 0 0 25px var(--correct-color);
+}
+
+.wrong-button {
+  border-color: var(--wrong-color);
+  color: var(--wrong-color);
+  box-shadow: 0 0 5px var(--wrong-color), inset 0 0 5px rgba(255, 0, 85, 0.5);
+}
+
+.wrong-button:hover {
+  background-color: var(--wrong-color);
+  color: white;
+  box-shadow: 0 0 15px var(--wrong-color), 0 0 25px var(--wrong-color);
+}
+
+.launch-button {
+  composes: game-button;
+  font-size: 1.5rem;
+  padding: 14px 30px;
+  position: absolute;
+}
+
+.button-waiting {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-waiting:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: var(--accent-color);
+  box-shadow: 0 0 5px var(--accent-color), inset 0 0 5px rgba(0, 255, 221, 0.5);
+}
+
+.button-ready {
+  opacity: 1;
+  animation: pulse-ready 1.5s infinite;
+}
+
+.button-animating {
+  opacity: 0 !important;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.8) !important;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+}
+
+.launch-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5 !important;
+  filter: grayscale(50%);
+  animation: none !important;
+}
+
+.launch-button:disabled:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: var(--accent-color);
+  box-shadow: 0 0 5px var(--accent-color), inset 0 0 5px rgba(0, 255, 221, 0.5);
+}
+
+.starfield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star-particle {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #fff;
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+}
+
+.slide-up-animation {
+  animation: slideUp 1.2s forwards ease-in;
+}
+
+@keyframes pulse-ready {
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--accent-color),
+      inset 0 0 8px rgba(0, 255, 221, 0.6);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 18px var(--accent-color),
+      inset 0 0 12px rgba(0, 255, 221, 0.8);
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+}
+
+@keyframes shakeBox {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake-animation-box {
+  animation: shakeBox 0.4s ease-in-out;
+}
+
+/* --- RESPONSIVE STYLES --- */
+@media (max-width: 768px) {
+  .start-screen-container {
+    padding-top: 60px;
+  }
+  .title-text {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+    margin-bottom: 25px;
+  }
+  .security-check-box {
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+  .security-title {
+    font-size: 0.9rem;
+  }
+  .security-question {
+    font-size: 0.9rem;
+  }
+  .answers-container {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .answer-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+  .launch-button {
+    font-size: 1.1rem;
+    padding: 10px 20px;
+  }
+  .feedback-message {
+    font-size: 0.8rem;
+  }
+  .mute-button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .start-screen-container {
+    padding-top: 60px;
+  }
+  .title-text {
+    font-size: clamp(1.4rem, 7vw, 1.8rem);
+    margin-bottom: 20px;
+  }
+  .security-check-box {
+    padding: 1rem;
+    margin-bottom: 18px;
+  }
+  .security-title {
+    font-size: 0.8rem;
+  }
+  .security-question {
+    font-size: 0.8rem;
+  }
+  .answers-container {
+    gap: 5px;
+  }
+  .answer-button {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+  .launch-button {
+    font-size: 1rem;
+    padding: 8px 16px;
+  }
+  .feedback-message {
+    font-size: 0.75rem;
+  }
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 200px;
+  height: auto;
+  border-radius: 50%;
+  transition: box-shadow 0.3s ease;
+}
+
+.logo:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+/* Add this block to your existing CSS */
+.play-anthem-button {
+  composes: game-button; /* Inherit base game button styles */
+  margin-top: 1.5rem; /* Add space below the title */
+  margin-bottom: 2rem; /* Add space above the security box/feedback */
+  font-size: 1.2rem; /* Slightly larger text */
+  padding: 12px 24px; /* Adjust padding */
+}
+
+/* Optional: Style for mobile */
+@media (max-width: 768px) {
+  .play-anthem-button {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+}

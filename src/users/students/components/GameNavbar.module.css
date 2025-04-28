@@ -1,0 +1,393 @@
+/* src/components/GameNavbar.module.css */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
+   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+   @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+   
+   /* --- Removed global variable definition block --- */
+   
+   /* ==========================================================================
+      Navbar Base
+      ========================================================================== */
+   .navbar {
+     /* --- Theme Variables Scoped to .navbar --- */
+     --font-game: 'Press Start 2P', cursive;
+     --font-body: 'VT323', monospace;
+     --color-accent: #00ff9d;
+     --color-accent-hover: #80ffce;
+     --color-text-base: #e0e0e0;
+     --color-text-muted: #a0a0a0;
+     --color-bg-start: #0c051a; /* Note: These bg colors aren't used in the navbar itself, */
+     --color-bg-mid: #1d1135;   /* but are kept here if needed by child elements */
+     --color-panel: rgba(15, 12, 41, 0.9);
+     --color-panel-border: rgba(0, 255, 157, 0.6);
+     --color-pixel-shadow: rgba(0,0,0, 0.7);
+     --color-navbar-bg: rgba(10, 5, 25, 0.95);
+     --color-dropdown-bg: var(--color-panel);
+     /* --- End of Scoped Variables --- */
+   
+     background-color: var(--color-navbar-bg);
+     border-bottom: 2px solid var(--color-panel-border);
+     box-shadow: 0 4px 0 0 var(--color-pixel-shadow);
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 10px 25px;
+     min-height: 60px;
+     position: sticky;
+     top: 0;
+     left: 0;
+     right: 0;
+     z-index: 100;
+     font-family: var(--font-body); /* Set base font for navbar text */
+     color: var(--color-text-base); /* Set base text color */
+   }
+   
+   /* ==========================================================================
+      Brand / Logo
+      ========================================================================== */
+   .navbarBrand {
+     flex-shrink: 0;
+   }
+   .navbarLogo {
+     font-family: var(--font-game); /* Use game font for logo */
+     font-size: 1.5rem;
+     color: var(--color-accent);
+     text-decoration: none;
+     text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+     transition: color 0.2s ease;
+   }
+   .navbarLogo:hover {
+     color: var(--color-accent-hover);
+   }
+   
+   /* ==========================================================================
+      Desktop Navigation Links Container
+      ========================================================================== */
+   .desktopNavLinks {
+     display: flex;
+     align-items: center;
+     gap: 15px;
+   }
+   
+   /* ==========================================================================
+      Generic Link / Button Styling (used for links, dropdown toggle, logout)
+      ========================================================================== */
+      .navbarLink {
+        font-family: var(--font-game); /* Use game font for links */
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        padding: 8px 10px;
+        border: 1px solid transparent; /* For layout consistency */
+        background: none;
+        cursor: pointer;
+        transition: color 0.2s ease, border-color 0.2s ease; /* Remove bg transition */
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 0;
+      }
+   .navbarLink:hover {
+     color: var(--color-accent-hover);
+   }
+   /* Active NavLink state */
+   .activeLink {
+     color: var(--color-accent);
+     border-bottom-color: var(--color-accent);
+   }
+   
+   /* ==========================================================================
+      Dropdown Menu Styling
+      ========================================================================== */
+   .dropdown {
+     position: relative; /* Anchor for the absolute menu */
+   }
+   .dropdownToggle {
+    composes: navbarLink; /* Inherits base styles from navbarLink */
+   }
+   
+   /* No specific background needed on hover for toggle, inherits from navbarLink */
+   .dropdownToggle:hover {
+    /* Hover effect comes from .navbarLink:hover */
+   }
+   /* Style toggle when active (either direct NavLink match or dropdown open) */
+   .dropdownToggle.activeLink, /* If NavLink detects active child */
+   .dropdown.open .dropdownToggle {
+     color: var(--color-accent); /* Use active color */
+     /* Optionally keep the border bottom like activeLink */
+     /* border-bottom-color: var(--color-accent); */
+   }
+   
+   .dropdownToggle::after { /* Basic arrow */
+     content: '▼';
+     font-size: 0.6em;
+     margin-left: 4px;
+     opacity: 0.7;
+     display: inline-block;
+     transition: transform 0.2s ease-out;
+   }
+   /* Rotate arrow when parent .dropdown has .open class */
+   .dropdown.open .dropdownToggle::after {
+       transform: rotate(180deg);
+   }
+   
+   .dropdownMenu {
+     position: absolute;
+     top: calc(100% + 5px);
+     left: 50%;
+     transform: translateX(-50%);
+     min-width: 200px;
+     background-color: var(--color-dropdown-bg);
+     border: 1px solid var(--color-panel-border);
+     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+     padding: 8px 0;
+     z-index: 110;
+     display: flex;
+     flex-direction: column;
+     opacity: 0;
+     visibility: hidden;
+     pointer-events: none;
+     transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+   }
+   /* Show menu when parent .dropdown has .open class */
+   .dropdown.open .dropdownMenu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+   }
+   .dropdownItem {
+     font-family: var(--font-game); /* Use game font for items */
+     font-size: 0.75rem;
+     color: var(--color-text-muted);
+     text-decoration: none;
+     padding: 10px 15px;
+     transition: color 0.2s ease, background-color 0.2s ease;
+     white-space: nowrap;
+     display: flex;
+     align-items: center;
+     gap: 8px;
+   }
+   .dropdownItem:hover {
+     color: var(--color-accent-hover);
+     background-color: rgba(0, 255, 157, 0.1); /* Use accent with alpha */
+   }
+   /* Active NavLink state within dropdown */
+   .dropdownItem.activeLink {
+      color: var(--color-accent);
+      background-color: rgba(0, 255, 157, 0.15); /* Slightly darker accent bg */
+   }
+   
+   /* ==========================================================================
+      Mobile Navigation Styles
+      ========================================================================== */
+   .mobileMenuButton {
+     display: none; /* Hidden on desktop */
+     background: none; border: none; color: var(--color-accent);
+     font-size: 1.8rem; cursor: pointer; padding: 5px; z-index: 120;
+   }
+   
+   .mobileNavLinks {
+     display: none; /* Hidden by default */
+     flex-direction: column; position: absolute;
+     top: 100%; /* Directly below navbar */
+     left: 0; right: 0;
+     background-color: var(--color-navbar-bg);
+     border-bottom: 2px solid var(--color-panel-border);
+     padding: 10px 0; /* Reduced padding */
+     box-shadow: 0 4px 0 0 var(--color-pixel-shadow);
+     animation: slideDown 0.3s ease-out forwards;
+   }
+   /* Show mobile menu when it has the .open class */
+   .mobileNavLinks.open {
+     display: flex;
+   }
+   
+   /* Mobile Link/Dropdown Toggle Overrides */
+   .mobileNavLinks .navbarLink,
+   .mobileNavLinks .dropdownToggle {
+     /* Inherits font-family from .navbarLink */
+     text-align: center; width: 100%; padding: 12px 20px; font-size: 0.9rem;
+     border: none; border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+     justify-content: center; /* Center content */
+   }
+   .mobileNavLinks .activeLink {
+      border: none; border-left: 3px solid var(--color-accent);
+      background-color: rgba(0, 255, 157, 0.1);
+      padding-left: 17px; /* Adjust padding */
+   }
+   .mobileNavLinks .navbarLink:last-child,
+   .mobileNavLinks .dropdown:last-child .dropdownToggle {
+       border-bottom: none;
+   }
+   
+   /* Mobile Dropdown Menu Overrides */
+   .mobileNavLinks .dropdown { width: 100%; }
+   .mobileNavLinks .dropdownToggle::after { display: none; } /* Hide arrow */
+   .mobileNavLinks .dropdownMenu {
+       position: static; transform: none; box-shadow: none; border: none;
+       border-top: 1px solid rgba(0, 255, 157, 0.1);
+       background-color: rgba(0,0,0, 0.2); padding: 0;
+       max-height: 0; overflow: hidden; opacity: 1; visibility: visible;
+       transition: max-height 0.3s ease-out; pointer-events: auto;
+   }
+   /* Expand menu when parent .dropdown has .open class */
+   .mobileNavLinks .dropdown.open .dropdownMenu {
+      max-height: 500px; /* Allow space for items */
+   }
+   .mobileNavLinks .dropdownItem {
+      /* Inherits font-family from .dropdownItem */
+      padding: 10px 30px; font-size: 0.8rem; text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 157, 0.08);
+      justify-content: center; /* Center icon + text */
+   }
+   .mobileNavLinks .dropdownItem:last-child { border-bottom: none; }
+   .mobileNavLinks .dropdownItem.activeLink {
+       border-left: none; background-color: rgba(0, 255, 157, 0.15);
+   }
+   
+   /* ==========================================================================
+      Panel Icon (Used in mobile links and dropdown items)
+      ========================================================================== */
+   .panelIcon {
+       font-size: 1.1rem;
+       opacity: 0.8;
+       width: 20px; /* Consistent width */
+       text-align: center;
+       flex-shrink: 0; /* Prevent shrinking */
+   }
+   
+   /* ==========================================================================
+      Responsive Breakpoint
+      ========================================================================== */
+   @media (max-width: 992px) { /* Adjust breakpoint as needed */
+     .desktopNavLinks { display: none; }
+     .mobileMenuButton { display: block; }
+   }
+   
+   /* ==========================================================================
+      Keyframes
+      ========================================================================== */
+   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+   @keyframes slideDown {
+       from { opacity: 0; transform: translateY(-15px); }
+       to { opacity: 1; transform: translateY(0); }
+   }
+
+   .volumeControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .muteButton {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--color-accent);
+    transition: color 0.2s ease;
+  }
+  
+  .muteButton:hover {
+    color: var(--color-accent-hover);
+  }
+  
+  .volumeBox {
+    position: relative;
+    width: 150px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--color-accent);
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+  
+  .volumeBox:hover {
+    border-color: var(--color-accent-hover);
+  }
+  
+  .volumeFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--color-accent);
+    opacity: 0.3;
+    transition: width 0.1s ease;
+  }
+  
+  .volumePercentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-accent);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    text-shadow: 0 0 5px var(--color-accent);
+    pointer-events: none;
+  }
+  
+  .volumeSlider {
+    width: 100px; /* Adjust width as needed */
+    cursor: pointer;
+  }
+  
+  .mathVolumeControl {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-accent);
+  }
+
+  .mathInput {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    width: 60px;
+    text-align: center;
+  }
+
+  .mathInput:focus {
+    outline: none;
+    box-shadow: 0 0 5px var(--color-accent);
+  }
+
+  .mathOperator {
+    color: var(--color-accent);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    text-shadow: 0 0 5px var(--color-accent);
+  }
+
+  .mathSubmit {
+    background: var(--color-accent);
+    color: black;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mathSubmit:hover {
+    background: var(--color-accent-hover);
+    transform: scale(1.05);
+  }
+  
