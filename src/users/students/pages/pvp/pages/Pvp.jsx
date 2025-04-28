@@ -308,6 +308,9 @@ const Pvp = () => {
   const [showChoices, setShowChoices] = useState(true);
   const [rpsAnimation, setRpsAnimation] = useState('');
   const countdownRef = useRef(null);
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [selectedSubjectName, setSelectedSubjectName] = useState('');
+  const [modalAnimation, setModalAnimation] = useState('');
 
   // Demo questions for testing
   const demoQuestions = [
@@ -395,10 +398,27 @@ const Pvp = () => {
     newSocket.on('subject_selected', (data) => {
       console.log('Subject selected:', data);
       setSelectedSubject(data.subject);
-      setGameState(GAME_STATE.CARD_SELECTION);
-      if (data.selectedBy !== socket.userId) {
-        setGameMessage(`Opponent selected ${data.subject.name}`);
-      }
+      setSelectedSubjectName(data.subject.name);
+      setShowSubjectModal(true);
+      setModalAnimation('show');
+      
+      // Fetch questions for the selected subject
+      fetchQuestions(data.subject.id);
+      
+      // Emit subject selection after showing modal
+      socket.emit('subject_selected', { 
+        subject: data.subject,
+        lobbyId: location.state?.lobbyId
+      });
+
+      // Hide modal and proceed to card selection after 3 seconds
+      setTimeout(() => {
+        setModalAnimation('hide');
+        setTimeout(() => {
+          setShowSubjectModal(false);
+          setGameState(GAME_STATE.CARD_SELECTION);
+        }, 500);
+      }, 3000);
     });
 
     newSocket.on('opponent_card_selected', (data) => {
@@ -462,6 +482,8 @@ const Pvp = () => {
       setGameState(GAME_STATE.SUBJECT_SELECTION);
       setTurn(data.result === 'player' ? 'player' : 'opponent');
       setGameMessage(data.result === 'player' ? 'You won! Choose a subject.' : 'Opponent won! Waiting for subject selection...');
+      setShowChoices(false);
+      playRpsAnimation(data.result);
     });
 
     setSocket(newSocket);
@@ -491,6 +513,7 @@ const Pvp = () => {
     setRpsAnimation('animate');
     setTimeout(() => {
       setRpsAnimation('');
+      setShowChoices(true);
     }, 2000);
   };
 
@@ -503,13 +526,14 @@ const Pvp = () => {
       choice,
       playerId: user.id
     });
+    setShowChoices(false);
   };
 
   const handleOpponentRPSChoice = (data) => {
     if (gameState !== GAME_STATE.RPS) return;
     
     setOpponentRpsChoice(data.choice);
-    setGameState(GAME_STATE.SUBJECT_SELECTION);
+    setShowChoices(false);
   };
 
   // Function to fetch questions from backend
@@ -550,16 +574,57 @@ const Pvp = () => {
   };
 
   // Handle subject selection
-  const handleSubjectSelect = (subject) => {
+  const handleSubjectSelect = async (subject) => {
     if (!socket || turn !== 'player') return;
     
     setSelectedSubject(subject);
+    setSelectedSubjectName(subject.name);
+    setShowSubjectModal(true);
+    setModalAnimation('show');
+    
+    // Fetch questions for the selected subject
+    await fetchQuestions(subject.id);
+    
+    // Emit subject selection after showing modal
     socket.emit('subject_selected', { 
       subject,
       lobbyId: location.state?.lobbyId
     });
-    setGameState(GAME_STATE.CARD_SELECTION);
+
+    // Hide modal and proceed to card selection after 3 seconds
+    setTimeout(() => {
+      setModalAnimation('hide');
+      setTimeout(() => {
+        setShowSubjectModal(false);
+        setGameState(GAME_STATE.CARD_SELECTION);
+      }, 500);
+    }, 3000);
   };
+
+  // Handle opponent's subject selection
+  useEffect(() => {
+    if (socket) {
+      socket.on('subject_selected', async (data) => {
+        console.log('Subject selected:', data);
+        setSelectedSubject(data.subject);
+        setSelectedSubjectName(data.subject.name);
+        setShowSubjectModal(true);
+        setModalAnimation('show');
+        
+        // Fetch questions for the selected subject
+        await fetchQuestions(data.subject.id);
+        
+        // Hide modal and proceed to card selection after 3 seconds
+        setTimeout(() => {
+          setModalAnimation('hide');
+          setTimeout(() => {
+            setShowSubjectModal(false);
+            setGameState(GAME_STATE.CARD_SELECTION);
+          }, 500);
+        }, 3000);
+      });
+    }
+  }, [socket]);
 
   // Handle question selection
   const handleQuestionSelect = (question) => {
@@ -578,7 +643,7 @@ const Pvp = () => {
 
     // Deal cards to both players
     const playerCards = [...selectedQuestions];
-    const opponentCards = [...demoQuestions.filter(q => !selectedQuestions.some(sq => sq.id === q.id))].slice(0, INITIAL_CARDS);
+    const opponentCards = [...availableQuestions.filter(q => !selectedQuestions.some(sq => sq.id === q.id))].slice(0, INITIAL_CARDS);
 
     setPlayerHand(playerCards);
     setOpponentHand(opponentCards);
@@ -783,6 +848,20 @@ const Pvp = () => {
   return (
     <div className={styles.gameAreaWrapper}>
       <div className={styles.duelContainer}>
+        {/* Subject Selection Modal */}
+        {showSubjectModal && (
+          <div className={`${styles.subjectModal} ${styles[modalAnimation]}`}>
+            <div className={styles.subjectModalContent}>
+              <h2>Subject Selected!</h2>
+              <div className={styles.selectedSubject}>
+                <span className={styles.subjectIcon}>{selectedSubject?.icon}</span>
+                <span className={styles.subjectName}>{selectedSubjectName}</span>
+              </div>
+              <p>Proceeding to question selection...</p>
+            </div>
+          </div>
+        )}
+
         {gameState === GAME_STATE.RPS && (
           <div className={styles.rpsContainer}>
             {!showChoices ? (
