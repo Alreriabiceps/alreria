@@ -141,6 +141,9 @@ const Pvp = () => {
           lobbyId: location.state.lobbyId,
           playerName: user?.firstName || 'Player'
         });
+        // Set initial game state to RPS
+        setGameState(GAME_STATE.RPS);
+        setGameMessage('Waiting for opponent to join...');
       } else {
         console.error('No lobbyId found in location state');
       }
@@ -161,6 +164,7 @@ const Pvp = () => {
         name: data.opponentName
       }));
       setGameMessage('Opponent joined! Starting Rock Paper Scissors...');
+      setGameState(GAME_STATE.RPS);
       startCountdown();
     });
 
@@ -275,15 +279,21 @@ const Pvp = () => {
   }, [token, location.state?.lobbyId, user?.firstName]);
 
   const startCountdown = () => {
-    setCountdown(0);
-    setGameState(GAME_STATE.RPS);
-  };
-
-  useEffect(() => {
-    if (gameState === GAME_STATE.RPS) {
-      startCountdown();
+    setCountdown(3);
+    setShowChoices(true);
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
     }
-  }, [gameState]);
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const playRpsAnimation = (result) => {
     setRpsAnimation('animate');
@@ -678,6 +688,32 @@ const Pvp = () => {
                   Confirm Selection
                 </button>
               </>
+            )}
+          </div>
+        )}
+
+        {/* RPS Game Screen */}
+        {gameState === GAME_STATE.RPS && (
+          <div className={styles.rpsContainer}>
+            <h2>Rock Paper Scissors</h2>
+            {countdown > 0 ? (
+              <div className={styles.countdownContainer}>
+                <div className={styles.countdownNumber}>{countdown}</div>
+                <div className={styles.countdownText}>Starting in...</div>
+              </div>
+            ) : (
+              <div className={styles.rpsChoices}>
+                {RPS_CHOICES.map(choice => (
+                  <button
+                    key={choice.id}
+                    className={`${styles.rpsChoice} ${rpsChoice === choice.id ? styles.selected : ''}`}
+                    onClick={() => handleRpsChoice(choice.id)}
+                    disabled={!showChoices}
+                  >
+                    <span className={styles.rpsIcon}>{choice.icon}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
