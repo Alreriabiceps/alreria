@@ -477,9 +477,8 @@
    /* Container for Player count and Buttons */
    .lobbyActions {
      display: flex;
+     gap: 8px;
      align-items: center;
-     gap: 1rem;
-     flex-shrink: 0; /* Prevent shrinking */
    }
    
    .lobbyPlayers {
@@ -772,14 +771,30 @@
      display: flex;
      justify-content: space-between;
      align-items: center;
-     padding: 10px 5px; /* Vertical padding, less horizontal */
-     border-bottom: 1px solid var(--color-divider);
-     font-family: var(--font-body); /* Ensure correct font */
-     /* Add hover effects back if desired, but maybe simpler on mobile */
+     margin-bottom: 0.5rem;
+     padding: 0.5rem;
+     background-color: rgba(0, 0, 0, 0.1);
+     border-radius: 4px;
    }
    
-   .lobbyDetail:last-child {
-     border-bottom: none;
+   .detailLabel {
+     font-weight: 600;
+     color: #666;
+   }
+   
+   .detailValue {
+     color: #333;
+   }
+   
+   .timerBadge {
+     display: inline-block;
+     padding: 0.25rem 0.5rem;
+     background-color: #ff6b6b;
+     color: white;
+     border-radius: 4px;
+     font-size: 0.875rem;
+     font-weight: 600;
+     margin-left: 0.5rem;
    }
    
    .detailLabel {
@@ -866,17 +881,6 @@
    /* ==========================================================================
          Helper Classes & Badges
          ========================================================================== */
-   
-   .timerBadge {
-     background-color: var(--color-accent);
-     color: var(--color-bg-start);
-     padding: 0.25rem 0.5rem;
-     border-radius: 4px;
-     font-size: 0.8rem;
-     font-weight: 500;
-     font-family: var(--font-game);
-     animation: pulseGlow 2s infinite ease-in-out;
-   }
    
    .loadingSpinner { /* Example usage: Add as a span inside disabled buttons */
      display: inline-block;
@@ -1215,4 +1219,23 @@
 .statusDot.disconnected {
   background-color: #f44336;
   box-shadow: 0 0 8px #f44336;
+}
+
+.deleteButton {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+}
+
+.deleteButton:hover {
+  background-color: #c82333 !important;
+}
+
+.deleteButton:disabled {
+  background-color: #6c757d !important;
+  cursor: not-allowed !important;
 }

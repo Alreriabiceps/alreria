@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./Sololobby.module.css"; // Import the CSS module
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 
 // Function to format time (MM:SS)
 const formatTime = (seconds) => {
@@ -210,98 +211,139 @@ const SoloLobby = () => {
   const [wsConnected, setWsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
 
+  // Add this helper function at the top level
+  const getUniqueLobbyKey = (lobby) => {
+    return `${lobby._id}-${lobby.status}-${lobby.players?.length || 0}-${Date.now()}`;
+  };
+
   // WebSocket connection management
   const connectWebSocket = useCallback(() => {
     if (!token) return;
 
     const backendurl = import.meta.env.VITE_BACKEND_URL;
-    const wsUrl = backendurl.replace(/^http/, 'ws');
-    
-    try {
-      socketRef.current = new WebSocket(wsUrl);
+    if (!backendurl) {
+      console.error('Backend URL is not defined');
+      setError('Server configuration error. Please contact support.');
+      return;
+    }
 
-      socketRef.current.onopen = () => {
-        console.log('WebSocket connected');
+    // If there's an existing connection, disconnect it first
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+
+    try {
+      socketRef.current = io(backendurl, {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        reconnectionDelay: WS_RECONNECT_DELAY,
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+        timeout: 45000,
+        forceNew: true,
+        path: '/socket.io/',
+        extraHeaders: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true'
+        }
+      });
+
+      socketRef.current.on('connect', () => {
         setWsConnected(true);
         reconnectAttempts.current = 0;
-        
-        // Send authentication token
-        socketRef.current.send(JSON.stringify({
-          type: 'auth',
-          token
-        }));
-      };
+      });
 
-      socketRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          switch (data.type) {
-            case 'lobby:created':
-              setLobbies(prev => [...prev, data.lobby]);
-              break;
-            case 'lobby:updated':
-              setLobbies(prev => prev.map(lobby => 
-                lobby._id === data.lobby._id ? data.lobby : lobby
-              ));
-              break;
-            case 'game:start':
-              if (data.players.some(player => player._id === user._id)) {
-                navigate('/student/pvp', { 
-                  state: { 
-                    lobbyId: data.lobbyId,
-                    lobbyName: data.lobbyName
-                  }
-                });
-              }
-              break;
+      socketRef.current.on('lobby:created', (lobby) => {
+        setLobbies(prev => {
+          // Check if lobby already exists
+          const exists = prev.some(l => l._id === lobby._id);
+          if (!exists) {
+            return [...prev, lobby];
           }
-        } catch (error) {
-          console.error('Error processing WebSocket message:', error);
+          return prev;
+        });
+      });
+
+      socketRef.current.on('lobby:updated', (lobby) => {
+        setLobbies(prev => prev.map(l => 
+          l._id === lobby._id ? { ...l, ...lobby } : l
+        ));
+      });
+
+      socketRef.current.on('lobby:deleted', ({ lobbyId }) => {
+        setLobbies(prev => prev.filter(l => l._id !== lobbyId));
+      });
+
+      socketRef.current.on('game:start', (data) => {
+        if (data.players.some(player => player._id === user.id)) {
+          navigate('/student/pvp', { 
+            state: { 
+              lobbyId: data.lobbyId,
+              lobbyName: data.lobbyName
+            }
+          });
         }
-      };
+      });
 
-      socketRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Socket.IO connection error:', error);
         setWsConnected(false);
-      };
+        setError('Failed to connect to server. Please try refreshing the page.');
+      });
 
-      socketRef.current.onclose = () => {
-        console.log('WebSocket disconnected');
+      socketRef.current.on('error', (error) => {
+        console.error('Socket.IO error:', error);
+        setError('Connection error. Please try refreshing the page.');
+      });
+
+      socketRef.current.on('disconnect', (reason) => {
         setWsConnected(false);
         
-        // Attempt to reconnect if we haven't exceeded max attempts
-        if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttempts.current += 1;
-          console.log(`Attempting to reconnect (${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS})...`);
-          setTimeout(connectWebSocket, WS_RECONNECT_DELAY);
-        } else {
-          console.error('Max reconnection attempts reached');
-          setError('Connection lost. Please refresh the page to reconnect.');
+        if (reason === 'io server disconnect') {
+          // Server initiated disconnect, try to reconnect
+          setTimeout(() => {
+            if (socketRef.current) {
+              socketRef.current.connect();
+            }
+          }, 1000);
         }
-      };
+      });
+
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      console.error('Error creating Socket.IO connection:', error);
       setWsConnected(false);
     }
   }, [token, user, navigate]);
 
   // Initialize WebSocket connection
   useEffect(() => {
-    connectWebSocket();
-    
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
+    let mounted = true;
+
+    const initializeConnection = async () => {
+      if (mounted && token) {
+        connectWebSocket();
       }
     };
-  }, [connectWebSocket]);
+
+    initializeConnection();
+
+    return () => {
+      mounted = false;
+      if (socketRef.current) {
+        // Only disconnect if the socket is actually connected
+        if (socketRef.current.connected) {
+          socketRef.current.disconnect();
+        }
+        socketRef.current = null;
+      }
+    };
+  }, [connectWebSocket, token]);
 
   // Define fetchLobbies function
-  const fetchLobbies = async () => {
+  const fetchLobbies = useCallback(async () => {
     try {
       if (!token) {
-        console.error('No token found');
         setError('Please log in to access this feature');
         return;
       }
@@ -317,10 +359,8 @@ const SoloLobby = () => {
       });
 
       const data = await response.json();
-      console.log('Fetch lobbies response:', data);
 
       if (response.status === 401) {
-        console.error('Authentication failed:', data.error);
         setError('Your session has expired. Please log in again.');
         logout();
         navigate('/login');
@@ -331,10 +371,19 @@ const SoloLobby = () => {
         throw new Error(data.error || 'Failed to fetch lobbies');
       }
 
-      setLobbies(data.data);
-      // Check if user has any active lobby
-      const userActiveLobby = data.data.find(lobby =>
-        lobby.hostId._id === user._id &&
+      // Ensure unique lobbies by filtering out duplicates
+      const uniqueLobbies = data.data.reduce((acc, current) => {
+        const x = acc.find(item => item._id === current._id);
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, []);
+
+      setLobbies(uniqueLobbies);
+      const userActiveLobby = uniqueLobbies.find(lobby =>
+        lobby.hostId._id === user.id &&
         lobby.status === 'waiting' &&
         lobby.expiresAt > new Date()
       );
@@ -345,14 +394,14 @@ const SoloLobby = () => {
     } finally {
       setIsLoadingLobbies(false);
     }
-  };
+  }, [token, user, logout, navigate]);
 
   // Fetch Lobbies Effect
   useEffect(() => {
     if (user?.id) {
       fetchLobbies();
     }
-  }, [token, user, logout, navigate]);
+  }, [user?.id, fetchLobbies]);
 
   // Update lobby timers effect
   useEffect(() => {
@@ -434,8 +483,13 @@ const SoloLobby = () => {
   const handleCreateLobby = async () => {
     try {
       setIsLoadingAction(true);
+      setError(null);
       const backendurl = import.meta.env.VITE_BACKEND_URL;
       
+      if (!backendurl) {
+        throw new Error('Backend URL is not configured');
+      }
+
       const response = await fetch(`${backendurl}/api/lobby`, {
         method: 'POST',
         headers: {
@@ -451,11 +505,20 @@ const SoloLobby = () => {
       });
 
       const data = await response.json();
+      console.log('Create lobby response:', data);
 
       if (response.status === 401) {
         setError('Your session has expired. Please log in again.');
         logout();
         navigate('/login');
+        return;
+      }
+
+      if (response.status === 400) {
+        setError(data.error || 'Failed to create lobby');
+        if (data.error === 'You already have an active lobby. Please wait for it to expire before creating a new one.') {
+          setHasActiveLobby(true);
+        }
         return;
       }
 
@@ -466,6 +529,7 @@ const SoloLobby = () => {
       // Close modal and reset form
       setShowCreateLobbyModal(false);
       setLobbyForm({ name: '', isPrivate: false, password: '' });
+      setHasActiveLobby(true);
       
       // Refresh lobbies list
       await fetchLobbies();
@@ -483,6 +547,11 @@ const SoloLobby = () => {
       setIsLoadingAction(true);
       setJoinError(null);
       const backendurl = import.meta.env.VITE_BACKEND_URL;
+      
+      if (!backendurl) {
+        throw new Error('Backend URL is not configured');
+      }
+
       const response = await fetch(`${backendurl}/api/lobby/${lobbyId}/join`, {
         method: 'POST',
         headers: {
@@ -494,11 +563,24 @@ const SoloLobby = () => {
       });
 
       const data = await response.json();
+      console.log('Join lobby response:', data);
 
       if (response.status === 401) {
-        setError('Your session has expired. Please log in again.');
-        logout();
-        navigate('/login');
+        if (data.error === 'Invalid password') {
+          setJoinError('Invalid password');
+        } else {
+          setError('Your session has expired. Please log in again.');
+          logout();
+          navigate('/login');
+        }
+        return;
+      }
+
+      if (response.status === 400) {
+        setJoinError(data.error || 'Failed to join lobby');
+        if (data.error === 'You already have an active lobby') {
+          setHasActiveLobby(true);
+        }
         return;
       }
 
@@ -513,7 +595,7 @@ const SoloLobby = () => {
         navigate('/student/pvp', { state: { lobbyId, lobbyName } });
       } else {
         // Otherwise just refresh the lobby list
-        fetchLobbies();
+        await fetchLobbies();
       }
       
     } catch (err) {
@@ -540,6 +622,48 @@ const SoloLobby = () => {
     if (!isQueueing) return;
     setIsQueueing(false);
     // TODO: Implement cancel queue
+  };
+
+  const handleDeleteLobby = async (lobbyId) => {
+    try {
+        setIsLoadingAction(true);
+        setError(null);
+        const backendurl = import.meta.env.VITE_BACKEND_URL;
+        
+        if (!backendurl) {
+            throw new Error('Backend URL is not configured');
+        }
+
+        const response = await fetch(`${backendurl}/api/lobby/${lobbyId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+            setError('Your session has expired. Please log in again.');
+            logout();
+            navigate('/login');
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to delete lobby');
+        }
+
+        setHasActiveLobby(false);
+        
+    } catch (err) {
+        console.error('Error deleting lobby:', err);
+        setError(err.message || 'Failed to delete lobby. Please try again later.');
+    } finally {
+        setIsLoadingAction(false);
+    }
   };
 
   return (
@@ -687,7 +811,7 @@ const SoloLobby = () => {
               <>
                 <ul className={styles.lobbyList}>
                   {currentLobbies.map((lobby) => (
-                    <li key={lobby._id} className={styles.lobbyItem}>
+                    <li key={getUniqueLobbyKey(lobby)} className={styles.lobbyItem}>
                       <div className={styles.lobbyInfo}>
                         <div className={styles.lobbyHeader}>
                           <span className={styles.lobbyName}>{lobby.name}</span>
@@ -709,13 +833,25 @@ const SoloLobby = () => {
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleJoinClick(lobby)}
-                        className={`${styles.gameButton} ${styles.joinButton}`}
-                        disabled={isLoadingAction || isQueueing || (lobby.players?.length || 0) >= lobby.maxPlayers}
-                      >
-                        Join
-                      </button>
+                      <div className={styles.lobbyActions}>
+                        {lobby.hostId?._id === user?.id ? (
+                            <button
+                                onClick={() => handleDeleteLobby(lobby._id)}
+                                className={`${styles.gameButton} ${styles.deleteButton}`}
+                                disabled={isLoadingAction}
+                            >
+                                {isLoadingAction ? 'Deleting...' : 'Delete'}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => handleJoinClick(lobby)}
+                                className={`${styles.gameButton} ${styles.joinButton}`}
+                                disabled={isLoadingAction || isQueueing || (lobby.players?.length || 0) >= lobby.maxPlayers}
+                            >
+                                Join
+                            </button>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
