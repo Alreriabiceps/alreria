@@ -44,17 +44,22 @@
 
 /* Rock Paper Scissors Container */
 .rpsContainer {
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow),
-    inset 0 0 10px rgba(0, 0, 0, 0.6);
-  padding: 40px;
-  border-radius: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
-  animation: fadeIn 0.5s ease-out forwards;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 1rem;
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 400px;
+  z-index: 10;
 }
 
 .rpsContainer h2 {
@@ -67,142 +72,207 @@
   letter-spacing: 1px;
 }
 
+.countdownContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  animation: fadeIn 0.5s ease-out;
+  text-align: center;
+}
+
+.countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.countdownNumber {
+  font-size: 5rem;
+  font-family: 'Press Start 2P', cursive;
+  color: var(--color-accent);
+  animation: pulse 1s infinite;
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+.countdownText {
+  font-size: 1.5rem;
+  color: var(--color-text);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
 .rpsChoices {
   display: flex;
-  gap: 30px;
-  margin: 20px 0;
+  gap: 3rem;
+  margin: 2rem 0;
+  transition: all 0.3s ease;
+  justify-content: center;
+}
+
+.rpsChoices.animate {
+  animation: shake 0.5s ease-in-out;
 }
 
 .rpsChoice {
-  width: 120px;
-  height: 120px;
-  border-radius: 0;
+  width: 100px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: var(--color-card-bg);
-  border: 2px solid var(--color-card-border);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  transform: scale(1);
 }
 
 .rpsChoice:hover {
-  transform: translateY(-5px);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px var(--color-accent);
 }
 
 .rpsChoice.selected {
-  background-color: rgba(0, 255, 157, 0.1);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+  transform: scale(1.2);
+  box-shadow: 0 0 30px var(--color-accent);
 }
 
 .rpsIcon {
   font-size: 3rem;
-  transition: transform 0.3s ease;
-}
-
-.rpsChoice:hover .rpsIcon {
-  transform: scale(1.2);
+  transition: all 0.3s ease;
 }
 
 .rpsResult {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
-  margin-top: 20px;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 1rem;
+  border: 2px solid var(--color-accent);
+  animation: slideUp 0.5s ease-out;
+}
+
+.rpsResult.animate {
+  animation: celebrate 1s ease-in-out;
 }
 
 .rpsPlayers {
   display: flex;
-  gap: 50px;
   align-items: center;
+  gap: 2rem;
 }
 
 .rpsPlayer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 1rem;
+}
+
+.rpsVs {
+  font-size: 2rem;
+  color: var(--color-accent);
+  font-family: 'Press Start 2P', cursive;
 }
 
 .rpsPlayerChoice {
-  width: 100px;
-  height: 100px;
-  border-radius: 0;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-card-bg);
-  border: 2px solid var(--color-card-border);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-  animation: choiceReveal 0.5s ease-out forwards;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  font-size: 2.5rem;
+  transition: all 0.3s ease;
 }
 
 .rpsPlayerChoice.winner {
-  background-color: rgba(0, 255, 157, 0.1);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+  transform: scale(1.2);
+  box-shadow: 0 0 30px var(--color-accent);
   animation: winnerPulse 1s infinite;
 }
 
 .rpsPlayerName {
-  font-family: var(--font-body);
   font-size: 1.2rem;
-  color: var(--color-text-base);
-  text-align: center;
+  color: var(--color-text);
 }
 
 .rpsResultMessage {
-  font-family: var(--font-game);
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-family: 'Press Start 2P', cursive;
   color: var(--color-accent);
   text-align: center;
-  text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-@keyframes choiceReveal {
-  from {
-    transform: scale(0);
-    opacity: 0;
-  }
+.rpsResultMessage.player {
+  color: #4CAF50;
+  border: 2px solid #4CAF50;
+}
 
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.rpsResultMessage.opponent {
+  color: #F44336;
+  border: 2px solid #F44336;
+}
+
+.rpsResultMessage.draw {
+  color: #FFC107;
+  border: 2px solid #FFC107;
+}
+
+.rpsPrize {
+  font-size: 1.2rem;
+  color: var(--color-text);
+  text-align: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-accent);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 @keyframes winnerPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
-  }
-
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 0 30px rgba(0, 255, 157, 0.5);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
-  }
+  0% { box-shadow: 0 0 20px var(--color-accent); }
+  50% { box-shadow: 0 0 40px var(--color-accent); }
+  100% { box-shadow: 0 0 20px var(--color-accent); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ==========================================================================
@@ -1146,6 +1216,28 @@
   .playAgainButton {
     font-size: 1rem;
     padding: 12px 30px;
+  }
+
+  .rpsContainer {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    min-width: auto;
+    width: 100%;
+    margin: 2rem 0;
+  }
+
+  .countdownNumber {
+    font-size: 3rem;
+  }
+
+  .countdownText {
+    font-size: 1.2rem;
+  }
+
+  .rpsChoices {
+    gap: 1.5rem;
   }
 }
 

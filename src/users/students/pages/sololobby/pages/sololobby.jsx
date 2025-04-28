@@ -86,6 +86,101 @@ const CreateLobbyModal = ({ isOpen, onClose, onSubmit, form, setForm, isLoading,
   );
 };
 
+const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) => {
+  if (!isOpen) return null;
+
+  const getLobbyStatus = () => {
+    if (!lobby) return '';
+    if (lobby.status !== 'waiting') return 'Game in progress';
+    if (lobby.players.length >= lobby.maxPlayers) return 'Lobby full';
+    return 'Waiting for players';
+  };
+
+  const getTimeRemaining = () => {
+    if (!lobby?.expiresAt) return '';
+    const timeRemaining = Math.max(0, Math.floor((new Date(lobby.expiresAt) - new Date()) / 1000));
+    const mins = Math.floor(timeRemaining / 60);
+    const secs = timeRemaining % 60;
+    return `Expires in: ${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={`${styles.modal} ${styles.joinModal}`}>
+        <div className={styles.modalHeader}>
+          <h2>Join Lobby: {lobby?.name}</h2>
+          <button className={styles.closeButton} onClick={onClose}>×</button>
+        </div>
+        <div className={styles.modalContent}>
+          <div className={styles.lobbyInfo}>
+            <div className={styles.lobbyDetail}>
+              <span className={styles.detailLabel}>Host:</span>
+              <span className={styles.detailValue}>
+                {lobby?.hostId?.firstName} {lobby?.hostId?.lastName}
+              </span>
+            </div>
+            <div className={styles.lobbyDetail}>
+              <span className={styles.detailLabel}>Status:</span>
+              <span className={styles.detailValue}>{getLobbyStatus()}</span>
+            </div>
+            <div className={styles.lobbyDetail}>
+              <span className={styles.detailLabel}>Players:</span>
+              <span className={styles.detailValue}>
+                {lobby?.players?.length || 0}/{lobby?.maxPlayers}
+              </span>
+            </div>
+            {!lobby?.isPrivate && lobby?.expiresAt && (
+              <div className={styles.lobbyDetail}>
+                <span className={styles.detailLabel}>Time Remaining:</span>
+                <span className={styles.detailValue}>{getTimeRemaining()}</span>
+              </div>
+            )}
+            {lobby?.isPrivate && (
+              <div className={styles.formGroup}>
+                <label htmlFor="lobby-password" className={styles.passwordLabel}>
+                  Password Required
+                </label>
+                <input
+                  id="lobby-password"
+                  type="password"
+                  placeholder="Enter lobby password"
+                  className={styles.modalInput}
+                  onChange={(e) => onSubmit(e.target.value)}
+                  autoComplete="off"
+                />
+              </div>
+            )}
+          </div>
+          {error && (
+            <div className={styles.errorMessage}>
+              <span className={styles.errorIcon}>⚠️</span>
+              <p>{error}</p>
+            </div>
+          )}
+        </div>
+        <div className={styles.modalFooter}>
+          <button
+            className={`${styles.gameButton} ${styles.cancelButton}`}
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          {!lobby?.isPrivate && (
+            <button
+              className={`${styles.gameButton} ${styles.submitButton}`}
+              onClick={() => onSubmit()}
+              disabled={isLoading || lobby?.players?.length >= lobby?.maxPlayers || lobby?.status !== 'waiting'}
+            >
+              {isLoading ? 'Joining...' : 'Join Lobby'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SoloLobby = () => {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -104,58 +199,62 @@ const SoloLobby = () => {
   const [hasActiveLobby, setHasActiveLobby] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Number of lobbies per page
+  const [showJoinLobbyModal, setShowJoinLobbyModal] = useState(false);
+  const [selectedLobby, setSelectedLobby] = useState(null);
+  const [joinError, setJoinError] = useState(null);
+
+  // Define fetchLobbies function
+  const fetchLobbies = async () => {
+    try {
+      if (!token) {
+        console.error('No token found');
+        setError('Please log in to access this feature');
+        return;
+      }
+
+      setIsLoadingLobbies(true);
+      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${backendurl}/api/lobby`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      console.log('Fetch lobbies response:', data);
+
+      if (response.status === 401) {
+        console.error('Authentication failed:', data.error);
+        setError('Your session has expired. Please log in again.');
+        logout();
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch lobbies');
+      }
+
+      setLobbies(data.data);
+      // Check if user has any active lobby
+      const userActiveLobby = data.data.find(lobby =>
+        lobby.hostId._id === user._id &&
+        lobby.status === 'waiting' &&
+        lobby.expiresAt > new Date()
+      );
+      setHasActiveLobby(!!userActiveLobby);
+    } catch (err) {
+      console.error('Error fetching lobbies:', err);
+      setError(err.message || 'Failed to load lobbies. Please try again later.');
+    } finally {
+      setIsLoadingLobbies(false);
+    }
+  };
 
   // Fetch Lobbies Effect
   useEffect(() => {
-    const fetchLobbies = async () => {
-      try {
-        if (!token) {
-          console.error('No token found');
-          setError('Please log in to access this feature');
-          return;
-        }
-
-        setIsLoadingLobbies(true);
-        const backendurl = import.meta.env.VITE_BACKEND_URL;
-        const response = await fetch(`${backendurl}/api/lobby`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
-
-        const data = await response.json();
-        console.log('Create lobby response:', data);
-
-        if (response.status === 401) {
-          console.error('Authentication failed:', data.error);
-          setError('Your session has expired. Please log in again.');
-          logout();
-          navigate('/login');
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch lobbies');
-        }
-
-        setLobbies(data.data);
-        // Check if user has any active lobby
-        const userActiveLobby = data.data.find(lobby =>
-          lobby.hostId._id === user._id &&
-          lobby.status === 'waiting' &&
-          lobby.expiresAt > new Date()
-        );
-        setHasActiveLobby(!!userActiveLobby);
-      } catch (err) {
-        console.error('Error fetching lobbies:', err);
-        setError(err.message || 'Failed to load lobbies. Please try again later.');
-      } finally {
-        setIsLoadingLobbies(false);
-      }
-    };
-
     if (user?.id) {
       fetchLobbies();
     }
@@ -268,7 +367,7 @@ const SoloLobby = () => {
         return;
       }
 
-      if (!response.ok) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error(data.error || 'Failed to create lobby');
       }
 
@@ -285,17 +384,19 @@ const SoloLobby = () => {
     }
   };
 
-  const handleJoinLobby = async (lobbyId, lobbyName) => {
+  const handleJoinLobby = async (lobbyId, lobbyName, password) => {
     try {
       setIsLoadingAction(true);
+      setJoinError(null);
       const backendurl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${backendurl}/api/lobbies/${lobbyId}/join`, {
+      const response = await fetch(`${backendurl}/api/lobby/${lobbyId}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({ password })
       });
 
       const data = await response.json();
@@ -309,17 +410,66 @@ const SoloLobby = () => {
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to join lobby');
+        let errorMessage = 'Failed to join lobby';
+        switch (data.error) {
+          case 'Lobby not found':
+            errorMessage = 'The lobby no longer exists';
+            break;
+          case 'Lobby is not available for joining':
+            errorMessage = 'The lobby is no longer accepting players';
+            break;
+          case 'Lobby has expired':
+            errorMessage = 'The lobby has expired';
+            break;
+          case 'Lobby is full':
+            errorMessage = 'The lobby is full';
+            break;
+          case 'Invalid password':
+            errorMessage = 'Incorrect password for private lobby';
+            break;
+          case 'You are already in this lobby':
+            errorMessage = 'You are already in this lobby';
+            break;
+          case 'Network error':
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+            break;
+          case 'Server error':
+            errorMessage = 'The server encountered an error. Please try again later.';
+            break;
+          case 'Invalid request':
+            errorMessage = 'Invalid request. Please try again.';
+            break;
+          case 'Rate limit exceeded':
+            errorMessage = 'Too many attempts. Please wait a moment before trying again.';
+            break;
+          default:
+            errorMessage = data.error || 'Failed to join lobby';
+        }
+        setJoinError(errorMessage);
+        return;
       }
 
+      setShowJoinLobbyModal(false);
       // Navigate to the game page
       navigate('/student/pvp', { state: { lobbyId, lobbyName } });
     } catch (err) {
       console.error('Error joining lobby:', err);
-      setError(err.message || 'Failed to join lobby. Please try again later.');
+      let errorMessage = 'Failed to join lobby. Please try again later.';
+      if (err.message.includes('NetworkError')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (err.message.includes('Failed to fetch')) {
+        errorMessage = 'Unable to reach the server. Please check your internet connection.';
+      }
+      setJoinError(errorMessage);
     } finally {
       setIsLoadingAction(false);
     }
+  };
+
+  const handleJoinClick = (lobby) => {
+    setSelectedLobby(lobby);
+    setShowJoinLobbyModal(true);
+    setJoinError(null);
   };
 
   const handleQueueMatchmaking = async () => {
@@ -498,7 +648,7 @@ const SoloLobby = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleJoinLobby(lobby._id, lobby.name)}
+                        onClick={() => handleJoinClick(lobby)}
                         className={`${styles.gameButton} ${styles.joinButton}`}
                         disabled={isLoadingAction || isQueueing || (lobby.players?.length || 0) >= lobby.maxPlayers}
                       >
@@ -549,6 +699,20 @@ const SoloLobby = () => {
           setForm={setLobbyForm}
           isLoading={isLoadingAction}
           hasActiveLobby={hasActiveLobby}
+        />
+      )}
+      {showJoinLobbyModal && (
+        <JoinLobbyModal
+          isOpen={showJoinLobbyModal}
+          onClose={() => {
+            setShowJoinLobbyModal(false);
+            setSelectedLobby(null);
+            setJoinError(null);
+          }}
+          onSubmit={(password) => handleJoinLobby(selectedLobby._id, selectedLobby.name, password)}
+          lobby={selectedLobby}
+          isLoading={isLoadingAction}
+          error={joinError}
         />
       )}
     </div>

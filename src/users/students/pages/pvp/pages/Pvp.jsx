@@ -1,23 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../../contexts/AuthContext";
+import { useIsMounted } from "../../../../../hooks/useIsMounted";
 import { io } from "socket.io-client";
 import styles from "./Pvp.module.css";
 import axios from "axios";
-
-// Custom hook to check if component is mounted
-const useIsMounted = () => {
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  return isMounted;
-};
 
 // --- Mock Data ---
 const QUESTIONS_DATA = {
@@ -285,13 +272,14 @@ const Pvp = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
   const isMounted = useIsMounted();
+  const [socket, setSocket] = useState(null);
   const [gameState, setGameState] = useState(GAME_STATE.RPS);
   const [playerInfo, setPlayerInfo] = useState({
     name: user?.username || "Player",
     hp: MAX_HP,
   });
   const [opponentInfo, setOpponentInfo] = useState({
-    name: "Demo Opponent",
+    name: "Waiting for opponent...",
     hp: MAX_HP,
   });
   const [playerHand, setPlayerHand] = useState([]);
@@ -316,6 +304,10 @@ const Pvp = () => {
   const [rpsChoice, setRpsChoice] = useState(null);
   const [opponentRpsChoice, setOpponentRpsChoice] = useState(null);
   const [rpsResult, setRpsResult] = useState(null);
+  const [countdown, setCountdown] = useState(10);
+  const [showChoices, setShowChoices] = useState(false);
+  const [rpsAnimation, setRpsAnimation] = useState('');
+  const countdownRef = useRef(null);
 
   // Demo questions for testing
   const demoQuestions = [
@@ -351,6 +343,103 @@ const Pvp = () => {
       }
     };
   }, []);
+
+  // Initialize socket connection
+  useEffect(() => {
+    const newSocket = io('http://localhost:5000', {
+      auth: {
+        token: token
+      }
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to socket server');
+      newSocket.emit('join_game', { lobbyId: location.state?.lobbyId });
+      startCountdown();
+    });
+
+    newSocket.on('opponent_joined', (data) => {
+      setOpponentInfo(prev => ({
+        ...prev,
+        name: data.opponentName
+      }));
+      setGameMessage('Opponent joined! Starting Rock Paper Scissors...');
+      startCountdown();
+    });
+
+    newSocket.on('opponent_rps_choice', (choice) => {
+      setOpponentRpsChoice(choice);
+      if (rpsChoice) {
+        const result = determineRpsWinner(rpsChoice, choice);
+        setRpsResult(result);
+        playRpsAnimation(result);
+        newSocket.emit('rps_result', { result });
+      }
+    });
+
+    newSocket.on('rps_result', (data) => {
+      setRpsResult(data.result);
+      playRpsAnimation(data.result);
+      setTimeout(() => {
+        setGameState(GAME_STATE.SUBJECT_SELECTION);
+        setTurn(data.result === 'player' ? 'player' : 'opponent');
+      }, 3000);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+      newSocket.disconnect();
+    };
+  }, [token, location.state?.lobbyId]);
+
+  const startCountdown = () => {
+    setCountdown(10);
+    setShowChoices(false);
+    setRpsChoice(null);
+    setOpponentRpsChoice(null);
+    setRpsResult(null);
+    setRpsAnimation('');
+
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current);
+          setShowChoices(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const playRpsAnimation = (result) => {
+    setRpsAnimation('animate');
+    setTimeout(() => {
+      setRpsAnimation('');
+    }, 2000);
+  };
+
+  const handleRpsChoice = (choice) => {
+    if (!socket || !showChoices || rpsChoice) return;
+    
+    setRpsChoice(choice);
+    socket.emit('rps_choice', { choice });
+    
+    if (opponentRpsChoice) {
+      const result = determineRpsWinner(choice, opponentRpsChoice);
+      setRpsResult(result);
+      playRpsAnimation(result);
+      socket.emit('rps_result', { result });
+    }
+  };
 
   // Function to fetch questions from backend
   const fetchQuestions = async (subjectId) => {
@@ -389,34 +478,14 @@ const Pvp = () => {
     return RPS_CHOICES.find(choice => choice.id === playerChoice).beats === opponentChoice ? 'player' : 'opponent';
   };
 
-  const handleRpsChoice = (choice) => {
-    setRpsChoice(choice);
-    // Simulate opponent choice (in real game, this would come from the server)
-    const randomChoice = RPS_CHOICES[Math.floor(Math.random() * RPS_CHOICES.length)].id;
-    setOpponentRpsChoice(randomChoice);
-
-    const result = determineRpsWinner(choice, randomChoice);
-    setRpsResult(result);
-
-    // After 2 seconds, move to subject selection
-    setTimeout(() => {
-      setGameState(GAME_STATE.SUBJECT_SELECTION);
-      setTurn(result === 'player' ? 'player' : 'opponent');
-    }, 2000);
-  };
-
   // Handle subject selection
-  const handleSubjectSelect = async (subject) => {
+  const handleSubjectSelect = (subject) => {
+    if (!socket || turn !== 'player') return;
+    
     setSelectedSubject(subject);
+    // Emit the subject selection to the opponent
+    socket.emit('subject_selected', { subject });
     setGameState(GAME_STATE.CARD_SELECTION);
-
-    // Fetch questions for the selected subject
-    const questions = await fetchQuestions(subject.id);
-    if (questions.length === 0) {
-      setGameMessage("No questions available for this subject. Please try another subject.");
-      setGameState(GAME_STATE.SUBJECT_SELECTION);
-      return;
-    }
   };
 
   // Handle question selection
@@ -649,39 +718,58 @@ const Pvp = () => {
       <div className={styles.duelContainer}>
         {gameState === GAME_STATE.RPS && (
           <div className={styles.rpsContainer}>
-            <h2>Choose Your Move</h2>
-            <div className={styles.rpsChoices}>
-              {RPS_CHOICES.map(choice => (
-                <div
-                  key={choice.id}
-                  className={`${styles.rpsChoice} ${rpsChoice === choice.id ? styles.selected : ''}`}
-                  onClick={() => !rpsChoice && handleRpsChoice(choice.id)}
-                >
-                  <span className={styles.rpsIcon}>{choice.icon}</span>
+            {!showChoices ? (
+              <div className={styles.countdownContainer}>
+                <h2>Rock Paper Scissors</h2>
+                <div className={styles.countdown}>
+                  <span className={styles.countdownNumber}>{countdown}</span>
+                  <span className={styles.countdownText}>seconds</span>
                 </div>
-              ))}
-            </div>
-
-            {rpsResult && (
-              <div className={styles.rpsResult}>
-                <div className={styles.rpsPlayers}>
-                  <div className={styles.rpsPlayer}>
-                    <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'player' ? styles.winner : ''}`}>
-                      {RPS_CHOICES.find(c => c.id === rpsChoice)?.icon}
-                    </div>
-                    <div className={styles.rpsPlayerName}>You</div>
-                  </div>
-                  <div className={styles.rpsPlayer}>
-                    <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'opponent' ? styles.winner : ''}`}>
-                      {RPS_CHOICES.find(c => c.id === opponentRpsChoice)?.icon}
-                    </div>
-                    <div className={styles.rpsPlayerName}>Opponent</div>
-                  </div>
-                </div>
-                <div className={styles.rpsResultMessage}>
-                  {rpsResult === 'draw' ? "It's a draw!" : `${rpsResult === 'player' ? 'You' : 'Opponent'} won!`}
-                </div>
+                <p>Choose your move when the timer ends!</p>
               </div>
+            ) : (
+              <>
+                <h2>Choose Your Move</h2>
+                <div className={`${styles.rpsChoices} ${rpsAnimation}`}>
+                  {RPS_CHOICES.map(choice => (
+                    <div
+                      key={choice.id}
+                      className={`${styles.rpsChoice} ${rpsChoice === choice.id ? styles.selected : ''}`}
+                      onClick={() => handleRpsChoice(choice.id)}
+                    >
+                      <span className={styles.rpsIcon}>{choice.icon}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {rpsResult && (
+                  <div className={`${styles.rpsResult} ${rpsAnimation}`}>
+                    <div className={styles.rpsPlayers}>
+                      <div className={styles.rpsPlayer}>
+                        <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'player' ? styles.winner : ''}`}>
+                          {RPS_CHOICES.find(c => c.id === rpsChoice)?.icon}
+                        </div>
+                        <div className={styles.rpsPlayerName}>You</div>
+                      </div>
+                      <div className={styles.rpsVs}>VS</div>
+                      <div className={styles.rpsPlayer}>
+                        <div className={`${styles.rpsPlayerChoice} ${rpsResult === 'opponent' ? styles.winner : ''}`}>
+                          {RPS_CHOICES.find(c => c.id === opponentRpsChoice)?.icon}
+                        </div>
+                        <div className={styles.rpsPlayerName}>Opponent</div>
+                      </div>
+                    </div>
+                    <div className={`${styles.rpsResultMessage} ${styles[rpsResult]}`}>
+                      {rpsResult === 'draw' ? "It's a draw!" : `${rpsResult === 'player' ? 'You' : 'Opponent'} won!`}
+                    </div>
+                    {rpsResult !== 'draw' && (
+                      <div className={styles.rpsPrize}>
+                        {rpsResult === 'player' ? '🎉 You get to choose the subject!' : 'Opponent will choose the subject...'}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -689,13 +777,14 @@ const Pvp = () => {
         {/* Subject Selection Screen */}
         {gameState === GAME_STATE.SUBJECT_SELECTION && (
           <div className={styles.subjectSelectionContainer}>
-            <h2>Choose a Subject</h2>
+            <h2>{turn === 'player' ? 'Choose a Subject' : 'Waiting for opponent to choose subject...'}</h2>
             <div className={styles.subjectGrid}>
               {SUBJECTS.map(subject => (
                 <button
                   key={subject.id}
                   className={styles.subjectButton}
                   onClick={() => handleSubjectSelect(subject)}
+                  disabled={turn !== 'player'}
                 >
                   <span className={styles.subjectIcon}>{subject.icon}</span>
                   <span className={styles.subjectName}>{subject.name}</span>
