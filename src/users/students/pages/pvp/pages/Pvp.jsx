@@ -304,8 +304,8 @@ const Pvp = () => {
   const [rpsChoice, setRpsChoice] = useState(null);
   const [opponentRpsChoice, setOpponentRpsChoice] = useState(null);
   const [rpsResult, setRpsResult] = useState(null);
-  const [countdown, setCountdown] = useState(10);
-  const [showChoices, setShowChoices] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [showChoices, setShowChoices] = useState(true);
   const [rpsAnimation, setRpsAnimation] = useState('');
   const countdownRef = useRef(null);
 
@@ -492,6 +492,12 @@ const Pvp = () => {
     setGameState(GAME_STATE.RPS);
   };
 
+  useEffect(() => {
+    if (gameState === GAME_STATE.RPS) {
+      startCountdown();
+    }
+  }, [gameState]);
+
   const playRpsAnimation = (result) => {
     setRpsAnimation('animate');
     setTimeout(() => {
@@ -614,7 +620,6 @@ const Pvp = () => {
     setCurrentQuestion(questionBeingAsked);
     setQuestionBeingAsked(null);
     setSelectedCardIndex(null);
-    startTimer();
   };
 
   // Handle answer selection
@@ -634,13 +639,6 @@ const Pvp = () => {
       ...prev,
       hp: Math.max(0, prev.hp - damage)
     }));
-
-    // Emit answer submission
-    socket.emit('submit_answer', {
-      answer: selectedAnswer,
-      questionId: currentQuestion.id,
-      lobbyId: location.state?.lobbyId
-    });
 
     // Show feedback
     setFeedback({
@@ -695,48 +693,11 @@ const Pvp = () => {
     // Simulate opponent asking the question
     setCurrentQuestion(selectedCard);
     setGameState(GAME_STATE.PLAYER_ANSWERING);
-    startTimer();
   };
 
-  // Timer functions
-  const startTimer = () => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-
-    // Reset timer value
-    setTimerValue(ANSWER_TIME_LIMIT);
-
-    // Start new timer
-    timerRef.current = setInterval(() => {
-      setTimerValue(prev => {
-        const newValue = prev - 1;
-        if (newValue <= 0) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-          handleTimerEnd();
-          return 0;
-        }
-        return newValue;
-      });
-    }, 1000);
-  };
-
-  const handleTimerEnd = () => {
-    if (gameState === GAME_STATE.PLAYER_ANSWERING) {
-      handleConfirmAnswer(true);
-    }
-  };
-
-  // Cleanup all timers on component unmount
+  // Cleanup function
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
@@ -1057,27 +1018,19 @@ const Pvp = () => {
                   {gameState === GAME_STATE.PLAYER_ANSWERING &&
                     currentQuestion &&
                     !feedback.show /* ... answer box ... */ && (
-                      <div
-                        className={`${styles.centerDisplayBox} ${styles.answerBox}`}
-                      >
-                        {" "}
-                        <div className={styles.timerDisplay}>
-                          Time: {timerValue}s
-                        </div>{" "}
-                        <p className={styles.questionText}>{currentQuestion.text}</p>{" "}
+                      <div className={`${styles.centerDisplayBox} ${styles.answerBox}`}>
+                        <p className={styles.questionText}>{currentQuestion.text}</p>
                         <div className={styles.answerOptions}>
-                          {" "}
-                          {currentQuestion.options.map(renderAnswerOption)}{" "}
-                        </div>{" "}
+                          {currentQuestion.options.map(renderAnswerOption)}
+                        </div>
                         <button
                           className={`${styles.gameButton} ${styles.confirmButton}`}
                           onClick={() => handleConfirmAnswer(false)}
                           disabled={selectedAnswer === null || feedback.show}
                           style={{ marginTop: "15px" }}
                         >
-                          {" "}
-                          Confirm Answer{" "}
-                        </button>{" "}
+                          Confirm Answer
+                        </button>
                       </div>
                     )}
                   {/* General Game Message / Placeholder */}
