@@ -41,7 +41,7 @@ const Profile = () => {
       try {
         const backendurl = import.meta.env.VITE_BACKEND_URL;
         // First get all test results for the student
-        const response = await fetch(`${backendurl}/api/weeklytest/results/${user.id}`, {
+        const response = await fetch(`${backendurl}/api/weekly-test/results/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }

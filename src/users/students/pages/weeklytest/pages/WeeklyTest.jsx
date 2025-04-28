@@ -169,7 +169,12 @@ const WeeklyTest = () => {
 
         // First fetch the week schedule
         const response = await fetch(
-          `${backendurl}/api/weeks/active?subjectId=${encodeURIComponent(selectedSubject.id)}&weekNumber=${encodeURIComponent(selectedWeek.number)}&year=${encodeURIComponent(selectedWeek.year)}`
+          `${backendurl}/api/weeks/active?subjectId=${encodeURIComponent(selectedSubject.id)}&weekNumber=${encodeURIComponent(selectedWeek.number)}&year=${encodeURIComponent(selectedWeek.year)}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
         );
 
         if (!response.ok) {
@@ -493,8 +498,8 @@ const WeeklyTest = () => {
             >
               <option key="default-subject" value="">Select Subject</option>
               {Array.isArray(subjects) && subjects.length > 0 ? (
-                subjects.map((subject) => (
-                  <option key={`subject-${subject.id}-${subject.name}`} value={subject.id}>
+                subjects.map((subject, index) => (
+                  <option key={`subject-${subject.id}-${index}`} value={subject.id}>
                     {subject.name}
                   </option>
                 ))
@@ -517,8 +522,8 @@ const WeeklyTest = () => {
             >
               <option key="default-week" value="">Select Week</option>
               {Array.isArray(weeks) && weeks.length > 0 ? (
-                weeks.map((week) => (
-                  <option key={`week-${week.number}-${week.year}`} value={week.number}>
+                weeks.map((week, index) => (
+                  <option key={`week-${week.number}-${week.year}-${index}`} value={week.number}>
                     {week.display}
                   </option>
                 ))
