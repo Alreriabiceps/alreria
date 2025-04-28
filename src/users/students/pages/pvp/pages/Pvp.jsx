@@ -723,19 +723,26 @@ const Pvp = () => {
 
   // Timer functions
   const startTimer = () => {
-    setTimerValue(ANSWER_TIME_LIMIT);
+    // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
+    // Reset timer value
+    setTimerValue(ANSWER_TIME_LIMIT);
+
+    // Start new timer
     timerRef.current = setInterval(() => {
       setTimerValue(prev => {
-        if (prev <= 1) {
+        const newValue = prev - 1;
+        if (newValue <= 0) {
           clearInterval(timerRef.current);
+          timerRef.current = null;
           handleTimerEnd();
           return 0;
         }
-        return prev - 1;
+        return newValue;
       });
     }, 1000);
   };
@@ -745,6 +752,16 @@ const Pvp = () => {
       handleConfirmAnswer(true);
     }
   };
+
+  // Cleanup timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
 
   // Handle surrender
   const handleSurrender = () => {
