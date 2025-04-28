@@ -233,9 +233,9 @@ const QUESTIONS_DATA = {
 };
 
 const MAX_HP = 100;
-const DAMAGE = 20;
+const DAMAGE = 10;
 const ANSWER_TIME_LIMIT = 30; // Seconds
-const INITIAL_CARDS = 5; // Cards per player
+const INITIAL_CARDS = 15; // Cards per player
 
 // --- Game States ---
 const GAME_STATE = {
@@ -354,11 +354,18 @@ const Pvp = () => {
 
     newSocket.on('connect', () => {
       console.log('Connected to socket server');
-      newSocket.emit('join_game', { lobbyId: location.state?.lobbyId });
-      startCountdown();
+      if (location.state?.lobbyId) {
+        newSocket.emit('join_game', { 
+          lobbyId: location.state.lobbyId,
+          playerName: user?.firstName || 'Player'
+        });
+      } else {
+        console.error('No lobbyId found in location state');
+      }
     });
 
     newSocket.on('opponent_joined', (data) => {
+      console.log('Opponent joined:', data);
       setOpponentInfo(prev => ({
         ...prev,
         name: data.opponentName
@@ -368,22 +375,96 @@ const Pvp = () => {
     });
 
     newSocket.on('opponent_rps_choice', (choice) => {
+      console.log('Opponent RPS choice:', choice);
       setOpponentRpsChoice(choice);
       if (rpsChoice) {
         const result = determineRpsWinner(rpsChoice, choice);
         setRpsResult(result);
         playRpsAnimation(result);
-        newSocket.emit('rps_result', { result });
+        newSocket.emit('rps_result', { 
+          result,
+          lobbyId: location.state?.lobbyId 
+        });
       }
     });
 
     newSocket.on('rps_result', (data) => {
+      console.log('RPS result:', data);
       setRpsResult(data.result);
       playRpsAnimation(data.result);
       setTimeout(() => {
         setGameState(GAME_STATE.SUBJECT_SELECTION);
         setTurn(data.result === 'player' ? 'player' : 'opponent');
       }, 3000);
+    });
+
+    newSocket.on('subject_selected', (data) => {
+      console.log('Subject selected:', data);
+      setSelectedSubject(data.subject);
+      setGameState(GAME_STATE.CARD_SELECTION);
+      if (data.selectedBy !== socket.userId) {
+        setGameMessage(`Opponent selected ${data.subject.name}`);
+      }
+    });
+
+    newSocket.on('opponent_card_selected', (data) => {
+      console.log('Opponent card selected:', data);
+      const { cardIndex } = data;
+      // Update opponent's hand
+      setOpponentHand(prev => prev.filter((_, i) => i !== cardIndex));
+    });
+
+    newSocket.on('opponent_answer_submitted', (data) => {
+      console.log('Opponent submitted answer:', data);
+      const { answer, questionId } = data;
+      // Handle opponent's answer
+      const isCorrect = currentQuestion?.id === questionId && 
+                       answer === currentQuestion?.correct;
+      
+      if (isCorrect) {
+        // Opponent answered correctly, player takes damage
+        setPlayerInfo(prev => ({
+          ...prev,
+          hp: Math.max(0, prev.hp - DAMAGE)
+        }));
+        setPlayerHpShake(true);
+        setTimeout(() => setPlayerHpShake(false), 500);
+      }
+
+      setFeedback({
+        show: true,
+        correct: isCorrect,
+        message: isCorrect ? "Opponent answered correctly!" : "Opponent answered incorrectly!"
+      });
+
+      setTimeout(() => {
+        setFeedback({ show: false, correct: null, message: "" });
+        setCurrentQuestion(null);
+        setTurn('player');
+        if (playerInfo.hp <= DAMAGE) {
+          setGameState(GAME_STATE.GAME_OVER);
+          setGameMessage("Game Over - Opponent Wins!");
+        }
+      }, 1500);
+    });
+
+    newSocket.on('game_ended', (data) => {
+      console.log('Game ended:', data);
+      setGameState(GAME_STATE.GAME_OVER);
+      setGameMessage(data.winner === socket.userId ? 
+        "Victory! You won the game!" : 
+        "Game Over - Opponent Wins!");
+    });
+
+    newSocket.on('player_disconnected', (data) => {
+      console.log('Player disconnected:', data);
+      setGameState(GAME_STATE.GAME_OVER);
+      setGameMessage("Opponent disconnected - You win!");
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('Socket error:', error);
+      setError(error.message);
     });
 
     setSocket(newSocket);
@@ -394,9 +475,10 @@ const Pvp = () => {
       }
       newSocket.disconnect();
     };
-  }, [token, location.state?.lobbyId]);
+  }, [token, location.state?.lobbyId, user?.firstName]);
 
   const startCountdown = () => {
+    console.log('Starting countdown');
     setCountdown(10);
     setShowChoices(false);
     setRpsChoice(null);
@@ -410,6 +492,7 @@ const Pvp = () => {
 
     countdownRef.current = setInterval(() => {
       setCountdown(prev => {
+        console.log('Countdown tick:', prev);
         if (prev <= 1) {
           clearInterval(countdownRef.current);
           setShowChoices(true);
@@ -431,13 +514,19 @@ const Pvp = () => {
     if (!socket || !showChoices || rpsChoice) return;
     
     setRpsChoice(choice);
-    socket.emit('rps_choice', { choice });
+    socket.emit('rps_choice', { 
+      choice,
+      lobbyId: location.state?.lobbyId
+    });
     
     if (opponentRpsChoice) {
       const result = determineRpsWinner(choice, opponentRpsChoice);
       setRpsResult(result);
       playRpsAnimation(result);
-      socket.emit('rps_result', { result });
+      socket.emit('rps_result', { 
+        result,
+        lobbyId: location.state?.lobbyId
+      });
     }
   };
 
@@ -483,8 +572,10 @@ const Pvp = () => {
     if (!socket || turn !== 'player') return;
     
     setSelectedSubject(subject);
-    // Emit the subject selection to the opponent
-    socket.emit('subject_selected', { subject });
+    socket.emit('subject_selected', { 
+      subject,
+      lobbyId: location.state?.lobbyId
+    });
     setGameState(GAME_STATE.CARD_SELECTION);
   };
 
@@ -520,6 +611,12 @@ const Pvp = () => {
     setSelectedCardIndex(index);
     setQuestionBeingAsked(card);
     setGameState(GAME_STATE.PLAYER_CONFIRM_ASK);
+
+    // Emit card selection
+    socket.emit('card_selected', {
+      cardIndex: index,
+      lobbyId: location.state?.lobbyId
+    });
   };
 
   // Handle confirm ask
@@ -551,6 +648,13 @@ const Pvp = () => {
       hp: Math.max(0, prev.hp - damage)
     }));
 
+    // Emit answer submission
+    socket.emit('submit_answer', {
+      answer: selectedAnswer,
+      questionId: currentQuestion.id,
+      lobbyId: location.state?.lobbyId
+    });
+
     // Show feedback
     setFeedback({
       show: true,
@@ -564,6 +668,11 @@ const Pvp = () => {
 
     // Check if game is over
     if (opponentInfo.hp - damage <= 0) {
+      socket.emit('game_complete', {
+        lobbyId: location.state?.lobbyId,
+        winner: socket.userId,
+        finalScore: playerInfo.hp
+      });
       setTimeout(() => {
         setGameState(GAME_STATE.GAME_OVER);
         setGameMessage("You won!");
