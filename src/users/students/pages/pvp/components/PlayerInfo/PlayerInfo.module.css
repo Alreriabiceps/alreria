@@ -1,0 +1,179 @@
+/* Styles for PlayerInfo Component - Enhanced Dashboard Inspired */
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+@keyframes pulseActiveGlow {
+  0%, 100% {
+    box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-active-glow), var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+    border-color: var(--color-accent);
+  }
+  50% {
+    box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-active-glow), var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow), 0 0 12px var(--color-accent);
+    border-color: var(--color-accent);
+  }
+}
+
+.playerInfoContainer {
+  /* --- Scoped CSS Variables --- */
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.8);
+  --color-hp-high: #2ecc71;
+  --color-hp-medium: #f39c12;
+  --color-hp-low: #e74c3c;
+  --color-hp-bg: rgba(0, 0, 0, 0.7);
+  --color-info-bg: rgba(0, 0, 0, 0.5);
+  --color-active-glow: rgba(0, 255, 157, 0.7);
+  --shadow-depth-1: 3px;
+  --shadow-depth-2: 5px;
+  /* --- End Scoped Variables --- */
+
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 20px; /* Increased horizontal padding */
+  box-sizing: border-box;
+  position: relative;
+  font-family: var(--font-game);
+  color: var(--color-text-base);
+}
+
+/* Specific alignment for opponent vs player */
+.opponentInfo {
+  justify-content: flex-start;
+}
+
+.localPlayerInfo {
+  justify-content: flex-end;
+}
+
+/* Display Box for Name and HP */
+.infoDisplayBox {
+  background-color: var(--color-info-bg);
+  border: 2px solid var(--color-panel-border);
+  border-radius: 0;
+  padding: 10px 18px; /* Increased padding */
+  width: 220px; /* Increased width */
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.opponentInfo .infoDisplayBox {
+    text-align: left;
+}
+
+.localPlayerInfo .infoDisplayBox {
+    text-align: right;
+}
+
+/* Highlight active turn */
+.playerInfoContainer.activeTurn .infoDisplayBox {
+  /* Use animation for active glow */
+  animation: pulseActiveGlow 1.5s infinite ease-in-out;
+}
+
+.username {
+  color: var(--color-text-base);
+  font-size: 1em; /* Increased size */
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.hpBarContainer {
+  width: 100%;
+  height: 16px; /* Increased height */
+  background-color: var(--color-hp-bg);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.hpBarFill {
+  height: 100%;
+  background-color: var(--color-hp-high);
+  transition: width 0.5s ease-in-out, background-color 0.5s ease;
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.25); /* Enhanced inner glow */
+}
+
+.hpBarFill.mediumHp {
+  background-color: var(--color-hp-medium);
+}
+
+.hpBarFill.lowHp {
+  background-color: var(--color-hp-low);
+}
+
+.hpText {
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 1.1em; /* Increased body font size */
+}
+
+/* HP Shake Animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); } /* Slightly increased shake */
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shakeHp .infoDisplayBox { /* Apply shake to the box */
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .playerInfoContainer {
+    padding: 8px 12px;
+  }
+  .infoDisplayBox {
+    width: 180px;
+    padding: 8px 14px;
+  }
+  .username {
+    font-size: 0.9em;
+  }
+  .hpBarContainer {
+    height: 14px;
+  }
+  .hpText {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .playerInfoContainer {
+    padding: 8px;
+  }
+  .infoDisplayBox {
+    width: 150px;
+    padding: 6px 10px;
+    border-width: 1px;
+    box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+  }
+   .playerInfoContainer.activeTurn .infoDisplayBox {
+     /* Simplified shadow for smaller screens */
+     border-color: var(--color-accent);
+     box-shadow: 3px 3px 0 0 var(--color-active-glow), 2px 2px 0 0 var(--color-pixel-shadow);
+     animation: none; /* Disable pulse on small screens if too distracting */
+  }
+  .username {
+    font-size: 0.8em;
+    margin-bottom: 5px;
+  }
+  .hpBarContainer {
+    height: 12px;
+  }
+  .hpText {
+    font-size: 0.9em;
+  }
+} 

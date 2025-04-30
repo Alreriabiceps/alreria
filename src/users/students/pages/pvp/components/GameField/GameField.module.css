@@ -1,0 +1,340 @@
+/* Styles for GameField Component - Enhanced Dashboard Inspired */
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlowFeedback {
+  0%, 100% {
+    box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+    border-color: var(--feedback-color);
+  }
+  50% {
+    box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 12px var(--feedback-color);
+    border-color: var(--feedback-color);
+  }
+}
+
+/* Base container for the central field area */
+.fieldArea {
+  /* --- Scoped CSS Variables --- */
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-panel: rgba(15, 12, 41, 0.9);
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.8);
+  --color-button-primary-bg: var(--color-accent);
+  --color-button-primary-text: #0c051a;
+  --color-button-primary-hover-bg: var(--color-accent-hover);
+  --color-button-secondary-bg: rgba(255, 255, 255, 0.12);
+  --color-button-secondary-border: rgba(255, 255, 255, 0.35);
+  --color-button-secondary-hover-bg: rgba(0, 255, 157, 0.15);
+  --color-button-secondary-hover-border: var(--color-accent-hover);
+  --color-correct: #2ecc71;
+  --color-wrong: #e74c3c;
+  --color-timer: var(--color-wrong);
+  --shadow-depth-1: 3px;
+  --shadow-depth-2: 5px;
+  /* --- End Scoped Variables --- */
+
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px; /* Increased padding */
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-body);
+  color: var(--color-text-base);
+}
+
+.fieldArea.attackingGlow {
+  /* Add a subtle glow or background change when attacking */
+  /* Example: */
+  /* background-color: rgba(255, 255, 255, 0.05); */
+  /* box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1); */
+}
+
+.centerContentContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Example attack animations (can be refined) */
+.playerAttackingAnim {
+  transform: translateX(5px);
+}
+
+.opponentAttackingAnim {
+  transform: translateX(-5px);
+}
+
+/* Common style for all center boxes */
+.centerDisplayBox {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  border-radius: 0;
+  padding: 35px 40px; /* Increased padding */
+  color: var(--color-text-base);
+  text-align: center;
+  max-width: 750px; /* Increased max-width */
+  width: 90%;
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+  position: relative;
+  min-height: 180px; /* Increased min-height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Feedback Box specific styles */
+.feedbackBox p {
+  font-family: var(--font-game);
+  font-size: 1.8em; /* Increased size */
+  line-height: 1.4;
+}
+
+.feedbackBox.correctFeedback,
+.feedbackBox.wrongFeedback {
+    /* Define feedback color for animation */
+    --feedback-color: var(--color-panel-border); /* Default */
+    animation: pulseGlowFeedback 1.2s ease-in-out 3; /* Pulse 3 times */
+}
+
+.feedbackBox.correctFeedback {
+    --feedback-color: var(--color-correct);
+}
+.feedbackBox.correctFeedback p {
+  color: var(--color-correct);
+  text-shadow: 0 0 8px var(--color-correct);
+}
+
+.feedbackBox.wrongFeedback {
+    --feedback-color: var(--color-wrong);
+}
+.feedbackBox.wrongFeedback p {
+  color: var(--color-wrong);
+  text-shadow: 0 0 8px var(--color-wrong);
+}
+
+/* Ask Confirmation Box styles */
+.askConfirmBox .askQuestionText {
+  font-size: 1.3em; /* Increased size */
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+
+.askConfirmBox .questionTextConfirm {
+  font-family: var(--font-game);
+  font-size: 1.4em; /* Increased size */
+  margin-bottom: 30px;
+  color: var(--color-accent);
+  line-height: 1.6;
+}
+
+/* Answer Box styles */
+.answerBox .timerDisplay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-game);
+  font-size: 0.9em;
+  color: var(--color-timer);
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 5px 10px;
+  border: 1px solid var(--color-timer);
+  box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+}
+
+.answerBox .questionText {
+  font-family: var(--font-game);
+  font-size: 1.3em; /* Increased size */
+  margin-bottom: 30px;
+  line-height: 1.7;
+}
+
+.answerOptions {
+  display: grid;
+  grid-template-columns: 1fr; /* Stack options by default */
+  gap: 12px; /* Increased gap */
+  margin-bottom: 30px;
+  width: 95%; /* Wider */
+  max-width: 550px;
+}
+
+/* Style for individual answer buttons */
+.answerButton {
+  background-color: var(--color-button-secondary-bg);
+  color: var(--color-text-base);
+  border: 2px solid var(--color-button-secondary-border);
+  border-radius: 0;
+  padding: 15px 20px; /* Increased padding */
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+  font-family: var(--font-body);
+  font-size: 1.4em; /* Increased body font size */
+  text-align: left;
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+}
+
+.answerButton:hover:not(:disabled) {
+  background-color: var(--color-button-secondary-hover-bg);
+  border-color: var(--color-button-secondary-hover-border);
+  transform: translate(calc(var(--shadow-depth-1) * -0.5), calc(var(--shadow-depth-1) * -0.5));
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+  color: var(--color-accent-hover);
+}
+
+.answerButton.selectedAnswer {
+  background-color: var(--color-accent);
+  border-color: var(--color-text-base);
+  color: var(--color-button-primary-text);
+  transform: translate(calc(var(--shadow-depth-1) * 0.5), calc(var(--shadow-depth-1) * 0.5));
+  box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+}
+
+.answerButton:active:not(:disabled):not(.selectedAnswer) {
+    transform: translate(calc(var(--shadow-depth-1) * 0.5), calc(var(--shadow-depth-1) * 0.5));
+    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+}
+
+.answerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* General Message Box styles */
+.messageBox p {
+  font-family: var(--font-game);
+  font-size: 1.4em; /* Increased size */
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* Common Button Style (Confirm Ask/Confirm Answer) */
+.gameButton {
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+  border: 2px solid var(--color-button-primary-text);
+  border-radius: 0;
+  padding: 12px 30px; /* Increased padding */
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+  font-family: var(--font-game);
+  font-size: 1em; /* Increased size */
+  text-transform: uppercase;
+  letter-spacing: 1.5px; /* Increased letter spacing */
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  margin-top: 15px;
+}
+
+.gameButton:hover:not(:disabled) {
+  background-color: var(--color-button-primary-hover-bg);
+  transform: translate(calc(var(--shadow-depth-1) * -0.5), calc(var(--shadow-depth-1) * -0.5));
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+}
+
+.gameButton:active:not(:disabled) {
+    transform: translate(calc(var(--shadow-depth-1) * 0.5), calc(var(--shadow-depth-1) * 0.5));
+    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+}
+
+.gameButton:disabled {
+  background-color: #555;
+  border-color: #777;
+  color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Media Queries for Responsiveness */
+@media (min-width: 600px) {
+  .answerOptions {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .centerDisplayBox {
+    padding: 30px 25px;
+    min-height: 150px;
+    max-width: 95%;
+    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  }
+  .feedbackBox p {
+    font-size: 1.5em;
+  }
+  .askConfirmBox .questionTextConfirm {
+    font-size: 1.2em;
+  }
+  .answerBox .questionText {
+    font-size: 1.1em;
+  }
+  .answerButton {
+    font-size: 1.2em;
+    padding: 12px 15px;
+  }
+  .messageBox p {
+    font-size: 1.2em;
+  }
+  .gameButton {
+    font-size: 0.9em;
+    padding: 10px 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fieldArea {
+    padding: 15px;
+  }
+  .centerDisplayBox {
+    padding: 25px 15px;
+    min-height: 140px;
+  }
+  .feedbackBox p {
+    font-size: 1.3em;
+  }
+  .askConfirmBox .questionTextConfirm {
+    font-size: 1.1em;
+    margin-bottom: 25px;
+  }
+   .answerBox .questionText {
+    font-size: 1em;
+    margin-bottom: 25px;
+  }
+  .answerBox .timerDisplay {
+    font-size: 0.8em;
+    padding: 4px 8px;
+  }
+  .answerOptions {
+    gap: 10px;
+  }
+  .answerButton {
+    font-size: 1.1em;
+    padding: 12px;
+  }
+  .messageBox p {
+    font-size: 1.1em;
+  }
+  .gameButton {
+    font-size: 0.8em;
+    padding: 10px 20px;
+    width: 85%;
+  }
+} 

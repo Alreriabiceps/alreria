@@ -1,0 +1,152 @@
+/* Styles specific to OpponentHand - Enhanced Dashboard Inspired */
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+.handArea {
+  /* --- Scoped CSS Variables (Match PlayerHand for consistency) --- */
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-text-base: #e0e0e0;
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.8);
+  --color-card-back-bg: rgba(10, 5, 25, 0.8); /* Darker back */
+  --color-card-back-border: rgba(0, 255, 157, 0.25);
+  --color-card-back-pattern1: rgba(0, 255, 157, 0.06);
+  --color-card-back-pattern2: rgba(0, 255, 157, 0.1);
+  --color-count-bg: rgba(0, 0, 0, 0.85);
+  --shadow-depth-1: 2px;
+  --shadow-depth-2: 4px;
+  /* --- End Scoped Variables --- */
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 15px 0;
+  min-height: 140px; /* Match PlayerHand */
+  width: 100%;
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.opponentHandArea {
+  /* Specific styles if needed */
+  margin-left: auto; /* Push PlayerInfo (Opponent) to the left */
+}
+
+/* Base Card Style for Opponent - Match PlayerHand dimensions */
+.card {
+  width: 90px;
+  height: 125px;
+  border-radius: 0;
+  margin: 0 4px;
+  position: relative;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  background-color: var(--color-card-back-bg);
+  border: 2px solid var(--color-card-back-border);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+}
+
+.opponentHandCard {
+  /* Inherits .card styles */
+}
+
+.opponentHandCard:hover {
+    transform: translateY(4px); /* Increased move down */
+    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+}
+
+.cardBack {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-card-back-pattern1),
+    var(--color-card-back-pattern1) 6px, /* Slightly larger pattern */
+    var(--color-card-back-pattern2) 6px,
+    var(--color-card-back-pattern2) 12px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Optional: Add a subtle overlay/glare effect */
+.cardBack::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(255,255,255,0.05), rgba(0,0,0,0.1));
+    pointer-events: none;
+}
+
+.cardCount {
+  position: absolute;
+  top: -8px; /* Adjust position based on increased hand padding */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-count-bg);
+  color: var(--color-text-base);
+  border: 1px solid var(--color-panel-border);
+  padding: 4px 12px; /* Increased padding */
+  border-radius: 0;
+  font-family: var(--font-game);
+  font-size: 0.8em; /* Increased size */
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  z-index: 5;
+}
+
+/* Media Queries - Match PlayerHand adjustments */
+@media (max-width: 992px) {
+  .card {
+    width: 80px;
+    height: 115px;
+  }
+  .handArea {
+    min-height: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  .handArea {
+    min-height: 110px;
+  }
+  .card {
+    width: 70px;
+    height: 100px;
+    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  }
+  .cardCount {
+    font-size: 0.7em;
+    padding: 3px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .handArea {
+    min-height: 95px;
+    padding-top: 18px; /* Adjust for count */
+  }
+   .card {
+    width: 60px;
+    height: 85px;
+    border-width: 1px;
+    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+    margin: 0 2px;
+  }
+   .opponentHandCard:hover {
+    transform: translateY(2px);
+    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+  }
+  .cardCount {
+    font-size: 0.65em;
+    padding: 2px 8px;
+    top: 0px;
+  }
+} 

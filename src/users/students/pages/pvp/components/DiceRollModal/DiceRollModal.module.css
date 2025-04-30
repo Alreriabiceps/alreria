@@ -1,0 +1,333 @@
+/* Styles for Dice Roll Modal - Dashboard Inspired */
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+.diceModalOverlay {
+  /* --- Scoped CSS Variables --- */
+  --font-game: "Press Start 2P", cursive;
+  --font-body: "VT323", monospace;
+  --color-accent: #00ff9d;
+  --color-accent-hover: #80ffce;
+  --color-text-base: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-panel: rgba(15, 12, 41, 0.95); /* Slightly darker panel for modal */
+  --color-panel-border: rgba(0, 255, 157, 0.6);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+  --color-button-primary-bg: var(--color-accent);
+  --color-button-primary-text: #0c051a;
+  --color-button-primary-hover-bg: var(--color-accent-hover);
+  --color-dice-bg: #f0f0f0;
+  --color-dice-border: #cccccc;
+  --color-dice-text: #333333;
+  --color-win: #2ecc71;
+  --color-lose: #e74c3c;
+  --color-tie: #f39c12;
+  --color-overlay-bg: rgba(0, 0, 0, 0.8); /* Darker overlay */
+  /* --- End Scoped Variables --- */
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Higher than other elements */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.diceModalOverlay.show {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+
+.diceModalContent {
+  background-color: var(--color-panel);
+  border: 2px solid var(--color-panel-border);
+  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+  border-radius: 0;
+  padding: 30px 40px;
+  color: var(--color-text-base);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  font-family: var(--font-game);
+  /* Add simple transition for entry */
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.diceModalOverlay.show .diceModalContent {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.diceHeader {
+  margin-bottom: 25px;
+}
+
+.diceTitle {
+  font-size: 1.4em;
+  margin-bottom: 8px;
+  color: var(--color-accent);
+}
+
+.diceSubtitle {
+  font-family: var(--font-body);
+  font-size: 1.2em;
+  color: var(--color-text-muted);
+}
+
+.diceContainer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0 15px;
+}
+
+.diceSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.diceLabel {
+  margin-top: 8px;
+  font-size: 0.8em;
+  color: var(--color-text-muted);
+}
+
+/* Pixelated Dice Style */
+.dicePixel {
+  width: 60px;
+  height: 60px;
+  background-color: var(--color-dice-bg);
+  border: 2px solid var(--color-dice-border);
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-game);
+  font-size: 1.8em;
+  color: var(--color-dice-text);
+  position: relative;
+  overflow: hidden; /* For potential dot patterns */
+}
+
+/* Add 'dots' using pseudo-elements or actual divs if needed for pixel effect */
+
+/* Rolling Animation (Simple) */
+@keyframes rollPixel {
+  0%   { transform: translateY(0px); }
+  25%  { transform: translateY(-5px) scale(1.05); }
+  50%  { transform: translateY(0px) scale(0.95); }
+  75%  { transform: translateY(5px) scale(1.05); }
+  100% { transform: translateY(0px); }
+}
+
+.dicePixel.rolling {
+  animation: rollPixel 0.6s linear infinite;
+}
+
+/* Winner Indication */
+.diceSection.winner .dicePixel {
+  border-color: var(--color-win);
+  box-shadow: 4px 4px 0 0 var(--color-win), 3px 3px 0 0 var(--color-pixel-shadow);
+}
+.diceSection.loser .dicePixel {
+    border-color: var(--color-lose);
+}
+.diceSection.tie .dicePixel {
+    border-color: var(--color-tie);
+}
+
+.vsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px; /* Match dice height */
+}
+
+.vs {
+  font-size: 1.5em;
+  font-weight: normal;
+  color: var(--color-text-muted);
+  margin: 0 10px;
+}
+
+/* --- Button and Messages --- */
+
+.rollButton {
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+  border: 2px solid var(--color-button-primary-text);
+  border-radius: 0;
+  padding: 10px 25px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-game);
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rollButton:hover:not(:disabled) {
+  background-color: var(--color-button-primary-hover-bg);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 var(--color-pixel-shadow);
+}
+
+.rollButton:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+}
+
+.rollButton:disabled {
+  background-color: #555;
+  border-color: #777;
+  color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+.rollButtonIcon {
+  /* Style icon if needed, e.g., font size */
+}
+
+.waitingMessage {
+  margin-top: 20px;
+  font-family: var(--font-body);
+  font-size: 1.2em;
+  color: var(--color-text-muted);
+}
+
+.resultMessageContainer {
+  margin-top: 20px;
+  padding: 10px 15px;
+  border: 2px solid var(--color-panel-border);
+  border-radius: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.resultMessageContainer.winner {
+    border-color: var(--color-win);
+}
+.resultMessageContainer.loser {
+    border-color: var(--color-lose);
+}
+.resultMessageContainer.tie {
+    border-color: var(--color-tie);
+}
+
+.resultText {
+  font-family: var(--font-game);
+  font-size: 1em;
+}
+
+.resultText.winnerText {
+    color: var(--color-win);
+}
+.resultText.loserText {
+    color: var(--color-lose);
+}
+.resultText.tieText {
+    color: var(--color-tie);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .diceModalContent {
+        padding: 25px 30px;
+    }
+    .diceTitle {
+        font-size: 1.2em;
+    }
+    .diceSubtitle {
+        font-size: 1.1em;
+    }
+    .dicePixel {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+    .vs {
+        font-size: 1.3em;
+    }
+    .rollButton {
+        font-size: 0.8em;
+        padding: 8px 20px;
+    }
+    .resultText {
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .diceModalContent {
+        padding: 20px 15px;
+        width: 95%;
+    }
+     .diceHeader {
+        margin-bottom: 20px;
+    }
+     .diceTitle {
+        font-size: 1.1em;
+    }
+    .diceSubtitle {
+        font-size: 1em;
+    }
+    .diceContainer {
+        padding: 0 5px;
+        margin-bottom: 25px;
+    }
+    .dicePixel {
+        width: 45px;
+        height: 45px;
+        font-size: 1.4em;
+        border-width: 1px;
+        box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+    }
+     .diceSection.winner .dicePixel {
+        box-shadow: 3px 3px 0 0 var(--color-win), 2px 2px 0 0 var(--color-pixel-shadow);
+    }
+    .diceLabel {
+        font-size: 0.7em;
+    }
+    .vsContainer {
+        height: 45px;
+    }
+    .vs {
+        font-size: 1.2em;
+        margin: 0 5px;
+    }
+    .rollButton {
+        font-size: 0.8em;
+        padding: 8px 18px;
+        width: 70%;
+        max-width: 180px;
+    }
+    .waitingMessage {
+        font-size: 1.1em;
+    }
+    .resultMessageContainer {
+        padding: 8px 12px;
+    }
+    .resultText {
+        font-size: 0.85em;
+    }
+} 

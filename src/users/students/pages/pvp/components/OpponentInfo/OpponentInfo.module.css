@@ -1,0 +1,58 @@
+/* OpponentInfo.module.css */
+.opponentInfoArea {
+  /* Base styles - copy from PlayerInfo or define uniquely */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: rgba(255, 0, 0, 0.1); /* Example distinct bg */
+  min-width: 150px;
+  text-align: center;
+}
+
+.hpContainer {
+  margin-bottom: 5px;
+}
+
+.username {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #eee; /* Example text color */
+}
+
+.hpBarContainer {
+  background-color: #555;
+  border-radius: 3px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 3px;
+}
+
+.hpBarFill {
+  height: 100%;
+  background-color: #4CAF50; /* Default green */
+  transition: width 0.3s ease-in-out;
+}
+
+.mediumHp {
+  background-color: #ffc107; /* Yellow */
+}
+
+.lowHp {
+  background-color: #f44336; /* Red */
+}
+
+.hpText {
+  font-size: 0.8em;
+  color: #ccc;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.shakeHp {
+  animation: shake 0.5s ease-in-out;
+} 
