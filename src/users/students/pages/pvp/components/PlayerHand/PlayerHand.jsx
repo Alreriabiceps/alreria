@@ -10,6 +10,8 @@ const PlayerHand = ({
 
   // Internal render helper for a single card
   const renderCard = (card, index) => {
+    // --- Log the individual card being rendered ---
+    console.log(`[PlayerHand renderCard] Processing card ${index}:`, JSON.stringify(card, null, 2)); 
     
     // Determine card style based on type and playability
     const cardTypeClass = card.type === 'spellEffect' ? styles.spellEffectCard : styles.questionCard;
@@ -45,6 +47,9 @@ const PlayerHand = ({
       </div>
     );
   };
+
+  // --- Log the entire hand prop received by the component ---
+  console.log('[PlayerHand] Rendering with hand:', JSON.stringify(hand, null, 2));
 
   return (
     <div className={`${styles.handArea} ${styles.playerHandArea}`}>

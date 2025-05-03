@@ -35,8 +35,14 @@ const DiceRollModal = ({
     return 'May the best roll win!';
   }
 
+  // Do not render if show is false (already handled by the check above)
+  // But we need to conditionally apply the show class for the transition
+  const overlayClasses = show 
+    ? `${styles.diceModalOverlay} ${styles.show}` 
+    : styles.diceModalOverlay;
+
   return (
-    <div className={styles.diceModalOverlay}> {/* Added overlay */} 
+    <div className={overlayClasses}> {/* Apply conditional classes */} 
       <div className={`${styles.diceModalContent} ${bothRolled ? styles.showResult : ''}`}>
         <div className={styles.diceHeader}>
           <h2 className={styles.diceTitle}>Roll for First Turn!</h2>

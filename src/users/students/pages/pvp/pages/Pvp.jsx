@@ -20,17 +20,20 @@ import { motion } from "framer-motion";
 const STARTING_HP = 20; // New starting HP
 const STARTING_HAND_SIZE = 5;
 const DECK_SIZE = 15;
+const DECK_SELECTION_COUNT = 15; // Number of questions to select for the deck
 
 // --- Game States (Import or define, ensure consistency with backend) ---
 const GAME_STATE = {
   WAITING: "WAITING",
   RPS: "RPS", 
   SUBJECT_SELECTION: "SUBJECT_SELECTION",
-  // DECK_CREATION: "DECK_CREATION", // Primarily backend state
+  DECK_CREATION: "DECK_CREATION", // Add state for selecting cards from pool
+  // CARD_SELECTION: "CARD_SELECTION", // Remove this, replaced by DECK_CREATION
   DICE_ROLL: "DICE_ROLL",
   AWAITING_CARD_SUMMON: "AWAITING_CARD_SUMMON",
   AWAITING_OPPONENT_ANSWER: "AWAITING_OPPONENT_ANSWER",
   TURN_RESOLUTION: "TURN_RESOLUTION", // Might not be explicitly set on FE
+  PLAYER_SELECT_CARD: "PLAYER_SELECT_CARD", // This might also need review/removal later
   GAME_OVER: "GAME_OVER",
   COMPLETED: "COMPLETED", 
   ERROR: "ERROR",
@@ -83,6 +86,11 @@ const Pvp = () => {
   const [gameReady, setGameReady] = useState(false); // Both players joined
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [gameOverData, setGameOverData] = useState(null); // { winnerId, winnerName, reason, ... }
+
+  // --- DECK_CREATION State ---
+  const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false); // Added missing state
 
   // --- Phase Specific State ---
   // RPS
@@ -550,6 +558,8 @@ const Pvp = () => {
           if (data.gameState) setGameState(data.gameState);
           if (data.currentTurn) setCurrentTurnId(data.currentTurn);
           if (data.gameMessage) setGameMessage(data.gameMessage);
+          if (data.selectedSubject) setSelectedSubject(data.selectedSubject); // Update selected subject
+          if (data.availableQuestions) setAvailableQuestions(data.availableQuestions); // Update available questions
           
           // --- Reset Turn Flags on Turn Change ---
           if (data.currentTurn && data.currentTurn !== previousTurnId) {
@@ -602,7 +612,10 @@ const Pvp = () => {
            // Update player hand if explicitly sent (usually via 'my_hand_update', but maybe also here)
            if (data.playerHand && data.playerId === myPlayerId) { 
                console.log('[FE game_update] Receiving updated hand');
-               setMyHand(data.playerHand);
+               setMyHand(data.playerHand.map(card => ({
+                   ...card,
+                   type: card.type || (card.questionText ? 'question' : undefined)
+               })));
            } 
 
            // Update Field State
@@ -655,19 +668,17 @@ const Pvp = () => {
                else if (p2Name) setOpponentInfo(prev => ({...prev, name: p2Name}));
            }
 
-        });
+           // --- NEW: Update player hand if received in game_update --- 
+           // Backend should send this during the transition after dealing (e.g., to DICE_ROLL)
+           if (data.playerHand && data.currentTurn === myPlayerId) { 
+               console.log('[FE game_update] Receiving updated hand for my turn');
+               setMyHand(data.playerHand.map(card => ({
+                   ...card,
+                   type: card.type || (card.questionText ? 'question' : undefined)
+               })));
+           } 
+           // --- END NEW ---
 
-        socketInstance.on('deal_cards', (data) => {
-          if (!mounted) return;
-          console.log('Received deal_cards:', data);
-          if (data.playerHand) {
-            setMyHand(data.playerHand);
-            // Need opponent hand count from server ideally, or derive from total - playerHand
-            // Example: Set opponent placeholder cards based on count
-            // const opponentCount = (INITIAL_CARDS * 2) - data.playerHand.length; // Assuming server knows total
-            // setOpponentHand(Array(opponentCount).fill({})); // Placeholder for display
-            console.log('Player hand dealt by server.');
-          }
         });
 
         socketInstance.on('dice_result', (data) => {
@@ -702,8 +713,6 @@ const Pvp = () => {
           setGameMessage(message);
           console.log('[FE dice_result] Set game message:', message);
 
-          console.log(`[FE dice_result] Checking winner condition: data.winnerId (${typeof data.winnerId} ${data.winnerId}) vs user?.id (${typeof user?.id} ${user?.id})`);
-
           if (data.winnerId) { // If there's a winner (not a tie)
             console.log('[FE dice_result] Winner determined. Setting 3s timeout for result display.');
             // Start a timeout to display the result for a bit
@@ -712,54 +721,33 @@ const Pvp = () => {
                  console.log('[FE dice_result - Winner Timeout] Component unmounted before timeout executed.');
                  return;
               }
-              console.log('[FE dice_result - Winner Timeout] Executing timeout callback. Preparing to hide modal...');
-              // Modal hiding is now implicitly handled by gameState change in the nested timeout
-              // setDiceModalAnimation('hide'); // No longer needed
-              setTimeout(() => { // Nested timeout for hide animation duration
-                if (!isMountedRef.current) {
-                    console.log('[FE dice_result - Hide Timeout] Component unmounted before hide timeout executed.');
-                    return;
-                }
-                 console.log('[FE dice_result - Hide Timeout] Executing nested timeout. Setting game state and turn.');
-                 // setShowDiceModal(false); // No longer needed - driven by gameState
-                 
-                 // Update game state based on the winner and next turn from server
-                 if (data.nextTurn === user?.id && data.state) {
-                   console.log(`[FE dice_result - Hide Timeout] Setting game state to ${data.state} and turn to player.`);
-                   setGameState(data.state); // e.g., PLAYER_SELECT_CARD
-                   setCurrentTurnId('player');
-                 } else if (data.state) {
-                   console.log(`[FE dice_result - Hide Timeout] Setting game state to ${data.state} and turn to opponent.`);
-                   setGameState(data.state);
-                   setCurrentTurnId('opponent');
-                 } else {
-                     console.warn('[FE dice_result - Hide Timeout] Missing nextTurn or state in dice_result payload:', data);
-                 }
-                 // Reset dice states AFTER transition
-                 console.log('[FE dice_result - Hide Timeout] Resetting dice rolling/rolled states.');
-                 setIsDiceRolling(false);
-                 setBothPlayersRolled(false);
-                 setPlayerDiceValue(null); // Also clear visual values
-                 setOpponentDiceValue(null);
-                 setDiceWinnerId(null);
-
-              }, 1000); // Allow 1 second for result display/animation before state change
-            }, 3000); // Display result in modal for 3 seconds before starting transition
+              console.log(`[FE dice_result - Winner Timeout] Executing timeout callback at ${new Date().toLocaleTimeString()}`);
+              
+              // Reset the visual rolling state
+              setIsDiceRolling(false);
+              
+              // Request game state update from server
+              if (socketRef.current && socketRef.current.connected) {
+                console.log('[FE dice_result] Requesting game state update after dice roll');
+                socketRef.current.emit('request_game_state', { lobbyId: location.state?.lobbyId });
+              }
+            }, 3000); // Display result in modal for 3 seconds 
           } else { // Handle tie (re-roll)
-             console.log('[FE dice_result] Tie detected. Setting 1.5s timeout for re-roll reset.');
-             setTimeout(() => {
-                if (!isMountedRef.current) { 
-                  console.log('[FE dice_result - Tie Timeout] Component unmounted before timeout executed.');
-                  return;
-                }
-                console.log('[FE dice_result - Tie Timeout] Executing timeout callback. Resetting dice states for re-roll.');
-                setPlayerDiceValue(null);
-                setOpponentDiceValue(null);
-                setBothPlayersRolled(false);
-                setIsDiceRolling(false);
-                setDiceWinnerId(null);
-                setGameMessage('Tie! Roll again!');
-             }, 1500); // Short delay for tie message before reset
+            console.log('[FE dice_result] Tie detected. Setting 1.5s timeout for re-roll reset.');
+            setTimeout(() => {
+              if (!isMountedRef.current) { 
+                console.log('[FE dice_result - Tie Timeout] Component unmounted before timeout executed.');
+                return;
+              }
+              console.log(`[FE dice_result - Tie Timeout] Executing timeout callback at ${new Date().toLocaleTimeString()}`);
+              // Reset state needed to allow re-roll AND hide the result display
+              setPlayerDiceValue(null);
+              setOpponentDiceValue(null);
+              setBothPlayersRolled(false);
+              setIsDiceRolling(false); 
+              setDiceWinnerId(null);
+              setGameMessage('Tie! Roll again!');
+            }, 1500);
           }
           console.log('[FE dice_result] Listener execution finished.');
         });
@@ -858,6 +846,88 @@ const Pvp = () => {
             }
         });
 
+        // Add new handler for game state updates after dice roll
+        socketInstance.on('game_state_update', (data) => {
+          if (!isMountedRef.current) return;
+          console.log('[FE game_state_update] Received:', data);
+
+          // Update game state
+          if (data.gameState) {
+            setGameState(data.gameState);
+          }
+
+          // Update player hands if provided
+          if (data.playerHand && data.playerId === myPlayerId) {
+            console.log('[FE game_state_update] Updating player hand:', data.playerHand);
+            setMyHand(data.playerHand.map(card => ({
+                ...card,
+                type: card.type || (card.questionText ? 'question' : undefined)
+            })));
+          }
+
+          // Update turn information
+          if (data.currentTurn) {
+            setCurrentTurnId(data.currentTurn);
+          }
+
+          // Update game message
+          if (data.gameMessage) {
+            setGameMessage(data.gameMessage);
+          }
+
+          // Update deck counts
+          if (data.player1Id === myPlayerId) {
+            if (data.player1HandCount !== undefined) setMyHand(data.player1HandCount);
+            if (data.player1DeckCount !== undefined) setMyDeckCount(data.player1DeckCount);
+          } else if (data.player2Id === myPlayerId) {
+            if (data.player2HandCount !== undefined) setMyHand(data.player2HandCount);
+            if (data.player2DeckCount !== undefined) setMyDeckCount(data.player2DeckCount);
+          }
+
+          // Update opponent's counts
+          if (data.player1Id !== myPlayerId) {
+            if (data.player1HandCount !== undefined) setOpponentHandCount(data.player1HandCount);
+            if (data.player1DeckCount !== undefined) setOpponentDeckCount(data.player1DeckCount);
+          } else if (data.player2Id !== myPlayerId) {
+            if (data.player2HandCount !== undefined) setOpponentHandCount(data.player2HandCount);
+            if (data.player2DeckCount !== undefined) setOpponentDeckCount(data.player2DeckCount);
+          }
+        });
+
+        socketInstance.on('card_summoned', (data) => {
+            if (!isMountedRef.current) return;
+            console.log('[FE card_summoned] Received:', data);
+            
+            // Update game state to show the question is being asked
+            setGameState(GAME_STATE.AWAITING_OPPONENT_ANSWER);
+            setGameMessage('Waiting for opponent to answer...');
+            
+            // Update the last summoned card on field
+            setLastSummonedCardOnField({
+                cardId: data.cardId,
+                playerId: data.playerId,
+                question: data.question
+            });
+        });
+
+        socketInstance.on('opponent_answering', (data) => {
+            if (!isMountedRef.current) return;
+            console.log('[FE opponent_answering] Received:', data);
+            
+            // Update game message to show opponent is answering
+            setGameMessage('Opponent is answering...');
+        });
+
+        socketInstance.on('question_presented', (data) => {
+          if (!isMountedRef.current) return;
+          console.log('[FE question_presented] Received:', data);
+          if (data.question) {
+            setActiveQuestion(data.question);
+            setGameState(GAME_STATE.AWAITING_OPPONENT_ANSWER);
+            setGameMessage(`${data.attackerName || 'Opponent'} is asking you a question!`);
+          }
+        });
+
         socketInstance.connect();
 
       } catch (error) {
@@ -892,13 +962,16 @@ const Pvp = () => {
         socketRef.current.off('game_ready');
         socketRef.current.off('room_status');
         socketRef.current.off('game_update');
-        socketRef.current.off('deal_cards');
         socketRef.current.off('dice_result');
         socketRef.current.off('opponent_asking');
         socketRef.current.off('answer_result');
         socketRef.current.off('game_over');
         socketRef.current.off('opponent_surrendered');
-        socketRef.current.off('opponent_dice_roll'); // Add cleanup for new listener
+        socketRef.current.off('opponent_dice_roll');
+        socketRef.current.off('game_state_update');
+        socketRef.current.off('card_summoned');
+        socketRef.current.off('opponent_answering');
+        socketRef.current.off('question_presented');
 
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -972,21 +1045,22 @@ const Pvp = () => {
     }
     
     try {
-      console.log('Emitting subject_selected:', subject.name);
-      socketRef.current.emit('subject_selected', { 
+      console.log('Emitting select_subject:', subject.name);
+      socketRef.current.emit('select_subject', { 
         subject,
         lobbyId: location.state?.lobbyId,
         playerId: user?.id,
         timestamp: Date.now()
       });
     } catch (err) {
-      console.error("Error emitting subject_selected:", err);
+      console.error("Error emitting select_subject:", err);
     }
   }, [socketRef, currentTurnId, myPlayerId, gameState, location.state?.lobbyId]); // Updated dependencies
 
   // Handle question selection
   const handleQuestionSelect = (question) => {
-    if (selectedQuestions.length >= INITIAL_CARDS) return;
+    // Check against DECK_SELECTION_COUNT before adding
+    if (selectedQuestions.length >= DECK_SELECTION_COUNT) return; 
     setSelectedQuestions([...selectedQuestions, question]);
   };
 
@@ -997,7 +1071,7 @@ const Pvp = () => {
 
   // Handle confirming questions
   const handleConfirmQuestions = () => {
-    if (selectedQuestions.length !== INITIAL_CARDS) return;
+    if (selectedQuestions.length !== DECK_SELECTION_COUNT) return;
 
     const selectedQuestionIds = selectedQuestions.map(q => q.id);
 
@@ -1022,52 +1096,62 @@ const Pvp = () => {
 
   // Handle card click
   const handleCardClick = useCallback((card) => {
-      console.log('Card clicked:', card._id, card.type);
-      if (!socketRef.current || !socketRef.current.connected) {
-          setGameMessage('Error: Not connected to server.');
-          return;
-      }
-      if (currentTurnId !== myPlayerId) {
-           setGameMessage('Not your turn!');
-          return;
-      }
-      if (gameState !== GAME_STATE.AWAITING_CARD_SUMMON) {
-           setGameMessage('Cannot play card in current phase.');
-           return;
-      }
+    console.log('Card clicked:', card);
+    if (!socketRef.current || !socketRef.current.connected) {
+        setGameMessage('Error: Not connected to server.');
+        return;
+    }
+    if (currentTurnId !== myPlayerId) {
+        setGameMessage('Not your turn!');
+        return;
+    }
+    if (gameState !== GAME_STATE.AWAITING_CARD_SUMMON) {
+        setGameMessage('Cannot play card in current phase.');
+        return;
+    }
 
-      if (card.type === 'question') {
-          if (hasSummonedQuestionThisTurn) {
-              setGameMessage('You already summoned a question this turn.');
-              return;
-          }
-          console.log(`Emitting summon_card for ${card._id}`);
-          socketRef.current.emit('summon_card', { lobbyId, cardId: card._id });
-          setHasSummonedQuestionThisTurn(true); // Optimistic UI flag update
-          setGameMessage('Summoning question...'); 
-
-      } else if (card.type === 'spellEffect') {
-          if (hasPlayedSpellEffectThisTurn) {
-              setGameMessage('You already played a spell/effect this turn.');
-      return;
-          }
-          console.log(`Emitting play_spell_effect for ${card._id}`);
-          socketRef.current.emit('play_spell_effect', { lobbyId, cardId: card._id });
-          setHasPlayedSpellEffectThisTurn(true); // Optimistic UI flag update
-          setGameMessage('Playing spell/effect...');
-      } else {
-          console.warn('Clicked card has unknown type:', card.type);
-      }
-
-  }, [lobbyId, currentTurnId, myPlayerId, gameState, hasSummonedQuestionThisTurn, hasPlayedSpellEffectThisTurn]);
+    if (card.type === 'question') {
+        if (hasSummonedQuestionThisTurn) {
+            setGameMessage('You already summoned a question this turn.');
+            return;
+        }
+        
+        // Show confirmation dialog or directly emit
+        const confirmSummon = window.confirm(`Do you want to ask this question: "${card.text}"?`);
+        if (confirmSummon) {
+            console.log(`Emitting summon_card for ${card._id}`);
+            socketRef.current.emit('summon_card', { 
+                lobbyId, 
+                cardId: card._id,
+                question: card // Send the full question data
+            });
+            setHasSummonedQuestionThisTurn(true);
+            setGameMessage('Question summoned! Waiting for opponent to answer...');
+        }
+    } else if (card.type === 'spellEffect') {
+        if (hasPlayedSpellEffectThisTurn) {
+            setGameMessage('You already played a spell/effect this turn.');
+            return;
+        }
+        console.log(`Emitting play_spell_effect for ${card._id}`);
+        socketRef.current.emit('play_spell_effect', { 
+            lobbyId, 
+            cardId: card._id 
+        });
+        setHasPlayedSpellEffectThisTurn(true);
+        setGameMessage('Playing spell/effect...');
+    } else {
+        console.warn('Clicked card has unknown type:', card.type);
+    }
+}, [lobbyId, currentTurnId, myPlayerId, gameState, hasSummonedQuestionThisTurn, hasPlayedSpellEffectThisTurn]);
 
    // NEW: Handle submitting answer from question modal
    const handleSubmitAnswer = useCallback((answer) => {
        console.log('Submitting answer:', answer);
        if (!socketRef.current || !socketRef.current.connected) {
            setGameMessage('Error: Not connected to server.');
-      return;
-    }
+           return;
+       }
        // Refined check: Can only submit if there's an active question AND it's NOT my turn (meaning I'm defending)
        if (!activeQuestion || currentTurnId === myPlayerId) {
             console.warn('Cannot submit answer: No active question or it is your turn.');
@@ -1094,32 +1178,62 @@ const Pvp = () => {
 
   // Handle surrender
   const handleSurrender = () => {
+    // Inform opponent (optional but good practice)
+    if (socketRef.current) {
+        socketRef.current.emit('surrender', { lobbyId });
+    }
+    // Set game over locally immediately
     setGameState(GAME_STATE.GAME_OVER);
-    setGameOverData({ reason: "You surrendered!" });
+    setGameOverData({ 
+        reason: "You surrendered!", 
+        winnerId: opponentPlayerId // Opponent wins if you surrender
+    }); 
+    console.log('Player surrendered.');
   };
 
   // Handle play again
   const handlePlayAgain = () => {
+    console.log('Attempting to play again...');
     if (socketRef.current) {
+      console.log('Emitting play_again event');
       socketRef.current.emit('play_again', { lobbyId: location.state?.lobbyId });
+    } else {
+        console.error('Cannot emit play_again: socket not available.');
+        // Maybe try to reconnect or show error?
+        return; 
     }
     
-    setGameState(GAME_STATE.RPS);
-    setPlayerInfo({ ...playerInfo, hp: MAX_HP });
-    setOpponentInfo({ ...opponentInfo, hp: MAX_HP });
-    setPlayerHand([]);
-    setCurrentQuestion(null);
-    setQuestionBeingAsked(null);
-    setSelectedAnswer(null);
+    // Reset ALL relevant state for a new game
+    console.log('Resetting state for new game...');
+    setGameState(GAME_STATE.WAITING); // Start in WAITING, wait for server game_ready/RPS
+    setMyInfo(prev => ({ ...prev, hp: STARTING_HP, shake: false }));
+    setOpponentInfo(prev => ({ ...prev, hp: STARTING_HP, shake: false })); // Reset opponent HP too
+    setMyHand([]);
+    setMyDeckCount(DECK_SIZE - STARTING_HAND_SIZE); // Reset counts
+    setOpponentHandCount(STARTING_HAND_SIZE);
+    setOpponentDeckCount(DECK_SIZE - STARTING_HAND_SIZE);
+    setLastSummonedCardOnField(null);
+    setLastPlayedSpellEffect(null);
+    setActiveQuestion(null);
     setFeedback({ show: false, correct: null, message: "" });
-    setGameMessage("Waiting for game to start...");
-    setTurn(null);
+    setGameMessage("Waiting for new game to start...");
+    setCurrentTurnId(null); // Reset turn
     setSelectedSubject(null);
     setSelectedQuestions([]);
     setAvailableQuestions([]);
     setRpsChoice(null);
     setOpponentRpsChoice(null);
     setRpsResult(null);
+    setPlayerDiceValue(null);
+    setOpponentDiceValue(null);
+    setIsDiceRolling(false);
+    setBothPlayersRolled(false);
+    setDiceWinnerId(null);
+    setHasSummonedQuestionThisTurn(false);
+    setHasPlayedSpellEffectThisTurn(false);
+    setGameOverData(null); // Clear game over data
+    // showGameOverModal is controlled by gameState, no need to set false
+    
   };
 
   // Add state monitoring effect
@@ -1144,34 +1258,43 @@ const Pvp = () => {
   }, [gameState, gameReady, rpsChoice, opponentRpsChoice]);
 
   // Refactored handleDiceRoll - emits event, waits for server's dice_result
-  const handleDiceRoll = useCallback(() => { // Changed from useEffect to useCallback
-    if (isDiceRolling || playerDiceValue !== null) {
-      console.log('Dice roll already in progress or value exists locally');
+  const handleDiceRoll = useCallback(() => { 
+    // Prevent rolling if already rolled OR currently in the brief visual rolling state
+    if (playerDiceValue !== null || isDiceRolling) { 
+      console.log('Dice roll already occurred or is visually rolling');
       return;
     }
+    // Set rolling state TRUE only for the visual effect duration
     setIsDiceRolling(true); 
     setGameMessage("Rolling the dice...");
+    
     setTimeout(() => {
+      // Set rolling state FALSE *before* emitting - button becomes clickable again
+      // The check above (playerDiceValue !== null) prevents re-rolling after result comes back
+      setIsDiceRolling(false); 
+
       if (socketRef.current && socketRef.current.connected) {
         console.log('Emitting dice_roll event');
         socketRef.current.emit('dice_roll', {
-          lobbyId: lobbyId, // Use state lobbyId
+          lobbyId: lobbyId, 
         });
-        setGameMessage("Waiting for dice result from server...");
+        // Update message to indicate waiting for server/opponent
+        setGameMessage("Waiting for opponent to roll..."); 
       } else {
         console.error('Socket not available or not connected for dice roll');
         setGameMessage("Connection error. Cannot roll dice.");
-        setIsDiceRolling(false);
+        // Already set isDiceRolling back to false above
         if (!socketRef.current?.connected) {
             retryConnection();
         }
       }
     }, 1500); // Visual roll duration
-  }, [isDiceRolling, playerDiceValue, lobbyId, retryConnection]); // Updated dependencies
+  }, [isDiceRolling, playerDiceValue, lobbyId, retryConnection]); 
 
-  // Effect to handle showing modals based on gameState (REMOVED DICE MODAL LOGIC)
+  // Effect to handle showing modals based on gameState
   useEffect(() => {
     console.log(`Effect triggered by gameState change: ${gameState}`);
+    // Any other modal logic dependent on gameState can go here
   }, [gameState]);
 
   // --- Main Render Output ---
@@ -1189,29 +1312,7 @@ const Pvp = () => {
           onExit={() => navigate('/')} 
         />
 
-        {/* Subject Selection Modal */}
-        {showSubjectModal && (
-          <div className={`${styles.subjectModal} ${styles[modalAnimation]}`}>
-             {/* ... Subject Modal Content ... */} 
-            <div className={styles.subjectModalContent}>
-              <h2>Subject Selected!</h2>
-              <div className={styles.selectedSubject}>
-                <span className={styles.subjectIcon}>{selectedSubject?.icon}</span>
-                <span className={styles.subjectName}>{selectedSubjectName}</span>
-              </div>
-              <div className={styles.modalCountdown}>
-                <motion.div
-                  initial={{ scale: 1.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  Starting in {subjectModalCountdown}...
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {/* Subject Selection Modal - Removed (Integrated into main flow) */}
         {/* Render other conditional components */}
         <DiceRollModal 
             show={gameState === GAME_STATE.DICE_ROLL}
@@ -1240,14 +1341,14 @@ const Pvp = () => {
                 isPlayerTurn={currentTurnId === myPlayerId}
             />
         )}
-        {/* Only show Card Selection if state matches AND RPS result is cleared */}
-        {gameState === GAME_STATE.CARD_SELECTION && rpsResult === null && (
+        {/* Only show Card Selection if state matches DECK_CREATION AND RPS result is cleared */}
+        {gameState === GAME_STATE.DECK_CREATION && rpsResult === null && (
             <CardSelection
                 isLoading={isLoadingQuestions}
                 error={error}
                 availableQuestions={availableQuestions}
                 selectedQuestions={selectedQuestions}
-                requiredCount={INITIAL_CARDS}
+                requiredCount={DECK_SELECTION_COUNT}
                 onSelect={handleQuestionSelect}
                 onDeselect={handleQuestionDeselect}
                 onConfirm={handleConfirmQuestions}
@@ -1267,7 +1368,7 @@ const Pvp = () => {
         {/* Main Game Screen Conditionally Rendered - only if not in initial phases AND RPS result is cleared */}
         {gameState !== GAME_STATE.RPS &&
           gameState !== GAME_STATE.SUBJECT_SELECTION &&
-          gameState !== GAME_STATE.CARD_SELECTION &&
+          gameState !== GAME_STATE.DECK_CREATION && 
           gameState !== GAME_STATE.DICE_ROLL &&
           gameState !== GAME_STATE.GAME_OVER &&
           rpsResult === null && 
@@ -1311,6 +1412,16 @@ const Pvp = () => {
                 </div>
               {/* Player Hand Area */} 
               <div className={styles.playerHandArea}>
+                    {/* Log values used for canPlay calculation */} 
+                    {console.log('[Pvp Render] Checking canPlay:', { 
+                        currentTurnId, 
+                        myPlayerId, 
+                        isMyTurn: currentTurnId === myPlayerId, 
+                        gameState, 
+                        expectedState: GAME_STATE.AWAITING_CARD_SUMMON, 
+                        isCorrectState: gameState === GAME_STATE.AWAITING_CARD_SUMMON, 
+                        calculatedCanPlay: currentTurnId === myPlayerId && gameState === GAME_STATE.AWAITING_CARD_SUMMON 
+                    })}
                     <PlayerHand 
                         hand={myHand} 
                         onCardClick={handleCardClick} 
