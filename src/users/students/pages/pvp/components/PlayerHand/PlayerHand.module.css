@@ -1,65 +1,86 @@
 /* Styles specific to PlayerHand - Enhanced Dashboard Inspired */
 
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
 .handArea {
-  /* --- Scoped CSS Variables --- */
-  --font-game: "Press Start 2P", cursive;
-  --font-body: "VT323", monospace;
-  --color-accent: #00ff9d;
-  --color-accent-hover: #80ffce;
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-pixel-shadow: rgba(0, 0, 0, 0.8);
-  --color-card-bg: rgba(0, 0, 0, 0.6); /* Darker card background */
-  --color-card-border: rgba(0, 255, 157, 0.4);
-  --color-card-hover-border: var(--color-accent);
-  --color-card-selected-border: var(--color-accent-hover);
-  --color-card-selected-shadow: rgba(0, 255, 157, 0.6);
-  --shadow-depth-1: 2px;
-  --shadow-depth-2: 4px;
-  --shadow-depth-hover: 5px;
-  /* --- End Scoped Variables --- */
-
+  position: static;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  padding: 15px 0; /* Increased padding */
-  min-height: 140px; /* Increased height */
-  width: 100%;
-  position: relative;
-  margin-top: 15px;
+  gap: 1px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  border: 2px solid #444;
+  transition: all 0.3s ease;
+  width: 100vw;
+  height: 45px;
+  overflow: hidden;
+  image-rendering: pixelated;
 }
 
 .playerHandArea {
-  /* Specific styles if needed, currently uses common .handArea */
-  margin-right: auto; /* Push PlayerInfoLocal to the right */
+  height: auto;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 0;
+}
+
+.cardWrapper {
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0.1s;
+  transform-origin: bottom center;
+  margin: 0 -2px;
+  height: auto;
+  z-index: 1;
+}
+
+.cardWrapper:hover {
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+.cardWrapper:hover~.cardWrapper {
+  transform: translateX(1px);
+}
+
+.emptyHandMessage {
+  color: #888;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 2px;
+  font-family: 'VT323', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 #000;
 }
 
 /* Base Card Style */
 .card {
-  width: 90px; /* Increased size */
-  height: 125px;
-  background-color: var(--color-card-bg);
-  border: 2px solid var(--color-card-border);
+  width: 30px;
+  height: 42px;
+  background-color: #222;
+  border: 1px solid #444;
   border-radius: 0;
-  margin: 0 4px;
+  margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  color: var(--color-text-base);
-  font-family: var(--font-body);
-  font-size: 0.8em;
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: 0.5em;
   cursor: default;
   transition: transform 0.15s ease-out, border-color 0.2s ease, box-shadow 0.15s ease-out;
-  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+  box-shadow: 1px 1px 0 #000;
   overflow: hidden;
+  image-rendering: pixelated;
 }
 
-/* Specific player hand card styling */
 .playerHandCard {
   /* Inherits .card styles */
 }
@@ -69,17 +90,17 @@
 }
 
 .playerHandCard.selectable:hover {
-  transform: translateY(-10px) scale(1.03);
-  border-color: var(--color-card-hover-border);
-  box-shadow: var(--shadow-depth-hover) var(--shadow-depth-hover) 0 0 var(--color-pixel-shadow);
-  z-index: 2; /* Bring hovered card slightly forward */
+  transform: translateY(-2px) scale(1.01);
+  border-color: #666;
+  box-shadow: 3px 3px 0 #000;
+  z-index: 2;
 }
 
 .playerHandCard.selected {
-  transform: translateY(-15px) scale(1.08);
-  border-color: var(--color-card-selected-border);
-  box-shadow: var(--shadow-depth-hover) var(--shadow-depth-hover) 0 0 var(--color-card-selected-shadow), var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
-  z-index: 3; /* Bring selected card most forward */
+  transform: translateY(-2px) scale(1.02);
+  border-color: #888;
+  box-shadow: 4px 4px 0 #000;
+  z-index: 3;
 }
 
 .cardArtPlaceholder {
@@ -87,90 +108,120 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3em; /* Increased size */
-  color: var(--color-text-muted);
+  font-size: 1em;
+  color: #666;
   width: 100%;
-  background-color: rgba(0,0,0,0.3); /* Darker placeholder bg */
-  padding: 5px 0;
+  background-color: #111;
+  padding: 0;
   opacity: 0.8;
+  border-bottom: 1px solid #444;
 }
 
 .cardTextPreview {
-  padding: 5px;
+  padding: 0;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #111;
   width: 100%;
   box-sizing: border-box;
-  min-height: 40px; /* Increased height */
+  min-height: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1.3;
-  font-size: 1em; /* Increased size */
+  line-height: 1;
+  font-size: 0.5em;
+  border-top: 1px solid #444;
+  text-shadow: 1px 1px 0 #000;
 }
 
 /* Media Queries */
-@media (max-width: 992px) { /* Add tablet breakpoint */
+@media (max-width: 1200px) {
+  .handArea {
+    width: 100vw;
+    height: 40px;
+  }
+
+  .cardWrapper {
+    margin: 0 -1px;
+  }
+
   .card {
-    width: 80px;
-    height: 115px;
+    width: 28px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 992px) {
+  .handArea {
+    width: 100vw;
+    height: 35px;
+  }
+
+  .cardWrapper {
+    margin: 0 -1px;
+  }
+
+  .cardWrapper:hover {
+    transform: translateY(-3px) scale(1.01);
+  }
+
+  .card {
+    width: 25px;
+    height: 35px;
   }
 }
 
 @media (max-width: 768px) {
   .handArea {
-    min-height: 110px;
+    width: 100vw;
+    padding: 1px;
+    height: 30px;
   }
+
+  .cardWrapper {
+    margin: 0;
+  }
+
+  .cardWrapper:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+
   .card {
-    width: 70px;
-    height: 100px;
-    margin: 0 2px;
-    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+    width: 22px;
+    height: 30px;
   }
-  .playerHandCard.selectable:hover {
-     transform: translateY(-8px) scale(1.03);
-     box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
-  }
-  .playerHandCard.selected {
-     transform: translateY(-12px) scale(1.05);
-     box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-card-selected-shadow), var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
-  }
-  .cardArtPlaceholder {
-    font-size: 2.5em;
-  }
+
   .cardTextPreview {
-    font-size: 0.9em;
-    min-height: 35px;
+    font-size: 0.45em;
+    min-height: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .handArea {
-    min-height: 95px;
-    padding: 5px 0;
+    width: 100vw;
+    padding: 1px;
+    height: 25px;
   }
-   .card {
-    width: 60px;
-    height: 85px;
-    margin: 0 1px;
-    border-width: 1px;
-    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+
+  .cardWrapper {
+    margin: 0;
   }
-  .playerHandCard.selectable:hover {
-     transform: translateY(-5px) scale(1.02);
-     box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+
+  .cardWrapper:hover {
+    transform: translateY(-1px) scale(1.01);
   }
-  .playerHandCard.selected {
-     transform: translateY(-8px) scale(1.03);
-     box-shadow: 2px 2px 0 0 var(--color-card-selected-shadow), 1px 1px 0 0 var(--color-pixel-shadow);
+
+  .card {
+    width: 18px;
+    height: 25px;
   }
-   .cardArtPlaceholder {
-    font-size: 2em;
-  }
+
   .cardTextPreview {
-    font-size: 0.8em;
-    min-height: 30px;
-    line-height: 1.2;
-    padding: 4px;
+    font-size: 0.4em;
+    min-height: 8px;
   }
-} 
+
+  .emptyHandMessage {
+    font-size: 0.5rem;
+  }
+}

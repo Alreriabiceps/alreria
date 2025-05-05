@@ -58,7 +58,7 @@ const CardSelection = ({
               {selectedQuestions.map(question => (
                 <div
                   key={question.id} // Keys are unique within this list
-                  className={styles.questionCard}
+                  className={`${styles.questionCard} ${styles.selected}`}
                   onClick={() => onDeselect(question)}
                 >
                   <p>{question.text}</p>

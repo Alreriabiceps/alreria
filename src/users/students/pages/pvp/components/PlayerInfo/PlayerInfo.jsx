@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './PlayerInfo.module.css';
 
 const PlayerInfo = ({
@@ -7,8 +7,11 @@ const PlayerInfo = ({
   maxHp,
   isOpponent,
   isActiveTurn,
-  hpShake
+  hpShake,
+  onHpChange
 }) => {
+  const [hpChange, setHpChange] = useState(null);
+  const [showHpChange, setShowHpChange] = useState(false);
 
   // Helper to determine HP bar fill color class
   const getHpBarFillClass = (currentHp, maximumHp) => {
@@ -19,26 +22,62 @@ const PlayerInfo = ({
     return className;
   };
 
+  // Handle HP changes
+  useEffect(() => {
+    if (hp !== undefined && hp !== null) {
+      const change = hp - (hpChange?.previousHp || hp);
+      if (change !== 0) {
+        setHpChange({
+          value: change,
+          previousHp: hpChange?.previousHp || hp,
+          newHp: hp
+        });
+        setShowHpChange(true);
+
+        // Notify parent of HP change
+        if (onHpChange) {
+          onHpChange(change);
+        }
+
+        // Hide the change text after animation
+        setTimeout(() => {
+          setShowHpChange(false);
+        }, 1000);
+      }
+    }
+  }, [hp]);
+
   return (
-    <div 
+    <div
       className={`
-        ${styles.playerInfoArea} 
-        ${isOpponent ? styles.opponentInfoArea : styles.playerInfoAreaLocal}
+        ${styles.playerInfoContainer} 
+        ${isOpponent ? styles.opponentInfo : styles.localPlayerInfo}
         ${isActiveTurn ? styles.activeTurn : ''}
       `}
     >
-      {/* HP Container with Shake */}
-      <div className={`${styles.hpContainer} ${hpShake ? styles.shakeHp : ""}`}>
+      <div className={styles.infoDisplayBox}>
         <div className={styles.username}>{name}</div>
-        <div className={styles.hpBarContainer}>
+        <div className={`${styles.hpBarContainer} ${hpShake ? styles.shake : ''}`}>
           <div
             className={getHpBarFillClass(hp, maxHp)}
             style={{ width: `${(hp / maxHp) * 100}%` }}
-          ></div>
+          />
+          {showHpChange && hpChange && (
+            <div
+              className={styles.hpChangeText}
+              style={{
+                color: hpChange.value < 0 ? 'var(--color-hp-low)' : 'var(--color-hp-high)',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              {hpChange.value > 0 ? '+' : ''}{hpChange.value}HP
+            </div>
+          )}
         </div>
         <div className={styles.hpText}>{hp} / {maxHp}</div>
       </div>
-      {/* Note: Hand display is now handled by separate components */}
     </div>
   );
 };

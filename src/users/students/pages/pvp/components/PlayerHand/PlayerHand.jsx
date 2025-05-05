@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from './PlayerHand.module.css';
+import CardDisplay from '../CardComponents/CardDisplay/CardDisplay';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PlayerHand = ({
   hand, // Array of card objects { _id, type, text, ... }
@@ -10,12 +12,9 @@ const PlayerHand = ({
 
   // Internal render helper for a single card
   const renderCard = (card, index) => {
+    if (!card) return null; // Guard against undefined/null cards
     // --- Log the individual card being rendered ---
-    console.log(`[PlayerHand renderCard] Processing card ${index}:`, JSON.stringify(card, null, 2)); 
-    
-    // Determine card style based on type and playability
-    const cardTypeClass = card.type === 'spellEffect' ? styles.spellEffectCard : styles.questionCard;
-    const playableClass = canPlay ? styles.playable : '';
+    console.log(`[PlayerHand renderCard] Processing card ${index}:`, JSON.stringify(card, null, 2));
 
     const handleClick = () => {
       if (canPlay) {
@@ -26,25 +25,27 @@ const PlayerHand = ({
     };
 
     return (
-      <div
-        key={card._id || `p-card-${index}`} // Use card._id if available
-        className={`
-          ${styles.card}
-          ${styles.playerHandCard} 
-          ${cardTypeClass}
-          ${playableClass}
-        `}
-        onClick={handleClick}
-        title={canPlay ? `Play Card: ${card.text?.substring(0, 30)}...` : card.text?.substring(0, 30)}
+      <motion.div
+        key={`${card._id || 'p-card'}-${index}`}
+        className={styles.cardWrapper}
+        initial={{ y: 100, opacity: 0, scale: 0.7 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.7 }}
+        transition={{ duration: 0.35, type: 'spring', bounce: 0.3 }}
       >
-        {/* Basic Card Visual - Enhance as needed */}
-        <div className={styles.cardTypeIndicator}>{card.type === 'spellEffect' ? 'SPELL' : 'Q'}</div>
-        <div className={styles.cardTextPreview}>
-          {card.text?.substring(0, 40)}
-          {card.text?.length > 40 ? "..." : ""}
-        </div>
-        {/* Add cost, stats, etc. later if applicable */}
-      </div>
+        <CardDisplay
+          card={{
+            title: card.type === 'spellEffect' ? 'SPELL' : 'QUESTION',
+            content: card.text,
+            options: card.options || [],
+            rarity: card.rarity || 'common',
+            tooltip: canPlay ? `Play Card: ${card.text?.substring(0, 30)}...` : card.text?.substring(0, 30)
+          }}
+          onClick={handleClick}
+          isPlayable={canPlay}
+          isDraggable={canPlay}
+        />
+      </motion.div>
     );
   };
 
@@ -53,8 +54,10 @@ const PlayerHand = ({
 
   return (
     <div className={`${styles.handArea} ${styles.playerHandArea}`}>
-       {hand.length === 0 && <div className={styles.emptyHandMessage}>Empty Hand</div>}
-      {hand.map(renderCard)}
+      {hand.length === 0 && <div className={styles.emptyHandMessage}>Empty Hand</div>}
+      <AnimatePresence initial={false}>
+        {hand.map(renderCard)}
+      </AnimatePresence>
       {/* Removed card count display from here - handled in Pvp.jsx */}
     </div>
   );

@@ -11,7 +11,8 @@
   --color-accent-hover: #80ffce;
   --color-text-base: #e0e0e0;
   --color-text-muted: #a0a0a0;
-  --color-panel: rgba(10, 5, 25, 0.97); /* Very dark panel for game over */
+  --color-panel: rgba(10, 5, 25, 0.97);
+  /* Very dark panel for game over */
   --color-panel-border: rgba(0, 255, 157, 0.6);
   --color-pixel-shadow: rgba(0, 0, 0, 0.7);
   --color-button-primary-bg: var(--color-accent);
@@ -21,7 +22,8 @@
   --color-lose: #e74c3c;
   --color-score-bg: rgba(0, 0, 0, 0.3);
   --color-score-border: rgba(0, 255, 157, 0.2);
-  --color-overlay-bg: rgba(0, 0, 0, 0.85); /* Darker overlay */
+  --color-overlay-bg: rgba(0, 0, 0, 0.85);
+  /* Darker overlay */
   /* --- End Scoped Variables --- */
 
   position: fixed;
@@ -33,7 +35,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100; /* Highest z-index */
+  z-index: 1100;
+  /* Highest z-index */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.4s ease, visibility 0s linear 0.4s;
@@ -63,15 +66,16 @@
 }
 
 .gameOverModalOverlay.show .gameOverModalContent {
-    transform: scale(1);
-    opacity: 1;
+  transform: scale(1);
+  opacity: 1;
 }
 
 .gameOverTitle {
   font-size: 2em;
   margin-bottom: 15px;
   /* Color dynamically based on win/loss? Or keep neutral? */
-  color: var(--color-accent); /* Using accent for now */
+  color: var(--color-accent);
+  /* Using accent for now */
   text-shadow: 2px 2px 0 var(--color-pixel-shadow);
 }
 
@@ -87,7 +91,15 @@
 /* .finalScores { ... } */
 /* .scoreItem { ... } */
 
-.playAgainButton {
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.playAgainButton,
+.exitButton {
   background-color: var(--color-button-primary-bg);
   color: var(--color-button-primary-text);
   border: 2px solid var(--color-button-primary-text);
@@ -100,56 +112,78 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-  margin-top: 15px;
-  display: inline-block;
+  width: 100%;
+  max-width: 200px;
 }
 
-.playAgainButton:hover {
-  background-color: var(--color-button-primary-hover-bg);
+.exitButton {
+  background-color: transparent;
+  color: var(--color-text-base);
+  border-color: var(--color-text-muted);
+}
+
+.playAgainButton:hover,
+.exitButton:hover {
   transform: translate(-2px, -2px);
   box-shadow: 5px 5px 0 0 var(--color-pixel-shadow);
 }
 
-.playAgainButton:active {
-    transform: translate(1px, 1px);
-    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+.playAgainButton:hover {
+  background-color: var(--color-button-primary-hover-bg);
+}
+
+.exitButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-text-base);
+}
+
+.playAgainButton:active,
+.exitButton:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
 }
 
 /* Media Queries */
 @media (max-width: 768px) {
-    .gameOverModalContent {
-        padding: 30px;
-    }
-    .gameOverTitle {
-        font-size: 1.8em;
-    }
-    .winnerMessage {
-        font-size: 1.2em;
-        margin-bottom: 25px;
-    }
-    .playAgainButton {
-        font-size: 0.9em;
-        padding: 10px 25px;
-    }
+  .gameOverModalContent {
+    padding: 30px;
+  }
+
+  .gameOverTitle {
+    font-size: 1.8em;
+  }
+
+  .winnerMessage {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+  }
+
+  .playAgainButton,
+  .exitButton {
+    font-size: 0.9em;
+    padding: 10px 25px;
+  }
 }
 
 @media (max-width: 480px) {
-    .gameOverModalContent {
-        padding: 25px 20px;
-        width: 95%;
-    }
-    .gameOverTitle {
-        font-size: 1.5em;
-        margin-bottom: 10px;
-    }
-    .winnerMessage {
-        font-size: 1.1em;
-        margin-bottom: 20px;
-    }
-     .playAgainButton {
-        font-size: 0.8em;
-        padding: 8px 20px;
-        width: 80%;
-        max-width: 200px;
-    }
-} 
+  .gameOverModalContent {
+    padding: 25px 20px;
+    width: 95%;
+  }
+
+  .gameOverTitle {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+  }
+
+  .winnerMessage {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+  }
+
+  .playAgainButton,
+  .exitButton {
+    font-size: 0.8em;
+    padding: 8px 20px;
+  }
+}

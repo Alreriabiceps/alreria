@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styles from './DiceRollModal.module.css';
 
 const DiceRollModal = ({
@@ -9,8 +9,53 @@ const DiceRollModal = ({
   bothRolled,
   onRollDice,
   winnerId,
-  userId
+  userId,
+  onTimeoutComplete
 }) => {
+  const resultTimeoutRef = useRef(null);
+  const displayDelayTimeoutRef = useRef(null);
+  const [showWinnerResult, setShowWinnerResult] = useState(false);
+
+  useEffect(() => {
+    if (bothRolled && onTimeoutComplete) {
+      if (displayDelayTimeoutRef.current) {
+        clearTimeout(displayDelayTimeoutRef.current);
+      }
+      if (resultTimeoutRef.current) {
+        clearTimeout(resultTimeoutRef.current);
+      }
+      setShowWinnerResult(false);
+
+      console.log('[DiceRollModal] Starting short delay before showing result visuals (50ms)');
+      displayDelayTimeoutRef.current = setTimeout(() => {
+        console.log('[DiceRollModal] Short delay finished. Showing result visuals.');
+        setShowWinnerResult(true);
+
+        console.log('[DiceRollModal] Starting result display timeout (3s)');
+        resultTimeoutRef.current = setTimeout(() => {
+          console.log('[DiceRollModal] Result display timeout finished.');
+          onTimeoutComplete();
+        }, 3000);
+
+      }, 50);
+
+    } else {
+      setShowWinnerResult(false);
+    }
+
+    return () => {
+      if (displayDelayTimeoutRef.current) {
+        console.log('[DiceRollModal] Clearing display delay timeout on unmount/change.');
+        clearTimeout(displayDelayTimeoutRef.current);
+        displayDelayTimeoutRef.current = null;
+      }
+      if (resultTimeoutRef.current) {
+        console.log('[DiceRollModal] Clearing result display timeout on unmount/change.');
+        clearTimeout(resultTimeoutRef.current);
+        resultTimeoutRef.current = null;
+      }
+    };
+  }, [bothRolled, onTimeoutComplete]);
 
   if (!show) {
     return null;
@@ -35,14 +80,12 @@ const DiceRollModal = ({
     return 'May the best roll win!';
   }
 
-  // Do not render if show is false (already handled by the check above)
-  // But we need to conditionally apply the show class for the transition
-  const overlayClasses = show 
-    ? `${styles.diceModalOverlay} ${styles.show}` 
+  const overlayClasses = show
+    ? `${styles.diceModalOverlay} ${styles.show}`
     : styles.diceModalOverlay;
 
   return (
-    <div className={overlayClasses}> {/* Apply conditional classes */} 
+    <div className={overlayClasses}>
       <div className={`${styles.diceModalContent} ${bothRolled ? styles.showResult : ''}`}>
         <div className={styles.diceHeader}>
           <h2 className={styles.diceTitle}>Roll for First Turn!</h2>
@@ -52,7 +95,7 @@ const DiceRollModal = ({
         <div className={styles.diceContainer}>
           {/* Player Dice */}
           <div className={styles.diceSection}>
-            <div className={`${styles.dice3D} ${isRolling ? styles.rolling : ''} ${isPlayerWinner ? styles.winner : ''}`}>
+            <div className={`${styles.dice3D} ${isRolling ? styles.rolling : ''} ${bothRolled && showWinnerResult && isPlayerWinner ? styles.winner : ''} ${bothRolled && showWinnerResult && isOpponentWinner ? styles.loser : ''} ${bothRolled && showWinnerResult && isTie ? styles.tie : ''}`}>
               <div className={styles.diceFace}>{playerDiceValue || '?'}</div>
               <div className={styles.diceShadow}></div>
             </div>
@@ -66,8 +109,7 @@ const DiceRollModal = ({
 
           {/* Opponent Dice */}
           <div className={styles.diceSection}>
-            {/* Use opponentDiceValue to determine if rolled visually */}
-            <div className={`${styles.dice3D} ${opponentDiceValue ? styles.rolled : ''} ${isOpponentWinner ? styles.winner : ''}`}>
+            <div className={`${styles.dice3D} ${opponentDiceValue && !bothRolled ? '' : ''} ${bothRolled && showWinnerResult && isOpponentWinner ? styles.winner : ''} ${bothRolled && showWinnerResult && isPlayerWinner ? styles.loser : ''} ${bothRolled && showWinnerResult && isTie ? styles.tie : ''}`}>
               <div className={styles.diceFace}>{opponentDiceValue || '?'}</div>
               <div className={styles.diceShadow}></div>
             </div>
@@ -75,12 +117,11 @@ const DiceRollModal = ({
           </div>
         </div>
 
-        {/* Roll Button or Waiting Message */}
         {!playerDiceValue && !bothRolled && (
           <button
             className={styles.rollButton}
             onClick={onRollDice}
-            disabled={isRolling} // Disable while player is rolling
+            disabled={isRolling}
           >
             <span className={styles.rollButtonText}>Roll Dice</span>
             <span className={styles.rollButtonIcon}>🎲</span>
@@ -94,18 +135,16 @@ const DiceRollModal = ({
           </div>
         )}
 
-        {/* Result Message Area */}
-        {bothRolled && (
+        {bothRolled && showWinnerResult && (
           <div className={`${styles.resultMessage} ${isPlayerWinner ? styles.winner : isOpponentWinner ? styles.loser : styles.tie}`}>
             <div className={styles.resultIcon}>
               {isPlayerWinner ? '🎉' : isOpponentWinner ? '🎯' : '🤝'}
             </div>
             <div className={styles.resultText}>{getResultMessage()}</div>
-            {/* Display score only if not a tie */}
             {!isTie && (
-                <div className={styles.resultScore}>
-                  {playerDiceValue} vs {opponentDiceValue}
-                </div>
+              <div className={styles.resultScore}>
+                {playerDiceValue} vs {opponentDiceValue}
+              </div>
             )}
           </div>
         )}

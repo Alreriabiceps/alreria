@@ -4,26 +4,35 @@
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
 .diceModalOverlay {
-  /* --- Scoped CSS Variables --- */
+  /* --- Scoped CSS Variables (Aligned) --- */
   --font-game: "Press Start 2P", cursive;
   --font-body: "VT323", monospace;
   --color-accent: #00ff9d;
   --color-accent-hover: #80ffce;
   --color-text-base: #e0e0e0;
   --color-text-muted: #a0a0a0;
-  --color-panel: rgba(15, 12, 41, 0.95); /* Slightly darker panel for modal */
+  --color-panel: rgba(15, 12, 41, 0.95);
   --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
+  --color-pixel-shadow: rgba(0, 0, 0, 0.8);
+  /* Make consistent */
   --color-button-primary-bg: var(--color-accent);
-  --color-button-primary-text: #0c051a;
+  --color-button-primary-text: #0a0519;
+  /* Consistent dark text */
   --color-button-primary-hover-bg: var(--color-accent-hover);
-  --color-dice-bg: #f0f0f0;
-  --color-dice-border: #cccccc;
-  --color-dice-text: #333333;
+  --color-dice-bg: #ffffff;
+  --color-dice-border: var(--color-pixel-shadow);
+  /* Dark border */
+  --color-dice-text: #111111;
   --color-win: #2ecc71;
   --color-lose: #e74c3c;
   --color-tie: #f39c12;
-  --color-overlay-bg: rgba(0, 0, 0, 0.8); /* Darker overlay */
+  --color-overlay-bg: rgba(0, 0, 0, 0.85);
+  /* Darker overlay */
+  --shadow-depth-1: 3px;
+  --shadow-depth-2: 6px;
+  --shadow-depth-hover: 8px;
+  --dice-size: 70px;
+  /* Dice size variable */
   /* --- End Scoped Variables --- */
 
   position: fixed;
@@ -35,7 +44,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050; /* Higher than other elements */
+  z-index: 1050;
+  /* Higher than other elements */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0s linear 0.3s;
@@ -50,13 +60,16 @@
 .diceModalContent {
   background-color: var(--color-panel);
   border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
+  /* Consistent shadow */
   border-radius: 0;
-  padding: 30px 40px;
+  padding: 35px 45px;
+  /* Increased padding */
   color: var(--color-text-base);
   text-align: center;
   width: 90%;
-  max-width: 500px;
+  max-width: 550px;
+  /* Slightly wider */
   font-family: var(--font-game);
   /* Add simple transition for entry */
   transform: translateY(10px);
@@ -65,8 +78,8 @@
 }
 
 .diceModalOverlay.show .diceModalContent {
-    transform: translateY(0);
-    opacity: 1;
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .diceHeader {
@@ -74,260 +87,357 @@
 }
 
 .diceTitle {
-  font-size: 1.4em;
+  font-size: 1.5em;
+  /* Larger */
   margin-bottom: 8px;
   color: var(--color-accent);
+  text-shadow: 1px 1px 0px var(--color-pixel-shadow);
 }
 
 .diceSubtitle {
   font-family: var(--font-body);
-  font-size: 1.2em;
+  font-size: 1.3em;
+  /* Larger */
   color: var(--color-text-muted);
 }
 
 .diceContainer {
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  margin-bottom: 30px;
+  align-items: flex-start;
+  /* Align to top for labels */
+  margin-bottom: 35px;
+  /* More space */
   padding: 0 15px;
+  gap: 20px;
+  /* Add gap */
 }
 
 .diceSection {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 10px;
+  /* Space between dice and label */
 }
 
 .diceLabel {
-  margin-top: 8px;
+  margin-top: 0;
+  /* Remove default margin */
   font-size: 0.8em;
   color: var(--color-text-muted);
+  font-family: var(--font-body);
 }
 
-/* Pixelated Dice Style */
-.dicePixel {
-  width: 60px;
-  height: 60px;
+/* Simple Pixelated Dice Style - Replace .dice3D if not used */
+.dice3D {
+  /* Rename or ensure this is the class used */
+  width: var(--dice-size);
+  height: var(--dice-size);
   background-color: var(--color-dice-bg);
   border: 2px solid var(--color-dice-border);
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-game);
-  font-size: 1.8em;
+  font-size: calc(var(--dice-size) * 0.4);
+  /* Scale font size */
   color: var(--color-dice-text);
   position: relative;
-  overflow: hidden; /* For potential dot patterns */
+  transition: all 0.3s ease-out;
 }
 
-/* Add 'dots' using pseudo-elements or actual divs if needed for pixel effect */
+/* Enhanced Rolling Animation */
+@keyframes roll3D {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
+    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  }
 
-/* Rolling Animation (Simple) */
-@keyframes rollPixel {
-  0%   { transform: translateY(0px); }
-  25%  { transform: translateY(-5px) scale(1.05); }
-  50%  { transform: translateY(0px) scale(0.95); }
-  75%  { transform: translateY(5px) scale(1.05); }
-  100% { transform: translateY(0px); }
+  25% {
+    transform: rotateX(90deg) rotateY(-90deg) scale(1.1);
+    box-shadow: calc(var(--shadow-depth-1) * 1.5) calc(var(--shadow-depth-1) * 1.5) 0 0 var(--color-pixel-shadow);
+  }
+
+  50% {
+    transform: rotateX(180deg) rotateY(0deg) scale(0.9);
+    box-shadow: calc(var(--shadow-depth-1) * 0.5) calc(var(--shadow-depth-1) * 0.5) 0 0 var(--color-pixel-shadow);
+  }
+
+  75% {
+    transform: rotateX(270deg) rotateY(90deg) scale(1.1);
+    box-shadow: calc(var(--shadow-depth-1) * 1.5) calc(var(--shadow-depth-1) * 1.5) 0 0 var(--color-pixel-shadow);
+  }
+
+  100% {
+    transform: rotateX(360deg) rotateY(0deg) scale(1);
+    box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  }
 }
 
-.dicePixel.rolling {
-  animation: rollPixel 0.6s linear infinite;
+.dice3D.rolling {
+  animation: roll3D 0.8s ease-in-out;
 }
 
-/* Winner Indication */
-.diceSection.winner .dicePixel {
+/* Winner/Loser Indication */
+.dice3D.winner {
   border-color: var(--color-win);
-  box-shadow: 4px 4px 0 0 var(--color-win), 3px 3px 0 0 var(--color-pixel-shadow);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-win), 0 0 15px var(--color-win);
+  /* Glow + shadow */
+  transform: scale(1.1);
+  /* Slightly larger */
 }
-.diceSection.loser .dicePixel {
-    border-color: var(--color-lose);
+
+.dice3D.loser {
+  border-color: var(--color-lose);
+  opacity: 0.7;
+  transform: scale(0.95);
 }
-.diceSection.tie .dicePixel {
-    border-color: var(--color-tie);
+
+.dice3D.tie {
+  border-color: var(--color-tie);
 }
 
 .vsContainer {
   display: flex;
+  flex-direction: column;
+  /* Stack VS and line */
   align-items: center;
   justify-content: center;
-  height: 60px; /* Match dice height */
+  height: var(--dice-size);
+  /* Match dice height */
+  gap: 5px;
 }
 
 .vs {
-  font-size: 1.5em;
+  font-size: 1.6em;
+  /* Larger VS */
   font-weight: normal;
   color: var(--color-text-muted);
-  margin: 0 10px;
+  margin: 0;
+  line-height: 1;
+}
+
+.vsLine {
+  /* Optional line */
+  width: 2px;
+  height: 20px;
+  background-color: var(--color-text-muted);
 }
 
 /* --- Button and Messages --- */
 
+/* Roll Button Styling (like Confirm button, adjusted size) */
 .rollButton {
-  background-color: var(--color-button-primary-bg);
+  padding: 12px 28px;
+  /* Match smaller confirm button */
+  background: linear-gradient(to bottom, var(--color-button-primary-bg) 0%, color-mix(in srgb, var(--color-button-primary-bg) 90%, var(--color-pixel-shadow) 10%) 100%);
+  border: 2px solid var(--color-pixel-shadow);
   color: var(--color-button-primary-text);
-  border: 2px solid var(--color-button-primary-text);
   border-radius: 0;
-  padding: 10px 25px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 1.1em;
+  /* Match smaller confirm button */
+  font-weight: normal;
+  transition: all 0.15s ease-out;
   font-family: var(--font-game);
-  font-size: 0.9em;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-  margin-top: 10px;
+  text-shadow: 1px 1px 0px color-mix(in srgb, var(--color-pixel-shadow) 50%, transparent);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-pixel-shadow);
   display: inline-flex;
+  /* Use flex for icon */
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  /* Space for icon */
+  margin-top: 20px;
 }
 
 .rollButton:hover:not(:disabled) {
-  background-color: var(--color-button-primary-hover-bg);
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 0 var(--color-pixel-shadow);
+  background: linear-gradient(to bottom, var(--color-button-primary-hover-bg) 0%, color-mix(in srgb, var(--color-button-primary-hover-bg) 90%, var(--color-pixel-shadow) 10%) 100%);
+  transform: translate(calc(var(--shadow-depth-1) * -0.7), calc(var(--shadow-depth-1) * -0.7));
+  box-shadow: var(--shadow-depth-hover) var(--shadow-depth-hover) 0 0 var(--color-pixel-shadow), 0 0 8px rgba(0, 255, 157, 0.4);
 }
 
 .rollButton:active:not(:disabled) {
-    transform: translate(1px, 1px);
-    box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-button-primary-bg) 90%, var(--color-pixel-shadow) 10%) 0%, color-mix(in srgb, var(--color-button-primary-bg) 80%, var(--color-pixel-shadow) 20%) 100%);
 }
 
 .rollButton:disabled {
-  background-color: #555;
-  border-color: #777;
-  color: #aaa;
+  background: var(--color-disabled-bg);
+  border-color: var(--color-text-muted);
+  color: var(--color-text-muted);
   cursor: not-allowed;
   opacity: 0.7;
-  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  transform: none;
+  background-image: none;
+  text-shadow: none;
 }
 
 .rollButtonIcon {
-  /* Style icon if needed, e.g., font size */
+  font-size: 1.3em;
+  /* Make icon slightly larger */
 }
 
 .waitingMessage {
-  margin-top: 20px;
+  margin-top: 25px;
+  /* More space */
   font-family: var(--font-body);
-  font-size: 1.2em;
+  font-size: 1.4em;
+  /* Larger */
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.resultMessageContainer {
-  margin-top: 20px;
-  padding: 10px 15px;
-  border: 2px solid var(--color-panel-border);
+.waitingIcon {
+  font-size: 1.5em;
+}
+
+/* Restyle Result Message Area */
+.resultMessage {
+  margin-top: 25px;
+  padding: 15px 20px;
+  border: 2px solid;
   border-radius: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.3);
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Darker bg */
+  box-shadow: var(--shadow-depth-1) var(--shadow-depth-1) 0 0 var(--color-pixel-shadow);
+  /* Outer shadow */
+  display: flex;
+  flex-direction: column;
+  /* Stack icon, text, score */
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease-out;
 }
 
-.resultMessageContainer.winner {
-    border-color: var(--color-win);
+.resultMessage.winner {
+  border-color: var(--color-win);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-win), 0 0 10px var(--color-win);
+  /* Glow */
 }
-.resultMessageContainer.loser {
-    border-color: var(--color-lose);
+
+.resultMessage.loser {
+  border-color: var(--color-lose);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-lose);
+  opacity: 0.8;
 }
-.resultMessageContainer.tie {
-    border-color: var(--color-tie);
+
+.resultMessage.tie {
+  border-color: var(--color-tie);
+  box-shadow: var(--shadow-depth-2) var(--shadow-depth-2) 0 0 var(--color-tie);
+}
+
+.resultIcon {
+  font-size: 2em;
+  /* Larger icon */
 }
 
 .resultText {
   font-family: var(--font-game);
-  font-size: 1em;
+  font-size: 1.2em;
+  /* Larger text */
+  text-transform: uppercase;
 }
 
-.resultText.winnerText {
-    color: var(--color-win);
-}
-.resultText.loserText {
-    color: var(--color-lose);
-}
-.resultText.tieText {
-    color: var(--color-tie);
+/* Color applied via parent class (.winner, .loser, .tie) */
+.resultMessage.winner .resultText {
+  color: var(--color-win);
 }
 
-/* Media Queries */
+.resultMessage.loser .resultText {
+  color: var(--color-lose);
+}
+
+.resultMessage.tie .resultText {
+  color: var(--color-tie);
+}
+
+.resultScore {
+  font-family: var(--font-body);
+  font-size: 1.1em;
+  color: var(--color-text-muted);
+}
+
+/* Remove old result message styles */
+/* .resultMessageContainer, .winnerText, .loserText, .tieText { display: none; } */
+
+
+/* Media Queries (Adjustments needed) */
 @media (max-width: 768px) {
-    .diceModalContent {
-        padding: 25px 30px;
-    }
-    .diceTitle {
-        font-size: 1.2em;
-    }
-    .diceSubtitle {
-        font-size: 1.1em;
-    }
-    .dicePixel {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
-    }
-    .vs {
-        font-size: 1.3em;
-    }
-    .rollButton {
-        font-size: 0.8em;
-        padding: 8px 20px;
-    }
-    .resultText {
-        font-size: 0.9em;
-    }
+
+  /* ... (Adjust padding, font sizes, dice size etc. as needed) ... */
+  .diceModalContent {
+    padding: 25px 30px;
+    max-width: 90%;
+  }
+
+  .diceTitle {
+    font-size: 1.3em;
+  }
+
+  .diceSubtitle {
+    font-size: 1.2em;
+  }
+
+  :root {
+    --dice-size: 60px;
+  }
+
+  /* Reduce dice size */
+  .rollButton {
+    font-size: 1em;
+    padding: 10px 22px;
+  }
+
+  .resultText {
+    font-size: 1.1em;
+  }
+
+  .resultScore {
+    font-size: 1em;
+  }
 }
 
 @media (max-width: 480px) {
-    .diceModalContent {
-        padding: 20px 15px;
-        width: 95%;
-    }
-     .diceHeader {
-        margin-bottom: 20px;
-    }
-     .diceTitle {
-        font-size: 1.1em;
-    }
-    .diceSubtitle {
-        font-size: 1em;
-    }
-    .diceContainer {
-        padding: 0 5px;
-        margin-bottom: 25px;
-    }
-    .dicePixel {
-        width: 45px;
-        height: 45px;
-        font-size: 1.4em;
-        border-width: 1px;
-        box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
-    }
-     .diceSection.winner .dicePixel {
-        box-shadow: 3px 3px 0 0 var(--color-win), 2px 2px 0 0 var(--color-pixel-shadow);
-    }
-    .diceLabel {
-        font-size: 0.7em;
-    }
-    .vsContainer {
-        height: 45px;
-    }
-    .vs {
-        font-size: 1.2em;
-        margin: 0 5px;
-    }
-    .rollButton {
-        font-size: 0.8em;
-        padding: 8px 18px;
-        width: 70%;
-        max-width: 180px;
-    }
-    .waitingMessage {
-        font-size: 1.1em;
-    }
-    .resultMessageContainer {
-        padding: 8px 12px;
-    }
-    .resultText {
-        font-size: 0.85em;
-    }
-} 
+
+  /* ... (Adjust padding, font sizes, dice size etc. as needed) ... */
+  :root {
+    --dice-size: 50px;
+  }
+
+  /* Further reduce dice size */
+  .diceModalContent {
+    padding: 20px 15px;
+  }
+
+  .diceTitle {
+    font-size: 1.1em;
+  }
+
+  .rollButton {
+    font-size: 0.9em;
+    padding: 9px 18px;
+    width: auto;
+    /* Remove fixed width */
+    max-width: none;
+  }
+
+  .resultIcon {
+    font-size: 1.8em;
+  }
+
+  .resultText {
+    font-size: 1em;
+  }
+
+  .resultScore {
+    font-size: 0.9em;
+  }
+}

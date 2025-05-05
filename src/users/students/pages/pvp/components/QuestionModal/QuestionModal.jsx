@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './QuestionModal.module.css';
 
-const QuestionModal = ({ 
-    question, // { id, text, options }
+const QuestionModal = ({
+    question, // { id, text, options } or { id, questionText, choices }
     onSubmitAnswer // Function to call with the selected answer
 }) => {
     const [selectedOption, setSelectedOption] = useState(null);
@@ -26,13 +26,20 @@ const QuestionModal = ({
         return null;
     }
 
+    // Log the question data for debugging
+    console.log('QuestionModal received question:', question);
+
+    // Handle both old and new question data formats
+    const questionText = question.text || question.questionText;
+    const options = question.options || question.choices;
+
     return (
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
-                <p className={styles.questionText}>{question.text}</p>
+                <p className={styles.questionText}>{questionText}</p>
                 <div className={styles.optionsContainer}>
-                    {(question.options || []).map((option, index) => (
-                        <button 
+                    {(options || []).map((option, index) => (
+                        <button
                             key={index}
                             className={`
                                 ${styles.optionButton}
@@ -44,7 +51,7 @@ const QuestionModal = ({
                         </button>
                     ))}
                 </div>
-                <button 
+                <button
                     className={styles.submitButton}
                     onClick={handleSubmit}
                     disabled={selectedOption === null}
