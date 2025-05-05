@@ -55,7 +55,7 @@ const Login = () => {
       await login({ studentId, password });
 
       // Redirect to student dashboard
-      navigate('/student/dashboard');
+      navigate('/start');
     } catch (err) {
       console.error('Login error details:', err);
       setError(err.message);

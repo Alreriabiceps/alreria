@@ -40,35 +40,86 @@ const Start = () => {
 
   // --- Background Music Setup and Autoplay Attempt ---
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = INITIAL_VOLUME; // Set initial volume
+    // Initialize audio element
+    audioRef.current = new Audio(BACKGROUND_MUSIC_SRC);
+    audioRef.current.loop = true;
+    audioRef.current.volume = INITIAL_VOLUME;
+    audioRef.current.preload = "auto";
 
-      // Attempt to autoplay on component mount if not muted
+    // Add error handler
+    const handleError = (e) => {
+      console.error("Audio error:", e);
+      setIsPlaying(false);
+    };
+
+    // Add loadeddata handler to attempt autoplay once audio is ready
+    const handleLoaded = () => {
+      console.log("Audio loaded and ready to play");
       if (!isMuted) {
-        audioRef.current
-          .play()
-          .then(() => setIsPlaying(true)) // Update state if play succeeds
-          .catch((e) => {
-            console.warn("Background music autoplay failed:", e);
-            setIsPlaying(false); // Ensure state reflects failure
+        audioRef.current.play()
+          .then(() => {
+            console.log("Autoplay started successfully");
+            setIsPlaying(true);
+          })
+          .catch(e => {
+            console.warn("Autoplay blocked:", e.message);
+            setIsPlaying(false);
           });
       }
+    };
 
-      // Add listeners to update isPlaying state based on audio events
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
+    // Event listeners for play/pause state
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
-      audioRef.current.addEventListener("play", handlePlay);
-      audioRef.current.addEventListener("pause", handlePause);
+    // Attach all event listeners
+    audioRef.current.addEventListener("loadeddata", handleLoaded);
+    audioRef.current.addEventListener("play", handlePlay);
+    audioRef.current.addEventListener("pause", handlePause);
+    audioRef.current.addEventListener("error", handleError);
 
-      // --- Cleanup: Stop music and remove listeners when component unmounts ---
-      return () => {
-        audioRef.current?.pause();
-        audioRef.current?.removeEventListener("play", handlePlay);
-        audioRef.current?.removeEventListener("pause", handlePause);
-      };
+    // Attempt to play on first user interaction with the page
+    const handleFirstInteraction = () => {
+      if (audioRef.current && audioRef.current.paused && !isMuted) {
+        audioRef.current.play()
+          .then(() => console.log("Audio started after user interaction"))
+          .catch(e => console.warn("Audio still failed after interaction:", e));
+      }
+
+      // Remove the event listeners after first interaction
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+    };
+
+    document.addEventListener("click", handleFirstInteraction);
+    document.addEventListener("keydown", handleFirstInteraction);
+
+    // Cleanup function
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeEventListener("loadeddata", handleLoaded);
+        audioRef.current.removeEventListener("play", handlePlay);
+        audioRef.current.removeEventListener("pause", handlePause);
+        audioRef.current.removeEventListener("error", handleError);
+        audioRef.current = null;
+      }
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+    };
+  }, [isMuted]); // Only re-run if muted state changes
+
+  // Effect to handle mute/unmute
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isMuted) {
+        audioRef.current.pause();
+      } else if (!audioRef.current.paused || isPlaying) {
+        // Only attempt to play if it was previously playing or isPlaying is true
+        audioRef.current.play().catch(e => console.warn("Play on unmute failed:", e));
+      }
     }
-  }, [isMuted]); // Rerun this effect if mute state changes
+  }, [isMuted, isPlaying]);
 
   // Separate effect for other initial setups like stars and event listeners
   useEffect(() => {
@@ -143,7 +194,7 @@ const Start = () => {
       }
 
       setTimeout(() => {
-        navigate("/student-dashboard");
+        navigate("/student/dashboard");
       }, 1200);
     } else if (!isCorrect) {
       playSound(SFX_INCORRECT_SRC);
@@ -299,42 +350,34 @@ const Start = () => {
   return (
     <div
       ref={containerRef}
-      className={`${styles["start-screen-container"]} ${
-        isAnimating ? styles["slide-up-animation"] : ""
-      }`}
+      className={`${styles["start-screen-container"]} ${isAnimating ? styles["slide-up-animation"] : ""
+        }`}
       onMouseMove={handleMouseMove}
     >
       <div
-        className={`${styles["screen-flash-overlay"]} ${
-          screenFlash ? styles[`flash-${screenFlash}`] : ""
-        }`}
+        className={`${styles["screen-flash-overlay"]} ${screenFlash ? styles[`flash-${screenFlash}`] : ""
+          }`}
       ></div>
-      {/* Ensure audio tag is present early */}
-      {/* Added onPlay/onPause handlers to help keep isPlaying state in sync */}
-      <audio
-        ref={audioRef}
-        src={BACKGROUND_MUSIC_SRC}
-        loop
-        preload="auto"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      >
-        No Audio Support
-      </audio>
-
-      {/* Mute Button - Show only if music is playing */}
+      {/* Music playing message */}
       {isPlaying && (
-        <button
-          onClick={handleMuteToggle}
-          className={`${styles["game-button-small"]} ${styles["mute-button"]}`}
-          aria-label={
-            isMuted ? "Unmute Background Music" : "Mute Background Music"
-          }
-          title={isMuted ? "Unmute (M)" : "Mute (M)"}
-        >
-          {isMuted ? "[Unmute]" : "[Mute]"}
-        </button>
+        <div className={styles["music-playing-message"]}>
+          <span className={styles["music-icon"]}>♪</span>
+          <span className={styles["music-text"]}>GLEAS POP ANTHEM PLAYING</span>
+          <span className={styles["music-icon"]}>♪</span>
+        </div>
       )}
+
+      {/* Mute Button - Always show once audio has loaded */}
+      <button
+        onClick={handleMuteToggle}
+        className={`${styles["game-button-small"]} ${styles["mute-button"]}`}
+        aria-label={
+          isMuted ? "Unmute Background Music" : "Mute Background Music"
+        }
+        title={isMuted ? "Unmute (M)" : "Mute (M)"}
+      >
+        {isMuted ? "[Unmute]" : "[Mute]"}
+      </button>
 
       <div className={styles["content-wrapper"]}>
         {/* Logo image above the title */}
@@ -385,11 +428,10 @@ const Start = () => {
 
         {feedbackMessage && (
           <p
-            className={`${styles["feedback-message"]} ${
-              isCorrect
-                ? styles["feedback-correct"]
-                : styles["feedback-incorrect"]
-            }`}
+            className={`${styles["feedback-message"]} ${isCorrect
+              ? styles["feedback-correct"]
+              : styles["feedback-incorrect"]
+              }`}
           >
             {feedbackMessage}
           </p>
@@ -399,9 +441,8 @@ const Start = () => {
       <button
         id="launch-button"
         onClick={handleLaunchClick}
-        className={`${styles["game-button"]} ${styles["launch-button"]} ${
-          isCorrect ? styles["button-ready"] : styles["button-waiting"]
-        } ${isAnimating ? styles["button-animating"] : ""}`}
+        className={`${styles["game-button"]} ${styles["launch-button"]} ${isCorrect ? styles["button-ready"] : styles["button-waiting"]
+          } ${isAnimating ? styles["button-animating"] : ""}`}
         style={{
           top: buttonPosition.top,
           left: buttonPosition.left,

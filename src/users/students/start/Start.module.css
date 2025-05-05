@@ -19,15 +19,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-color); /* Use variable */
+  color: var(--text-color);
+  /* Use variable */
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    to bottom right,
-    var(--background-color-start),
-    var(--background-color-end)
-  ); /* Use variable */
-  font-family: var(--game-font-family); /* Use variable */
+  background: linear-gradient(to bottom right,
+      var(--background-color-start),
+      var(--background-color-end));
+  /* Use variable */
+  font-family: var(--game-font-family);
+  /* Use variable */
   cursor: crosshair;
 }
 
@@ -300,6 +301,7 @@
     transform: translateY(0);
     opacity: 1;
   }
+
   100% {
     transform: translateY(-100vh);
     opacity: 0;
@@ -311,12 +313,14 @@
 }
 
 @keyframes pulse-ready {
+
   0%,
   100% {
     box-shadow: 0 0 8px var(--accent-color),
       inset 0 0 8px rgba(0, 255, 221, 0.6);
     transform: translate(-50%, -50%) scale(1);
   }
+
   50% {
     box-shadow: 0 0 18px var(--accent-color),
       inset 0 0 12px rgba(0, 255, 221, 0.8);
@@ -325,10 +329,12 @@
 }
 
 @keyframes shakeBox {
+
   0%,
   100% {
     transform: translateX(0);
   }
+
   10%,
   30%,
   50%,
@@ -336,6 +342,7 @@
   90% {
     transform: translateX(-5px);
   }
+
   20%,
   40%,
   60%,
@@ -353,36 +360,45 @@
   .start-screen-container {
     padding-top: 60px;
   }
+
   .title-text {
     font-size: clamp(1.6rem, 8vw, 2.2rem);
     margin-bottom: 25px;
   }
+
   .security-check-box {
     padding: 12px;
     margin-bottom: 20px;
   }
+
   .security-title {
     font-size: 0.9rem;
   }
+
   .security-question {
     font-size: 0.9rem;
   }
+
   .answers-container {
     flex-wrap: wrap;
     gap: 6px;
   }
+
   .answer-button {
     padding: 6px 12px;
     font-size: 0.8rem;
     letter-spacing: 1px;
   }
+
   .launch-button {
     font-size: 1.1rem;
     padding: 10px 20px;
   }
+
   .feedback-message {
     font-size: 0.8rem;
   }
+
   .mute-button {
     padding: 4px 8px;
     font-size: 10px;
@@ -393,31 +409,39 @@
   .start-screen-container {
     padding-top: 60px;
   }
+
   .title-text {
     font-size: clamp(1.4rem, 7vw, 1.8rem);
     margin-bottom: 20px;
   }
+
   .security-check-box {
     padding: 1rem;
     margin-bottom: 18px;
   }
+
   .security-title {
     font-size: 0.8rem;
   }
+
   .security-question {
     font-size: 0.8rem;
   }
+
   .answers-container {
     gap: 5px;
   }
+
   .answer-button {
     padding: 5px 10px;
     font-size: 0.75rem;
   }
+
   .launch-button {
     font-size: 1rem;
     padding: 8px 16px;
   }
+
   .feedback-message {
     font-size: 0.75rem;
   }
@@ -440,13 +464,19 @@
 .logo:hover {
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
 }
+
 /* Add this block to your existing CSS */
 .play-anthem-button {
-  composes: game-button; /* Inherit base game button styles */
-  margin-top: 1.5rem; /* Add space below the title */
-  margin-bottom: 2rem; /* Add space above the security box/feedback */
-  font-size: 1.2rem; /* Slightly larger text */
-  padding: 12px 24px; /* Adjust padding */
+  composes: game-button;
+  /* Inherit base game button styles */
+  margin-top: 1.5rem;
+  /* Add space below the title */
+  margin-bottom: 2rem;
+  /* Add space above the security box/feedback */
+  font-size: 1.2rem;
+  /* Slightly larger text */
+  padding: 12px 24px;
+  /* Adjust padding */
 }
 
 /* Optional: Style for mobile */
@@ -456,5 +486,105 @@
     margin-bottom: 1.5rem;
     font-size: 1rem;
     padding: 10px 20px;
+  }
+}
+
+.music-playing-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid var(--accent-color);
+  padding: 8px 20px;
+  border-radius: 0;
+  font-family: var(--game-font-family);
+  font-size: 0.8em;
+  color: var(--accent-color);
+  text-shadow: 0 0 10px var(--accent-color);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+  animation: fadeInOut 2s ease-in-out;
+  max-width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-icon {
+  color: var(--accent-color);
+  font-size: 1.2em;
+  animation: musicNotePulse 1.5s infinite;
+}
+
+.music-text {
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+@keyframes musicNotePulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30px);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -30px);
+  }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .music-playing-message {
+    top: 60px;
+    /* Move down to avoid mute button */
+    font-size: 0.7em;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .music-icon {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .music-playing-message {
+    top: 50px;
+    font-size: 0.65em;
+    padding: 4px 10px;
+    gap: 6px;
+  }
+
+  .music-text {
+    letter-spacing: 0.5px;
   }
 }

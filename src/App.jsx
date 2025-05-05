@@ -42,6 +42,7 @@ const App = () => {
           <Route path="/" element={<StudentLogin />} />
           <Route path="/alogin" element={<AdminLogin />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="start" element={<Start />} />
 
           {/* Student routes */}
           <Route
@@ -52,7 +53,7 @@ const App = () => {
               </ProtectedRoute>
             }
           >
-            <Route path="start" element={<Start />} />
+
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="weeklytest" element={<WeeklyTest />} />

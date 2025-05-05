@@ -3,6 +3,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
+/* Ensure confetti shows above the modal */
+:global(canvas) {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  z-index: 10000 !important;
+  pointer-events: none;
+}
+
 .gameOverModalOverlay {
   /* --- Scoped CSS Variables --- */
   --font-game: "Press Start 2P", cursive;
@@ -35,17 +44,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: 9999;
   /* Highest z-index */
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+  transition: opacity 0.3s, visibility 0s linear 0.3s;
 }
 
 .gameOverModalOverlay.show {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s, visibility 0s;
 }
 
 .gameOverModalContent {
@@ -62,7 +71,51 @@
   /* Simple scale/fade-in */
   transform: scale(0.95);
   opacity: 0;
-  transition: transform 0.3s ease-out 0.1s, opacity 0.3s ease-out 0.1s;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Victory style enhancements */
+.victoryContent {
+  background-color: rgba(10, 30, 15, 0.97);
+  border: 3px solid rgba(46, 204, 113, 0.7);
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+  animation: victoryPulse 2s infinite;
+}
+
+/* Defeat style enhancements */
+.defeatContent {
+  background-color: rgba(30, 10, 10, 0.97);
+  border: 3px solid rgba(231, 76, 60, 0.7);
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.4);
+  animation: defeatPulse 2s infinite;
+}
+
+@keyframes victoryPulse {
+  0% {
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(46, 204, 113, 0.7);
+  }
+
+  100% {
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+  }
+}
+
+@keyframes defeatPulse {
+  0% {
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(231, 76, 60, 0.7);
+  }
+
+  100% {
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.4);
+  }
 }
 
 .gameOverModalOverlay.show .gameOverModalContent {
@@ -73,10 +126,47 @@
 .gameOverTitle {
   font-size: 2em;
   margin-bottom: 15px;
-  /* Color dynamically based on win/loss? Or keep neutral? */
   color: var(--color-accent);
-  /* Using accent for now */
   text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+}
+
+.victoryTitle {
+  color: var(--color-win);
+  text-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+  animation: textGlow 1.5s infinite alternate;
+}
+
+.defeatTitle {
+  color: var(--color-lose);
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
+}
+
+@keyframes textGlow {
+  from {
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+  }
+
+  to {
+    text-shadow: 0 0 20px rgba(46, 204, 113, 1);
+  }
+}
+
+.gameOverIcon {
+  font-size: 4em;
+  margin: 10px 0 20px;
+  animation: iconBounce 1s ease infinite;
+}
+
+@keyframes iconBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 .winnerMessage {
@@ -153,6 +243,10 @@
     font-size: 1.8em;
   }
 
+  .gameOverIcon {
+    font-size: 3em;
+  }
+
   .winnerMessage {
     font-size: 1.2em;
     margin-bottom: 25px;
@@ -174,6 +268,10 @@
   .gameOverTitle {
     font-size: 1.5em;
     margin-bottom: 10px;
+  }
+
+  .gameOverIcon {
+    font-size: 2.5em;
   }
 
   .winnerMessage {

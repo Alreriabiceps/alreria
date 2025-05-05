@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './GameOverModal.module.css';
-import { motion } from 'framer-motion'; // Use motion for animations
+import Confetti from 'react-confetti';
 
 const GameOverModal = ({
   show,
@@ -11,29 +11,50 @@ const GameOverModal = ({
   onPlayAgain,
   onExit
 }) => {
-  const [animation, setAnimation] = useState('');
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0
+  });
 
-  // Control animation based on show prop
+  // Add state to track if confetti should be shown
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Update window size on resize
   useEffect(() => {
-    if (show) {
-      setAnimation('show');
-    }
-  }, [show]);
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
 
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Control when to show confetti based on winner status
+  useEffect(() => {
+    if (show && winnerId === myPlayerId) {
+      console.log("Victory detected, enabling confetti!");
+      setShowConfetti(true);
+    } else {
+      setShowConfetti(false);
+    }
+  }, [show, winnerId, myPlayerId]);
+
+  // Don't render anything if not shown
   if (!show) {
     return null;
   }
 
   const handlePlayAgainClick = () => {
-    setAnimation('hide');
-    // Wait for hide animation before calling parent handler
-    setTimeout(onPlayAgain, 500);
+    // Call parent handler directly
+    onPlayAgain();
   };
 
   const handleExitClick = () => {
-    setAnimation('hide');
-    // Wait for hide animation before calling parent handler
-    setTimeout(onExit, 500);
+    // Call parent handler directly
+    onExit();
   };
 
   // Determine if player won
@@ -41,39 +62,59 @@ const GameOverModal = ({
   const title = isWinner ? 'Victory!' : 'Game Over';
   const message = reason || (isWinner ? 'You won the game!' : 'You lost the game!');
 
+  console.log("GameOverModal rendered with: ", { show, winnerId, myPlayerId, isWinner, showConfetti });
+
   return (
-    <motion.div
-      className={`${styles.gameOverModalOverlay} ${animation}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div
-        className={styles.gameOverModalContent}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
+    <>
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={true}
+          numberOfPieces={200}
+          gravity={0.2}
+          colors={['#00ff9d', '#2ecc71', '#3498db', '#f1c40f', '#e67e22', '#e74c3c']}
+          confettiSource={{
+            x: windowSize.width / 2,
+            y: 0,
+            w: 0,
+            h: 0
+          }}
+        />
+      )}
+      <div
+        className={`${styles.gameOverModalOverlay} ${show ? styles.show : ''}`}
       >
-        <h2 className={styles.gameOverTitle}>{title}</h2>
-        <div className={styles.winnerMessage}>{message}</div>
-        <div className={styles.buttonContainer}>
-          <button
-            className={styles.playAgainButton}
-            onClick={handlePlayAgainClick}
-          >
-            Play Again
-          </button>
-          <button
-            className={styles.exitButton}
-            onClick={handleExitClick}
-          >
-            Exit Game
-          </button>
+        <div
+          className={`${styles.gameOverModalContent} ${isWinner ? styles.victoryContent : styles.defeatContent}`}
+        >
+          <h2 className={`${styles.gameOverTitle} ${isWinner ? styles.victoryTitle : styles.defeatTitle}`}>
+            {title}
+          </h2>
+
+          <div className={styles.gameOverIcon}>
+            {isWinner ? '🏆' : '💔'}
+          </div>
+
+          <div className={styles.winnerMessage}>{message}</div>
+
+          <div className={styles.buttonContainer}>
+            <button
+              className={styles.playAgainButton}
+              onClick={handlePlayAgainClick}
+            >
+              Play Again
+            </button>
+            <button
+              className={styles.exitButton}
+              onClick={handleExitClick}
+            >
+              Back to Lobby
+            </button>
+          </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </>
   );
 };
 

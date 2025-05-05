@@ -879,20 +879,77 @@ const Pvp = () => {
 
         socketRef.current.on('game_over', (data) => {
           if (!isMountedRef.current) return;
-          console.log('Received game_over:', data);
+          console.log('Received game_over event:', data);
           // Update final HP from server data
           if (data.finalPlayerHp !== undefined) setMyInfo(prev => ({ ...prev, hp: data.finalPlayerHp }));
           if (data.finalOpponentHp !== undefined) setOpponentInfo(prev => ({ ...prev, hp: data.finalOpponentHp }));
 
           setGameState(GAME_STATE.GAME_OVER);
           setGameOverData(data);
+          console.log('Set game state to GAME_OVER and updated gameOverData:', data);
+        });
+
+        // Add 'deal_cards' event listener for receiving initial cards
+        socketRef.current.on('deal_cards', (data) => {
+          if (!isMountedRef.current) return;
+
+          try {
+            console.log('[DEBUG] Received deal_cards event:', data);
+
+            if (data && data.playerHand && Array.isArray(data.playerHand)) {
+              // Filter cards to ensure they have valid properties
+              const validCards = data.playerHand
+                .filter(card => card && (card.text || card.questionText))
+                .slice(0, 5); // Limit to 5 cards
+
+              if (validCards.length === 0) {
+                console.warn('[DEBUG] deal_cards event received but no valid cards found');
+                return;
+              }
+
+              // Filter unique cards by text and limit to 5 cards
+              const uniqueCards = [];
+              const seenTexts = new Set();
+
+              for (const card of validCards) {
+                // Ensure card has necessary ID properties
+                const processedCard = {
+                  ...card,
+                  _id: card._id || card.id || `generated_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  id: card.id || card._id || `generated_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  type: card.type || (card.questionText ? 'question' : undefined)
+                };
+
+                const textKey = (processedCard.text || processedCard.questionText || '').trim().toLowerCase();
+                if (textKey && !seenTexts.has(textKey)) {
+                  uniqueCards.push(processedCard);
+                  seenTexts.add(textKey);
+                }
+              }
+
+              console.log('[DEBUG] Setting initial hand from deal_cards:', uniqueCards.length, 'cards');
+              console.log('[DEBUG] Card data sample:', uniqueCards[0]);
+
+              setMyHand(uniqueCards);
+              setDisplayedHand(uniqueCards);
+              setGameMessage('Cards dealt! Ready for battle!');
+            } else {
+              console.warn('[DEBUG] deal_cards event received but no valid playerHand data:', data);
+            }
+          } catch (error) {
+            console.error('[DEBUG] Error processing deal_cards event:', error);
+          }
         });
 
         socketRef.current.on('opponent_surrendered', (data) => {
           if (!isMountedRef.current) return;
-          console.log('Opponent surrendered');
+          console.log('Opponent surrendered:', data);
           setGameState(GAME_STATE.GAME_OVER);
-          setGameOverData({ reason: "Opponent surrendered!" });
+          setGameOverData({
+            reason: "Opponent surrendered!",
+            winnerId: myPlayerId // Player wins if opponent surrenders
+          });
+          console.log('Set game state to GAME_OVER due to opponent surrender');
         });
 
         // NEW Listener for opponent's intermediate roll value
@@ -1068,6 +1125,7 @@ const Pvp = () => {
         socketRef.current.off('opponent_answering');
         socketRef.current.off('question_presented');
         socketRef.current.off('player_hand_update');
+        socketRef.current.off('deal_cards');
 
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -1222,36 +1280,93 @@ const Pvp = () => {
 
     // Request initial cards for both players
     if (socketRef.current && socketRef.current.connected) {
-      console.log('[Pvp.jsx] Requesting initial cards for both players');
-      socketRef.current.emit('request_initial_cards', {
-        lobbyId: lobbyId,
-        playerId: myPlayerId
-      });
+      try {
+        console.log('[Pvp.jsx] Requesting initial cards for both players');
+        socketRef.current.emit('request_initial_cards', {
+          lobbyId: lobbyId,
+          playerId: myPlayerId
+        });
+      } catch (error) {
+        console.error('[Pvp.jsx] Error requesting initial cards:', error);
+      }
+
+      // Set a timeout to retry if needed
+      const retryTimeout = setTimeout(() => {
+        if (myHand.length === 0 && socketRef.current?.connected) {
+          console.log('[Pvp.jsx] No cards received yet, sending request again');
+          try {
+            socketRef.current.emit('request_initial_cards', {
+              lobbyId: lobbyId,
+              playerId: myPlayerId
+            });
+          } catch (error) {
+            console.error('[Pvp.jsx] Error in retry request for initial cards:', error);
+          }
+        }
+      }, 2000);
+
+      // Clean up the retry timeout on unmount
+      return () => clearTimeout(retryTimeout);
+    } else {
+      console.error('[Pvp.jsx] Socket not connected when trying to request initial cards');
+      // Try to reconnect
+      if (socketRef.current && !socketRef.current.connected) {
+        try {
+          socketRef.current.connect();
+        } catch (error) {
+          console.error('[Pvp.jsx] Error reconnecting socket:', error);
+        }
+      }
     }
 
-  }, [diceWinnerId, myPlayerId, lobbyId, socketRef]);
+    // Set a timeout to hide card distribution animation and proceed to game
+    setTimeout(() => {
+      setShowCardDistribution(false);
+
+      // Set game state and turn
+      setGameState(GAME_STATE.AWAITING_CARD_SUMMON);
+      setCurrentTurnId(diceWinnerId);
+
+      // Set appropriate game message
+      if (diceWinnerId === myPlayerId) {
+        setGameMessage('You won the roll! Your turn to play a card.');
+      } else {
+        const oppName = opponentInfo.name === 'Waiting...' ? 'Opponent' : opponentInfo.name;
+        setGameMessage(`Opponent won the roll! Waiting for ${oppName} to play...`);
+      }
+
+      // Reset dice-related state
+      setPlayerDiceValue(null);
+      setOpponentDiceValue(null);
+      setBothPlayersRolled(false);
+    }, 3000);
+
+  }, [diceWinnerId, myPlayerId, lobbyId, opponentInfo.name, socketRef, myHand.length]);
 
   // Add handler for when card distribution animation completes
   const handleCardDistributionComplete = useCallback(() => {
-    setShowCardDistribution(false);
+    console.log('[Pvp.jsx] Card distribution animation completed (this is now redundant)');
+    // This function is no longer needed as the logic is now in handleDiceRollComplete
+  }, []);
 
-    // Set game state and turn
-    setGameState(GAME_STATE.AWAITING_CARD_SUMMON);
-    setCurrentTurnId(diceWinnerId);
-
-    // Set appropriate game message
-    if (diceWinnerId === myPlayerId) {
-      setGameMessage('You won the roll! Your turn to play a card.');
-    } else {
-      const oppName = opponentInfo.name === 'Waiting...' ? 'Opponent' : opponentInfo.name;
-      setGameMessage(`Opponent won the roll! Waiting for ${oppName} to play...`);
+  // Add this debugging effect to monitor hand changes, with null checks to prevent errors
+  useEffect(() => {
+    try {
+      console.log('[DEBUG] Hand state changed:', {
+        myHand: myHand.length > 0 ?
+          myHand.map(card => card ? (card._id || card.id || 'no-id') : 'null-card').join(', ') :
+          'empty',
+        displayedHand: displayedHand.length > 0 ?
+          displayedHand.map(card => card ? (card._id || card.id || 'no-id') : 'null-card').join(', ') :
+          'empty',
+        handLength: myHand.length,
+        displayedHandLength: displayedHand.length,
+        gameState
+      });
+    } catch (error) {
+      console.error('[DEBUG] Error logging hand state:', error);
     }
-
-    // Reset dice-related state
-    setPlayerDiceValue(null);
-    setOpponentDiceValue(null);
-    setBothPlayersRolled(false);
-  }, [diceWinnerId, myPlayerId, opponentInfo.name]);
+  }, [myHand, displayedHand, gameState]);
 
   // Add back handleCardClick
   const handleCardClick = (card) => {
@@ -1358,7 +1473,8 @@ const Pvp = () => {
 
   // Handle surrender
   const handleSurrender = () => {
-    // Inform opponent (optional but good practice)
+    console.log('Player surrendering...');
+    // Inform opponent
     if (socketRef.current) {
       socketRef.current.emit('surrender', { lobbyId });
     }
@@ -1368,7 +1484,7 @@ const Pvp = () => {
       reason: "You surrendered!",
       winnerId: opponentPlayerId // Opponent wins if you surrender
     });
-    console.log('Player surrendered.');
+    console.log('Set game state to GAME_OVER due to player surrender');
   };
 
   // Handle play again
@@ -1444,26 +1560,52 @@ const Pvp = () => {
       console.log('Dice roll already occurred or is visually rolling');
       return;
     }
+
+    // Check socket connection before starting animation
+    if (!socketRef.current) {
+      console.error('Socket reference not available for dice roll');
+      setGameMessage("Connection error. Reconnecting...");
+      retryConnection();
+      return;
+    }
+
+    if (!socketRef.current.connected) {
+      console.error('Socket not connected for dice roll');
+      setGameMessage("Connection lost. Reconnecting...");
+      socketRef.current.connect();
+      // Wait a moment and try again if socket reconnects
+      setTimeout(() => {
+        if (socketRef.current?.connected) {
+          setGameMessage("Reconnected! You can roll now.");
+        }
+      }, 2000);
+      return;
+    }
+
     // Set rolling state TRUE only for the visual effect duration
     setIsDiceRolling(true);
     setGameMessage("Rolling the dice...");
 
+    // Use longer animation time to ensure connection is stable
     setTimeout(() => {
       // Set rolling state FALSE *before* emitting - button becomes clickable again
       // The check above (playerDiceValue !== null) prevents re-rolling after result comes back
       setIsDiceRolling(false);
 
-      if (socketRef.current && socketRef.current.connected) {
-        console.log('Emitting dice_roll event');
-        socketRef.current.emit('dice_roll', {
-          lobbyId: lobbyId,
-        });
-        // Update message to indicate waiting for server/opponent
-        setGameMessage("Waiting for opponent to roll...");
-      } else {
-        console.error('Socket not available or not connected for dice roll');
-        setGameMessage("Connection error. Cannot roll dice.");
-        // Already set isDiceRolling back to false above
+      try {
+        if (socketRef.current && socketRef.current.connected) {
+          console.log('Emitting dice_roll event');
+          socketRef.current.emit('dice_roll', {
+            lobbyId: lobbyId,
+          });
+          // Update message to indicate waiting for server/opponent
+          setGameMessage("Waiting for opponent to roll...");
+        } else {
+          throw new Error('Socket not connected after animation');
+        }
+      } catch (error) {
+        console.error('Error sending dice roll:', error);
+        setGameMessage("Connection error. Please try again.");
         if (!socketRef.current?.connected) {
           retryConnection();
         }
@@ -1727,26 +1869,50 @@ const Pvp = () => {
     if (!socketRef.current) return;
 
     const handlePlayerHandUpdate = (data) => {
-      if (data && data.playerHand) {
-        if (myHand.length === 0) {
-          // Initial hand - limit to 5 cards
-          const initialHand = Array.isArray(data.playerHand) ? data.playerHand.slice(0, 5).map(card => ({
-            ...card,
-            type: card.type || (card.questionText ? 'question' : undefined)
-          })) : [];
-          setMyHand(initialHand);
-          setDisplayedHand(initialHand);
-        } else if (Array.isArray(data.playerHand) && data.playerHand.length === 1) {
-          // New card drawn - only add if hand is less than 5 cards
-          if (myHand.length < 5) {
-            const newCard = {
-              ...data.playerHand[0],
-              type: data.playerHand[0].type || (data.playerHand[0].questionText ? 'question' : undefined)
-            };
-            setMyHand(prev => [...prev, newCard]);
-            setDisplayedHand(prev => [...prev, newCard]);
+      console.log('[FE player_hand_update] Received:', data);
+      try {
+        if (data && data.playerHand) {
+          if (myHand.length === 0) {
+            // Initial hand - limit to 5 cards
+            console.log('[FE player_hand_update] Setting initial hand with data:', data.playerHand);
+
+            const initialHand = Array.isArray(data.playerHand)
+              ? data.playerHand
+                .filter(card => card && (card.text || card.questionText)) // Ensure cards have text content
+                .slice(0, 5)
+                .map(card => ({
+                  ...card,
+                  _id: card._id || card.id || Date.now().toString() + Math.random().toString(),
+                  id: card.id || card._id || Date.now().toString() + Math.random().toString(),
+                  type: card.type || (card.questionText ? 'question' : undefined)
+                }))
+              : [];
+
+            console.log('[FE player_hand_update] Processed initial hand:', initialHand);
+            setMyHand(initialHand);
+            setDisplayedHand(initialHand);
+
+          } else if (Array.isArray(data.playerHand) && data.playerHand.length === 1) {
+            // New card drawn - only add if hand is less than 5 cards
+            if (myHand.length < 5) {
+              console.log('[FE player_hand_update] Adding single new card to hand');
+              const newCard = {
+                ...data.playerHand[0],
+                _id: data.playerHand[0]._id || data.playerHand[0].id || Date.now().toString() + Math.random().toString(),
+                id: data.playerHand[0].id || data.playerHand[0]._id || Date.now().toString() + Math.random().toString(),
+                type: data.playerHand[0].type || (data.playerHand[0].questionText ? 'question' : undefined)
+              };
+              setMyHand(prev => [...prev, newCard]);
+              setDisplayedHand(prev => [...prev, newCard]);
+            } else {
+              console.warn('[FE player_hand_update] Hand already at 5 cards, not adding more');
+            }
           }
+        } else {
+          console.warn('[FE player_hand_update] Received invalid data:', data);
         }
+      } catch (error) {
+        console.error('[FE player_hand_update] Error processing hand update:', error);
       }
     };
 
@@ -1845,8 +2011,17 @@ const Pvp = () => {
               reason={gameOverData?.reason}
               myPlayerId={myPlayerId}
               onPlayAgain={handlePlayAgain}
-              onExit={() => navigate('/')}
+              onExit={() => {
+                console.log('Exiting to dashboard');
+                navigate('/student/dashboard');
+              }}
             />
+            {console.log('GameOverModal props:', {
+              show: gameState === GAME_STATE.GAME_OVER,
+              gameState,
+              gameOverData,
+              myPlayerId
+            })}
             {/* Subject Selection Modal - Removed (Integrated into main flow) */}
             {/* Render other conditional components */}
             <DiceRollModal
