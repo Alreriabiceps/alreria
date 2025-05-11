@@ -80,93 +80,6 @@ const AdminDashboard = () => {
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
-  const [timeRange, setTimeRange] = useState('week'); // 'week', 'month', 'year'
-  const [metricsData, setMetricsData] = useState({
-    userGrowth: {
-      week: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        data: [15, 20, 25, 30, 35, 40, 45]
-      },
-      month: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        data: [50, 75, 100, 125]
-      },
-      year: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        data: [150, 300, 450, 600, 750, 900, 1050, 1200, 1350, 1500, 1650, 1800]
-      }
-    },
-    engagement: {
-      week: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        dau: [120, 150, 180, 200, 190, 170, 160],
-        mau: [200, 220, 240, 260, 280, 300, 320]
-      },
-      month: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        dau: [150, 180, 200, 190],
-        mau: [250, 280, 300, 320]
-      },
-      year: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        dau: [200, 220, 250, 280, 300, 320, 350, 340, 330, 310, 290, 270],
-        mau: [400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950]
-      }
-    }
-  });
-
-  const userGrowthChartData = {
-    labels: metricsData.userGrowth[timeRange].labels,
-    datasets: [
-      {
-        label: 'New Users',
-        data: metricsData.userGrowth[timeRange].data,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        tension: 0.1
-      }
-    ]
-  };
-
-  const engagementChartData = {
-    labels: metricsData.engagement[timeRange].labels,
-    datasets: [
-      {
-        label: 'Daily Active Users (DAU)',
-        data: metricsData.engagement[timeRange].dau,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        tension: 0.1
-      },
-      {
-        label: 'Monthly Active Users (MAU)',
-        data: metricsData.engagement[timeRange].mau,
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        tension: 0.1
-      }
-    ]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Metrics Overview'
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  };
-
   const [pendingActions, setPendingActions] = useState([
     {
       id: 1,
@@ -339,24 +252,24 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4">
+    <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-4">
-          <h1 className="text-2xl font-bold text-primary mb-4">Admin Dashboard</h1>
+        <div className="bg-base-200 rounded-lg shadow-lg p-2 sm:p-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">Admin Dashboard</h1>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
             {statCards.map((stat, index) => (
               <div
                 key={index}
-                className="card bg-base-100 p-3 rounded-lg"
+                className="card bg-base-100 p-2 sm:p-3 rounded-lg"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold mb-1">{stat.title}</h3>
-                    <p className="text-xl font-bold">{stat.value}</p>
+                    <h3 className="text-xs sm:text-sm font-semibold mb-1">{stat.title}</h3>
+                    <p className="text-lg sm:text-xl font-bold">{stat.value}</p>
                   </div>
-                  <div className={`p-2 rounded-full ${stat.bgColor} ${stat.color}`}>
+                  <div className={`p-1 sm:p-2 rounded-full ${stat.bgColor} ${stat.color}`}>
                     {stat.icon}
                   </div>
                 </div>
@@ -365,34 +278,34 @@ const AdminDashboard = () => {
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Left Column - Pending Actions and Recent Activity */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1 space-y-3 sm:space-y-4">
               {/* Pending Actions */}
-              <div className="card bg-base-100 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <MdPendingActions className="w-5 h-5 text-warning" />
-                  <h2 className="text-lg font-semibold">Pending Actions</h2>
+              <div className="card bg-base-100 p-2 sm:p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <MdPendingActions className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
+                  <h2 className="text-base sm:text-lg font-semibold">Pending Actions</h2>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {pendingActions.map((action) => (
                     <div
                       key={action.id}
-                      className="flex items-start gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
                     >
-                      <div className={`p-2 rounded-full ${action.priority === 'high' ? 'bg-error/20 text-error' :
+                      <div className={`p-1 sm:p-2 rounded-full ${action.priority === 'high' ? 'bg-error/20 text-error' :
                         action.priority === 'medium' ? 'bg-warning/20 text-warning' :
                           'bg-success/20 text-success'
                         }`}>
                         {action.icon}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-sm">{action.title}</h3>
-                          <span className="text-xs text-base-content/70">{action.timestamp}</span>
+                          <h3 className="font-medium text-xs sm:text-sm truncate">{action.title}</h3>
+                          <span className="text-[10px] sm:text-xs text-base-content/70 ml-2">{action.timestamp}</span>
                         </div>
-                        <p className="text-xs text-base-content/70 mt-1">{action.description}</p>
-                        <div className="mt-2 flex gap-2">
+                        <p className="text-[10px] sm:text-xs text-base-content/70 mt-1 line-clamp-2">{action.description}</p>
+                        <div className="mt-2 flex gap-1 sm:gap-2">
                           <button className="btn btn-xs btn-primary">Review</button>
                           <button className="btn btn-xs btn-ghost">Dismiss</button>
                         </div>
@@ -403,20 +316,20 @@ const AdminDashboard = () => {
               </div>
 
               {/* Recent Activity */}
-              <div className="card bg-base-100 p-4 rounded-lg">
-                <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
-                <div className="space-y-3">
+              <div className="card bg-base-100 p-2 sm:p-4 rounded-lg">
+                <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Recent Activity</h2>
+                <div className="space-y-2 sm:space-y-3">
                   {recentActivity.length === 0 ? (
-                    <p className="text-center text-sm text-base-content/70">No recent activity</p>
+                    <p className="text-center text-xs sm:text-sm text-base-content/70">No recent activity</p>
                   ) : (
                     recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                        <div className={`p-2 rounded-full ${activity.iconBgColor} ${activity.iconColor}`}>
+                      <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg">
+                        <div className={`p-1 sm:p-2 rounded-full ${activity.iconBgColor} ${activity.iconColor}`}>
                           {activity.icon}
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{activity.description}</p>
-                          <p className="text-xs text-base-content/70">{activity.timestamp}</p>
+                        <div className="min-w-0">
+                          <p className="font-medium text-xs sm:text-sm truncate">{activity.description}</p>
+                          <p className="text-[10px] sm:text-xs text-base-content/70">{activity.timestamp}</p>
                         </div>
                       </div>
                     ))
@@ -426,114 +339,55 @@ const AdminDashboard = () => {
             </div>
 
             {/* Right Column - Charts and Leaderboard */}
-            <div className="lg:col-span-3 space-y-4">
-              {/* Charts Section */}
-              <div className="card bg-base-100 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-lg font-semibold">Analytics Overview</h2>
-                  <div className="join">
-                    <button
-                      className={`join-item btn btn-xs ${timeRange === 'week' ? 'btn-primary' : ''}`}
-                      onClick={() => setTimeRange('week')}
-                    >
-                      Week
-                    </button>
-                    <button
-                      className={`join-item btn btn-xs ${timeRange === 'month' ? 'btn-primary' : ''}`}
-                      onClick={() => setTimeRange('month')}
-                    >
-                      Month
-                    </button>
-                    <button
-                      className={`join-item btn btn-xs ${timeRange === 'year' ? 'btn-primary' : ''}`}
-                      onClick={() => setTimeRange('year')}
-                    >
-                      Year
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* User Growth Chart */}
-                  <div className="h-[200px]">
-                    <Line
-                      data={userGrowthChartData}
-                      options={{
-                        ...chartOptions,
-                        plugins: {
-                          ...chartOptions.plugins,
-                          title: {
-                            ...chartOptions.plugins.title,
-                            text: 'User Growth'
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-
-                  {/* Engagement Chart */}
-                  <div className="h-[200px]">
-                    <Line
-                      data={engagementChartData}
-                      options={{
-                        ...chartOptions,
-                        plugins: {
-                          ...chartOptions.plugins,
-                          title: {
-                            ...chartOptions.plugins.title,
-                            text: 'User Engagement (DAU vs MAU)'
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
+            <div className="lg:col-span-3 space-y-3 sm:space-y-4">
               {/* Leaderboard Section */}
-              <div className="card bg-base-100 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-lg font-semibold">Top Students</h2>
+              <div className="card bg-base-100 p-2 sm:p-4 rounded-lg">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3">
+                  <h2 className="text-base sm:text-lg font-semibold">Top Students</h2>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-base-content/70">
                       Active Players: {stats.activePlayers}
                     </span>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="table table-xs w-full">
-                    <thead>
-                      <tr>
-                        <th>Rank</th>
-                        <th>Student</th>
-                        <th>Points</th>
-                        <th>Rank</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leaderboardData.topStudents.map((student, index) => (
-                        <tr key={student.id} className="hover:bg-base-200">
-                          <td className="font-bold">#{index + 1}</td>
-                          <td>
-                            <div className="flex items-center gap-2">
-                              <div className="avatar placeholder">
-                                <div className="bg-neutral text-neutral-content rounded-full w-6">
-                                  <span className="text-xs">{student.avatar}</span>
+                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                  <div className="min-w-full inline-block align-middle">
+                    <div className="overflow-hidden">
+                      <table className="table table-xs w-full">
+                        <thead>
+                          <tr>
+                            <th className="whitespace-nowrap">Rank</th>
+                            <th className="whitespace-nowrap">Student</th>
+                            <th className="whitespace-nowrap">Points</th>
+                            <th className="whitespace-nowrap">Rank</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {leaderboardData.topStudents.map((student, index) => (
+                            <tr key={student.id} className="hover:bg-base-200">
+                              <td className="font-bold whitespace-nowrap">#{index + 1}</td>
+                              <td>
+                                <div className="flex items-center gap-2">
+                                  <div className="avatar placeholder">
+                                    <div className="bg-neutral text-neutral-content rounded-full w-6">
+                                      <span className="text-xs">{student.avatar}</span>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs truncate max-w-[100px] sm:max-w-none">{student.name}</span>
                                 </div>
-                              </div>
-                              <span className="text-xs">{student.name}</span>
-                            </div>
-                          </td>
-                          <td>{student.points}</td>
-                          <td>
-                            <span className={`badge badge-xs badge-${student.rank.toLowerCase()}`}>
-                              {student.rank}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              </td>
+                              <td className="whitespace-nowrap">{student.points}</td>
+                              <td className="whitespace-nowrap">
+                                <span className={`badge badge-xs badge-${student.rank.toLowerCase()}`}>
+                                  {student.rank}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Pagination */}

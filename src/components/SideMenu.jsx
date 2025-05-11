@@ -119,7 +119,7 @@ const SideMenu = () => {
   return (
     <div className="drawer-side">
       <label htmlFor="my-drawer-2" className="drawer-overlay"></label>
-      <aside className="w-56 min-h-screen bg-base-200 text-base-content">
+      <aside className="w-56 min-h-screen bg-base-200 text-base-content flex flex-col">
         {/* Header */}
         <div className="px-4 py-3 border-b border-base-300">
           <div className="flex items-center justify-between">
@@ -190,7 +190,7 @@ const SideMenu = () => {
         </nav>
 
         {/* Footer */}
-        <div className="p-2 border-t border-base-300">
+        <div className="p-2 border-t border-base-300 mt-auto">
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-error hover:bg-error/10 font-medium rounded-lg text-sm"

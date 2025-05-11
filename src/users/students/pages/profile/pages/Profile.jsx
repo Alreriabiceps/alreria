@@ -120,6 +120,14 @@ const Profile = () => {
 
   return (
     <div className={styles.profileContainer}>
+      <details className="mb-6 bg-pink-100 border border-pink-400 rounded p-3">
+        <summary className="cursor-pointer font-medium text-base text-pink-600 mb-1">How to use the Profile page?</summary>
+        <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+          <li>View your profile information at the top of the page.</li>
+          <li>Edit your details as needed and click <b>Save</b> to update.</li>
+          <li>Check for confirmation messages to ensure your changes were saved.</li>
+        </ol>
+      </details>
       <div className={styles.profileHeader}>
         <div className={styles.profileAvatar}>
           <div className={styles.avatarPlaceholder}>

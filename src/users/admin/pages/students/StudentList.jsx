@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd } from "react-icons/md";
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const StudentList = () => {
   const [students, setStudents] = useState([]);
@@ -10,6 +11,7 @@ const StudentList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
+  const { guideMode } = useGuideMode();
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -99,6 +101,18 @@ const StudentList = () => {
               Add Student
             </button>
           </div>
+
+          {guideMode && (
+            <details open className="mb-6 bg-info/10 border border-info rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-info mb-1">How to use the Student List page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>View all students in the list below.</li>
+                <li>Use the search or filters to find specific students.</li>
+                <li>Edit or delete students using the icons next to each student.</li>
+                <li>All changes are saved automatically or after confirmation.</li>
+              </ol>
+            </details>
+          )}
 
           {/* Search and Filter Section */}
           <div className="card bg-base-100 p-6 rounded-lg mb-6">

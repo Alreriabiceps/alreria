@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MdAdd, MdSave, MdClose } from "react-icons/md";
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const AddStudents = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const AddStudents = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
+  const { guideMode } = useGuideMode();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,6 +98,18 @@ const AddStudents = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-base-200 rounded-lg shadow-lg p-6">
           <h1 className="text-2xl font-bold text-primary mb-6">Add New Student</h1>
+
+          {guideMode && (
+            <details open className="mb-6 bg-accent/10 border border-accent rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-accent mb-1">How to use the Add Student page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>Fill in the student's details in the form below.</li>
+                <li>All fields are required unless marked optional.</li>
+                <li>Click <b>Add Student</b> to save the new student.</li>
+                <li>If successful, a confirmation message will appear and the form will reset.</li>
+              </ol>
+            </details>
+          )}
 
           {error && (
             <div className="alert alert-error mb-6">

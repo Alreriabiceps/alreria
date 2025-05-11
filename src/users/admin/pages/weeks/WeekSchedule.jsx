@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
 import { MdAdd, MdCheck, MdClose, MdSave } from "react-icons/md";
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
+
+const BLOOMS_LEVELS = [
+  "Remembering",
+  "Understanding",
+  "Applying",
+  "Analyzing",
+  "Evaluating",
+  "Creating"
+];
 
 // Helper function to get week number
 const getWeekNumber = (date) => {
@@ -22,6 +32,8 @@ const WeekSchedule = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear().toString());
   const [currentPage, setCurrentPage] = useState(1);
   const [questionsPerPage] = useState(5);
+  const [bloomsFilter, setBloomsFilter] = useState("");
+  const { guideMode } = useGuideMode();
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
 
@@ -152,11 +164,16 @@ const WeekSchedule = () => {
     }
   };
 
+  // Filter questions by Bloom's Taxonomy before paginating
+  const filteredQuestions = bloomsFilter
+    ? questions.filter(q => q.bloomsLevel === bloomsFilter)
+    : questions;
+
   // Add pagination functions
   const indexOfLastQuestion = currentPage * questionsPerPage;
   const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-  const currentQuestions = questions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-  const totalPages = Math.ceil(questions.length / questionsPerPage);
+  const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -174,6 +191,18 @@ const WeekSchedule = () => {
               <span className="text-sm text-base-content/70">{currentYear}</span>
             </div>
           </div>
+
+          {guideMode && (
+            <details open className="mb-6 bg-error/10 border border-error rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-error mb-1">How to use the Create Schedule page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>Select the subject for the weekly test schedule.</li>
+                <li>Choose the week and year for the schedule.</li>
+                <li>Select questions to include in the test.</li>
+                <li>Click <b>Save</b> to create the schedule. A confirmation will appear if successful.</li>
+              </ol>
+            </details>
+          )}
 
           {error && (
             <div className="alert alert-error mb-6">
@@ -240,97 +269,119 @@ const WeekSchedule = () => {
             </div>
 
             {selectedSubject && (
-              <div className="card bg-base-100 p-6 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Select Questions</h2>
-                  <span className="text-sm text-base-content/70">
-                    {selectedQuestions.length} selected
-                  </span>
+              <>
+                {/* Bloom's Taxonomy Filter */}
+                <div className="form-control mb-4">
+                  <label className="label">
+                    <span className="label-text font-medium">Filter by Bloom's Taxonomy Level</span>
+                  </label>
+                  <select
+                    className="select select-bordered w-full bg-base-100"
+                    value={bloomsFilter}
+                    onChange={e => {
+                      setBloomsFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value="">-- All Levels --</option>
+                    {BLOOMS_LEVELS.map(level => (
+                      <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
                 </div>
-                {isLoading ? (
-                  <div className="flex justify-center items-center py-8">
-                    <span className="loading loading-spinner loading-lg text-primary"></span>
-                  </div>
-                ) : questions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-base-content/70">No questions available for this subject</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {currentQuestions.map((question) => (
-                      <div
-                        key={question._id}
-                        className={`flex items-start gap-4 p-4 rounded-lg transition-colors ${selectedQuestions.includes(question._id)
-                          ? "bg-primary/10 border border-primary/20"
-                          : "bg-base-200 hover:bg-base-300"
-                          }`}
-                      >
-                        <input
-                          type="checkbox"
-                          className="checkbox checkbox-primary mt-1"
-                          checked={selectedQuestions.includes(question._id)}
-                          onChange={() => handleQuestionSelect(question._id)}
-                        />
-                        <div className="flex-grow">
-                          <p className="font-medium mb-2">{question.questionText}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {question.choices.map((choice, index) => (
-                              <span
-                                key={index}
-                                className={`px-3 py-1 rounded-full text-sm ${choice === question.correctAnswer
-                                  ? "bg-success text-success-content"
-                                  : "bg-base-300"
-                                  }`}
-                              >
-                                {choice}
-                                {choice === question.correctAnswer && (
-                                  <MdCheck className="inline-block ml-1" />
-                                )}
-                              </span>
-                            ))}
-                          </div>
+              </>
+            )}
+
+            <div className="card bg-base-100 p-6 rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Select Questions</h2>
+                <span className="text-sm text-base-content/70">
+                  {selectedQuestions.length} selected
+                </span>
+              </div>
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <span className="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+              ) : questions.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-base-content/70">No questions available for this subject</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {currentQuestions.map((question) => (
+                    <div
+                      key={question._id}
+                      className={`flex items-start gap-4 p-4 rounded-lg transition-colors ${selectedQuestions.includes(question._id)
+                        ? "bg-primary/10 border border-primary/20"
+                        : "bg-base-200 hover:bg-base-300"
+                        }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary mt-1"
+                        checked={selectedQuestions.includes(question._id)}
+                        onChange={() => handleQuestionSelect(question._id)}
+                      />
+                      <div className="flex-grow">
+                        <p className="font-medium mb-2">{question.questionText}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {question.choices.map((choice, index) => (
+                            <span
+                              key={index}
+                              className={`px-3 py-1 rounded-full text-sm ${choice === question.correctAnswer
+                                ? "bg-success text-success-content"
+                                : "bg-base-300"
+                                }`}
+                            >
+                              {choice}
+                              {choice === question.correctAnswer && (
+                                <MdCheck className="inline-block ml-1" />
+                              )}
+                            </span>
+                          ))}
                         </div>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
+                  <div className="join">
+                    {[...Array(totalPages)].map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`join-item btn btn-sm ${currentPage === index + 1 ? "btn-active" : ""
+                          }`}
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </button>
                     ))}
                   </div>
-                )}
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-6">
-                    <button
-                      type="button"
-                      className="btn btn-sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                    <div className="join">
-                      {[...Array(totalPages)].map((_, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          className={`join-item btn btn-sm ${currentPage === index + 1 ? "btn-active" : ""
-                            }`}
-                          onClick={() => handlePageChange(index + 1)}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
 
             <div className="flex justify-end">
               <button

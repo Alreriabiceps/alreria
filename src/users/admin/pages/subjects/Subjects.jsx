@@ -1,6 +1,7 @@
 // components/Subjects.js
 import { useEffect, useState } from "react";
 import { MdAdd, MdEdit, MdDelete, MdSave, MdClose } from "react-icons/md";
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
@@ -10,6 +11,7 @@ const Subjects = () => {
   const [loading, setLoading] = useState(false); // Indicate loading state
   const [editingSubject, setEditingSubject] = useState(null); // Stores the whole subject being edited { _id, subject }
   const [editedSubjectName, setEditedSubjectName] = useState("");
+  const { guideMode } = useGuideMode();
 
   // Ensure your VITE_BACKEND_URL is correctly set in your .env file
   const backendurl =
@@ -253,6 +255,18 @@ const Subjects = () => {
               Add Subject
             </button>
           </div>
+
+          {guideMode && (
+            <details open className="mb-6 bg-primary/10 border border-primary rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-primary mb-1">How to use the Subjects page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>View all subjects in the list below.</li>
+                <li>To add a new subject, click <b>Add Subject</b> and fill in the subject name.</li>
+                <li>To edit a subject, click the edit icon next to it, make changes, and save.</li>
+                <li>To delete a subject, click the delete icon next to it.</li>
+              </ol>
+            </details>
+          )}
 
           {error && (
             <div className="alert alert-error mb-6">

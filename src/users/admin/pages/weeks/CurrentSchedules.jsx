@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MdEdit, MdDelete, MdSave, MdClose, MdCheck, MdClose as MdCloseIcon } from "react-icons/md";
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const CurrentSchedules = () => {
   const [schedules, setSchedules] = useState([]);
@@ -17,6 +18,7 @@ const CurrentSchedules = () => {
   const [availableQuestions, setAvailableQuestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [questionsPerPage] = useState(5);
+  const { guideMode } = useGuideMode();
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
 
@@ -297,6 +299,18 @@ const CurrentSchedules = () => {
               </div>
             </div>
           </div>
+
+          {guideMode && (
+            <details open className="mb-6 bg-success/10 border border-success rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-success mb-1">How to use the Current Schedules page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>View all current schedules for weekly tests.</li>
+                <li>Check details for each schedule, including subject and week number.</li>
+                <li>Edit or delete schedules as needed using the available actions.</li>
+                <li>Use the filters to find specific schedules quickly.</li>
+              </ol>
+            </details>
+          )}
 
           {error && (
             <div className="alert alert-error mb-6">

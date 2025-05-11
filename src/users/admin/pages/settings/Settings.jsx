@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { MdLock, MdPerson, MdNotifications, MdSave } from 'react-icons/md';
+import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const Settings = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('security');
+  const { guideMode } = useGuideMode();
 
   const handleSecurityChange = (e) => {
     const { name, value } = e.target;
@@ -153,6 +155,18 @@ const Settings = () => {
               Last updated: {new Date().toLocaleDateString()}
             </div>
           </div>
+
+          {guideMode && (
+            <details open className="mb-6 bg-warning/10 border border-warning rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-warning mb-1">How to use the Settings page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>Switch between Security and Profile tabs to update your information.</li>
+                <li>In Security, you can change your password and username.</li>
+                <li>In Profile, you can update your name, email, and role.</li>
+                <li>Click <b>Save</b> to apply your changes. A confirmation will appear if successful.</li>
+              </ol>
+            </details>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Sidebar */}
