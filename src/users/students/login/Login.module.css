@@ -84,10 +84,10 @@
     0 0 15px var(--panel-border-glow),
     inset 0 0 10px rgba(0, 0, 0, 0.6);
   border-radius: 0;
-  padding: 35px 45px;
+  padding: 20px 18px;
   text-align: center;
-  max-width: 420px;
-  width: 90%;
+  max-width: 600px;
+  width: 100%;
   z-index: 2;
   animation: fadeInPanel 0.8s ease-out forwards;
   opacity: 0;
@@ -101,7 +101,7 @@
 .loginTitle {
   color: var(--accent-color);
   font-size: 1.4rem;
-  margin-bottom: 30px;
+  margin-bottom: 16px;
   letter-spacing: 1.5px;
 }
 
@@ -116,7 +116,7 @@
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 12px;
 }
 
 .inputGroup {
@@ -223,4 +223,27 @@
   0% { opacity: 0.5; }
   50% { opacity: 0.3; }
   100% { opacity: 0.5; }
+}
+
+.signupGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.signupGrid--3col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .signupGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+  }
+  .signupGrid--3col {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px 24px;
+  }
 } 

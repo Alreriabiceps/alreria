@@ -7,6 +7,7 @@ import { GuideModeProvider } from './contexts/GuideModeContext';
 import StudentLogin from "./users/students/login/Login.jsx";
 import StudentSignup from "./users/students/signup/Signup.jsx";
 import AdminLogin from "./users/admin/login/Login.jsx";
+import RegistrationSuccess from "./users/students/signup/RegistrationSuccess.jsx";
 
 // Student routes
 import StudentLayout from "./layout/StudentLayout.jsx";
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/alogin" element={<AdminLogin />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="start" element={<Start />} />
+            <Route path="/registration-success" element={<RegistrationSuccess />} />
 
             {/* Student routes */}
             <Route

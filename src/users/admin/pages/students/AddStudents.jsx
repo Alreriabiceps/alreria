@@ -8,8 +8,7 @@ const AddStudents = () => {
     middleName: "",
     lastName: "",
     studentId: "",
-    age: "",
-    strand: "",
+    track: "",
     section: "",
     yearLevel: "",
     password: ""
@@ -23,8 +22,8 @@ const AddStudents = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Convert studentId and age to numbers
-    if (name === 'studentId' || name === 'age') {
+    // Convert studentId to number
+    if (name === 'studentId') {
       setFormData(prev => ({
         ...prev,
         [name]: value ? parseInt(value) : ''
@@ -75,8 +74,7 @@ const AddStudents = () => {
         middleName: "",
         lastName: "",
         studentId: "",
-        age: "",
-        strand: "",
+        track: "",
         section: "",
         yearLevel: "",
         password: ""
@@ -183,38 +181,18 @@ const AddStudents = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Age</span>
-                </label>
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className="input input-bordered w-full bg-base-100"
-                  min="15"
-                  max="25"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Strand</span>
+                  <span className="label-text font-medium">Track</span>
                 </label>
                 <select
-                  name="strand"
-                  value={formData.strand}
+                  name="track"
+                  value={formData.track}
                   onChange={handleChange}
                   className="select select-bordered w-full bg-base-100"
                   required
                 >
-                  <option value="">Select Strand</option>
-                  <option value="ABM">ABM</option>
-                  <option value="STEM">STEM</option>
-                  <option value="HUMSS">HUMSS</option>
-                  <option value="GAS">GAS</option>
-                  <option value="TVL-ICT">TVL-ICT</option>
-                  <option value="TVL-HE">TVL-HE</option>
+                  <option value="">Select Track</option>
+                  <option value="Academic Track">Academic Track</option>
+                  <option value="Technical-Professional Track">Technical-Professional Track</option>
                 </select>
               </div>
 
