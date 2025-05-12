@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useGuideMode } from '../contexts/GuideModeContext';
 import {
   MdDashboard,
   MdBook,
@@ -14,11 +15,13 @@ import {
   MdDarkMode,
   MdLightMode,
 } from "react-icons/md";
+import gleasLogo from '/gleas2.png';
 
 const SideMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { guideMode, setGuideMode } = useGuideMode();
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme || "light";
@@ -119,53 +122,50 @@ const SideMenu = () => {
   return (
     <div className="drawer-side">
       <label htmlFor="my-drawer-2" className="drawer-overlay"></label>
-      <aside className="w-56 min-h-screen bg-base-200 text-base-content flex flex-col">
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-base-300">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">
-              {user?.role === "admin" ? "Admin Panel" : "Student Portal"}
-            </h2>
-            <button
-              onClick={toggleTheme}
-              className="btn btn-ghost btn-sm btn-circle"
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? (
-                <MdDarkMode className="w-4 h-4" />
-              ) : (
-                <MdLightMode className="w-4 h-4" />
-              )}
-            </button>
+      <aside className="w-64 min-h-screen bg-base-200 text-base-content flex flex-col shadow-xl rounded-r-2xl border-r border-base-300">
+        {/* Text Logo */}
+        <div className="flex flex-col items-center px-6 pt-6 pb-2">
+          <span className="font-extrabold text-2xl tracking-widest text-primary">GLEAS</span>
+        </div>
+        {/* User Info */}
+        <div className="flex items-center gap-3 px-6 pb-4">
+          <div className="bg-accent text-accent-content rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl">
+            {user?.firstName && user?.lastName ? `${user.firstName[0]}${user.lastName[0]}` : 'A'}
+          </div>
+          <div className="flex flex-col">
+            <div className="font-semibold text-base-content">
+              {user?.firstName} {user?.lastName}
+            </div>
+            <div className="text-xs text-base-content/60 capitalize">{user?.role}</div>
           </div>
         </div>
-
         {/* Navigation */}
-        <nav className="flex-1 px-2 overflow-y-auto space-y-2 py-2">
-          <ul className="menu menu-sm bg-base-200 w-full">
+        <nav className="flex-1 px-2 overflow-y-auto py-4">
+          <ul className="space-y-1">
             {menuItems.map((item, idx) => (
               <li key={idx}>
                 {item.items ? (
                   <details
                     open={item.items.some((subItem) => isActive(subItem.path))}
+                    className="group"
                   >
-                    <summary className="flex items-center gap-2 px-2 py-1.5 font-medium cursor-pointer hover:bg-base-300 rounded-lg">
-                      {item.icon}
-                      {item.title}
+                    <summary className="flex items-center gap-2 px-3 py-2 font-medium cursor-pointer rounded-lg transition-colors hover:bg-base-300 group-open:bg-base-300">
+                      <span className="text-xl">{item.icon}</span>
+                      <span>{item.title}</span>
                     </summary>
-                    <ul className="pl-4 mt-1 space-y-1">
+                    <ul className="pl-6 mt-1 space-y-1">
                       {item.items.map((subItem, subIdx) => (
                         <li key={subIdx}>
                           <button
                             onClick={() => handleNavigation(subItem.path)}
-                            className={`flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg text-sm ${
-                              isActive(subItem.path)
-                                ? "bg-primary text-primary-content"
-                                : "hover:bg-base-300"
-                            }`}
+                            className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                              ${isActive(subItem.path)
+                                ? 'bg-primary text-primary-content shadow-md border-l-4 border-primary font-bold'
+                                : 'hover:bg-base-200'}
+                            `}
                           >
-                            {subItem.icon}
-                            {subItem.title}
+                            <span className="text-lg">{subItem.icon}</span>
+                            <span>{subItem.title}</span>
                           </button>
                         </li>
                       ))}
@@ -174,40 +174,52 @@ const SideMenu = () => {
                 ) : (
                   <button
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg text-sm ${
-                      isActive(item.path)
-                        ? "bg-primary text-primary-content"
-                        : "hover:bg-base-300"
-                    }`}
+                    className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                      ${isActive(item.path)
+                        ? 'bg-primary text-primary-content shadow-md border-l-4 border-primary font-bold'
+                        : 'hover:bg-base-200'}
+                    `}
                   >
-                    {item.icon}
-                    {item.title}
+                    <span className="text-xl">{item.icon}</span>
+                    <span>{item.title}</span>
                   </button>
                 )}
               </li>
             ))}
           </ul>
         </nav>
-
-        {/* Footer */}
-        <div className="p-2 border-t border-base-300 mt-auto">
+        {/* Theme Toggle & Logout */}
+        <div className="px-6 py-4 border-t border-base-300 bg-base-100 mt-auto flex flex-col gap-3">
+          <div className="flex items-center gap-3 justify-between">
+            <span className="text-sm text-base-content/70">Theme</span>
+            <button
+              onClick={toggleTheme}
+              className={`relative w-14 h-7 rounded-full transition-colors duration-200 focus:outline-none
+                ${theme === 'dark' ? 'bg-primary' : 'bg-base-300'}`}
+              aria-label="Toggle theme"
+            >
+              <span
+                className={`absolute left-1 top-1 w-5 h-5 rounded-full bg-base-100 shadow-md flex items-center justify-center transition-transform duration-200
+                  ${theme === 'dark' ? 'translate-x-7 bg-primary text-primary-content' : 'translate-x-0'}`}
+              >
+                {theme === 'light' ? <MdDarkMode className="w-4 h-4" /> : <MdLightMode className="w-4 h-4" />}
+              </span>
+            </button>
+          </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-error hover:bg-error/10 font-medium rounded-lg text-sm"
+            className="flex items-center gap-2 w-full text-left px-3 py-2 text-error hover:bg-error/10 font-semibold rounded-lg text-sm border border-error/30 mt-2 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <path
-                fillRule="evenodd"
-                d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v3a1 1 0 102 0V9z"
-                clipRule="evenodd"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
             </svg>
-            Logoutsss
+            Logout
           </button>
         </div>
       </aside>

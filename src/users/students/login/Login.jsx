@@ -117,7 +117,7 @@ const Login = () => {
         <button
           type="button"
           className={`${styles.gameButton} ${styles.loginButton}`}
-          style={{ marginTop: '1rem', background: '#222', color: '#fff' }}
+          style={{ marginTop: '1rem', background: '#222', color: '#fff', fontSize: '0.8rem', padding: '6px 14px' }}
           onClick={() => navigate('/register')}
           disabled={isLoading}
         >

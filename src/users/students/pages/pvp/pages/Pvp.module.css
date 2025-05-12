@@ -409,3 +409,25 @@
     transform: translateX(5px);
   }
 }
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.loadingMessage {
+  color: #00ff9d;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.5rem;
+  text-shadow: 2px 2px 0 #000;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

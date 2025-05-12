@@ -424,6 +424,7 @@ const Pvp = () => {
         });
 
         socketRef.current.on('connect', () => {
+          console.log('[SOCKET] Connected to server. Socket ID:', socketRef.current.id);
           if (!isMountedRef.current) return;
 
           console.log('Connected to socket server with ID:', socketRef.current.id);
@@ -537,21 +538,20 @@ const Pvp = () => {
 
             // Initialize hands and deck counts
             if (data.player1Id === myPlayerId) {
-              setMyHand(Array.isArray(data.player1Hand) ? data.player1Hand : []);
+              const initialHand = Array.isArray(data.player1Hand) ? data.player1Hand : [];
+              setMyHand(initialHand);
+              setDisplayedHand(initialHand); // Ensure displayed hand is also set
               setMyDeckCount(data.player1DeckCount || DECK_SIZE - STARTING_HAND_SIZE);
               setOpponentHandCount(data.player2HandCount || STARTING_HAND_SIZE);
               setOpponentDeckCount(data.player2DeckCount || DECK_SIZE - STARTING_HAND_SIZE);
             } else {
-              setMyHand(Array.isArray(data.player2Hand) ? data.player2Hand : []);
+              const initialHand = Array.isArray(data.player2Hand) ? data.player2Hand : [];
+              setMyHand(initialHand);
+              setDisplayedHand(initialHand); // Ensure displayed hand is also set
               setMyDeckCount(data.player2DeckCount || DECK_SIZE - STARTING_HAND_SIZE);
               setOpponentHandCount(data.player1HandCount || STARTING_HAND_SIZE);
               setOpponentDeckCount(data.player1DeckCount || DECK_SIZE - STARTING_HAND_SIZE);
             }
-
-            // Reset RPS state for new game/round
-            setRpsChoice(null);
-            setOpponentRpsChoice(null);
-            setRpsResult(null);
           }
         });
 
@@ -891,10 +891,11 @@ const Pvp = () => {
 
         // Add 'deal_cards' event listener for receiving initial cards
         socketRef.current.on('deal_cards', (data) => {
+          console.log('[SOCKET] deal_cards handler fired:', data);
           if (!isMountedRef.current) return;
 
           try {
-            console.log('[DEBUG] Received deal_cards event:', data);
+            console.log('[DEBUG] deal_cards handler fired:', data);
 
             if (data && data.playerHand && Array.isArray(data.playerHand)) {
               // Filter cards to ensure they have valid properties
@@ -1279,45 +1280,6 @@ const Pvp = () => {
     setShowCardDistribution(true);
 
     // Request initial cards for both players
-    if (socketRef.current && socketRef.current.connected) {
-      try {
-        console.log('[Pvp.jsx] Requesting initial cards for both players');
-        socketRef.current.emit('request_initial_cards', {
-          lobbyId: lobbyId,
-          playerId: myPlayerId
-        });
-      } catch (error) {
-        console.error('[Pvp.jsx] Error requesting initial cards:', error);
-      }
-
-      // Set a timeout to retry if needed
-      const retryTimeout = setTimeout(() => {
-        if (myHand.length === 0 && socketRef.current?.connected) {
-          console.log('[Pvp.jsx] No cards received yet, sending request again');
-          try {
-            socketRef.current.emit('request_initial_cards', {
-              lobbyId: lobbyId,
-              playerId: myPlayerId
-            });
-          } catch (error) {
-            console.error('[Pvp.jsx] Error in retry request for initial cards:', error);
-          }
-        }
-      }, 2000);
-
-      // Clean up the retry timeout on unmount
-      return () => clearTimeout(retryTimeout);
-    } else {
-      console.error('[Pvp.jsx] Socket not connected when trying to request initial cards');
-      // Try to reconnect
-      if (socketRef.current && !socketRef.current.connected) {
-        try {
-          socketRef.current.connect();
-        } catch (error) {
-          console.error('[Pvp.jsx] Error reconnecting socket:', error);
-        }
-      }
-    }
 
     // Set a timeout to hide card distribution animation and proceed to game
     setTimeout(() => {
@@ -1924,6 +1886,24 @@ const Pvp = () => {
       }
     };
   }, [myHand, displayedHand]);
+
+  // Add this after all useState/useEffect declarations, but before the main render:
+  useEffect(() => {
+    if (
+      gameState === GAME_STATE.AWAITING_CARD_SUMMON &&
+      myHand.length === 0 &&
+      socketRef.current &&
+      socketRef.current.connected &&
+      lobbyId &&
+      myPlayerId
+    ) {
+      console.log('[FIX] Emitting request_initial_cards after handlers registered and dice roll complete');
+      socketRef.current.emit('request_initial_cards', {
+        lobbyId: lobbyId,
+        playerId: myPlayerId
+      });
+    }
+  }, [gameState, myHand.length, socketRef, lobbyId, myPlayerId]);
 
   // --- Main Render Output ---
   return (

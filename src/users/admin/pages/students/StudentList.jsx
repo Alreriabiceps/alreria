@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd } from "react-icons/md";
+import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd, MdVisibility, MdClose } from "react-icons/md";
 import { useGuideMode } from '../../../../contexts/GuideModeContext';
+
+const COLUMN_OPTIONS = [
+  { key: 'firstName', label: 'First Name' },
+  { key: 'middleName', label: 'Middle Name' },
+  { key: 'lastName', label: 'Last Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'studentId', label: 'Student ID' },
+  { key: 'track', label: 'Track' },
+  { key: 'section', label: 'Section' },
+  { key: 'yearLevel', label: 'Year Level' },
+  { key: 'isActive', label: 'Status' },
+  { key: 'lastLogin', label: 'Last Login' },
+  { key: 'totalPoints', label: 'Total Points' },
+];
+
+const COLUMN_DEFAULTS = [
+  'firstName', 'lastName', 'email', 'studentId', 'track', 'section', 'yearLevel', 'isActive', 'totalPoints'
+];
 
 const StudentList = () => {
   const [students, setStudents] = useState([]);
@@ -12,6 +30,22 @@ const StudentList = () => {
   const [studentsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const { guideMode } = useGuideMode();
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const saved = localStorage.getItem('studentListVisibleColumns');
+    return saved ? JSON.parse(saved) : COLUMN_DEFAULTS;
+  });
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editStudent, setEditStudent] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  // Helper for select/deselect all
+  const allSelected = visibleColumns.length === COLUMN_OPTIONS.length;
+  const noneSelected = visibleColumns.length === 0;
+  const handleSelectAll = () => setVisibleColumns(COLUMN_OPTIONS.map(col => col.key));
+  const handleDeselectAll = () => setVisibleColumns([]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -51,6 +85,10 @@ const StudentList = () => {
     fetchStudents();
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('studentListVisibleColumns', JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
   const filteredStudents = students.filter((student) => {
     const searchLower = searchTerm.toLowerCase();
     const searchMatch =
@@ -78,6 +116,68 @@ const StudentList = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Delete handler
+  const handleDelete = async (studentId) => {
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
+    try {
+      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendurl}/api/students/${studentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to delete student');
+      setStudents(students => students.filter(s => s.studentId !== studentId));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Edit handlers
+  const openEditModal = (student) => {
+    setEditStudent(student);
+    setEditForm({ ...student });
+    setEditError("");
+    setEditModalOpen(true);
+  };
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditStudent(null);
+    setEditForm({});
+    setEditError("");
+  };
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(f => ({ ...f, [name]: value }));
+  };
+  const handleEditSave = async () => {
+    setEditLoading(true);
+    setEditError("");
+    try {
+      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendurl}/api/students/${editStudent.studentId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Failed to update student');
+      }
+      // Update the list
+      setStudents(students => students.map(s => s.studentId === editStudent.studentId ? { ...s, ...editForm } : s));
+      closeEditModal();
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -96,20 +196,72 @@ const StudentList = () => {
         <div className="bg-base-200 rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-primary">Student List</h1>
-            <button className="btn btn-primary btn-sm gap-2">
-              <MdAdd className="w-5 h-5" />
-              Add Student
-            </button>
+            <div className="flex gap-2">
+              <div className="relative group">
+                <button
+                  className="btn btn-secondary btn-sm gap-2"
+                  aria-label="Show/Hide Columns"
+                  title="Show/Hide Columns"
+                  onClick={() => setShowColumnDropdown(v => !v)}
+                >
+                  <MdVisibility className="w-5 h-5" />
+                  Columns
+                </button>
+                {showColumnDropdown && (
+                  <div className="absolute right-0 mt-2 bg-base-100 border border-base-300 rounded shadow-lg z-50 p-4 min-w-[220px] w-max animate-fade-in">
+                    <div className="font-semibold mb-2 text-base-content">Column Visibility</div>
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        className="btn btn-xs btn-outline"
+                        onClick={handleSelectAll}
+                        disabled={allSelected}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        className="btn btn-xs btn-outline"
+                        onClick={handleDeselectAll}
+                        disabled={noneSelected}
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                    <div className="max-h-56 overflow-y-auto pr-1">
+                      {COLUMN_OPTIONS.map(col => (
+                        <label key={col.key} className="flex items-center gap-2 cursor-pointer mb-1 px-1 py-1 rounded hover:bg-base-200">
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns.includes(col.key)}
+                            onChange={e => {
+                              setVisibleColumns(v =>
+                                e.target.checked
+                                  ? [...v, col.key]
+                                  : v.filter(k => k !== col.key)
+                              );
+                            }}
+                          />
+                          <span className="text-base-content">{col.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button className="btn btn-primary btn-sm gap-2">
+                <MdAdd className="w-5 h-5" />
+                Add Student
+              </button>
+            </div>
           </div>
 
           {guideMode && (
             <details open className="mb-6 bg-info/10 border border-info rounded p-3">
               <summary className="cursor-pointer font-medium text-base text-info mb-1">How to use the Student List page?</summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                <li>View all students in the list below.</li>
-                <li>Use the search or filters to find specific students.</li>
-                <li>Edit or delete students using the icons next to each student.</li>
-                <li>All changes are saved automatically or after confirmation.</li>
+                <li>Use the <b>search</b> box to find students by name or ID.</li>
+                <li>Filter by <b>track</b> (strand) or <b>year level</b> using the dropdowns.</li>
+                <li>Click <b>Columns</b> to show or hide table columns in real time.</li>
+                <li>Edit or delete students using the icons in the Actions column.</li>
               </ol>
             </details>
           )}
@@ -190,40 +342,49 @@ const StudentList = () => {
                 <table className="table w-full">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Student ID</th>
-                      <th className="hidden lg:table-cell">Age</th>
-                      <th>Strand</th>
-                      <th className="hidden md:table-cell">Section</th>
-                      <th>Year Level</th>
+                      {COLUMN_OPTIONS.filter(col => visibleColumns.includes(col.key)).map(col => (
+                        <th key={col.key}>{col.label}</th>
+                      ))}
                       <th className="text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentStudents.map((student) => (
                       <tr key={student._id} className="hover">
-                        <td>
-                          <div className="font-medium">
-                            {student.firstName} {student.lastName}
-                          </div>
-                        </td>
-                        <td>{student.studentId}</td>
-                        <td className="hidden lg:table-cell">{student.age}</td>
-                        <td>
-                          <span className="badge badge-ghost">
-                            {student.strand}
-                          </span>
-                        </td>
-                        <td className="hidden md:table-cell">
-                          {student.section}
-                        </td>
-                        <td>{student.yearLevel}</td>
+                        {COLUMN_OPTIONS.filter(col => visibleColumns.includes(col.key)).map(col => {
+                          switch (col.key) {
+                            case 'firstName':
+                              return <td key="firstName">{student.firstName}</td>;
+                            case 'middleName':
+                              return <td key="middleName">{student.middleName}</td>;
+                            case 'lastName':
+                              return <td key="lastName">{student.lastName}</td>;
+                            case 'email':
+                              return <td key="email">{student.email}</td>;
+                            case 'studentId':
+                              return <td key="studentId">{student.studentId}</td>;
+                            case 'track':
+                              return <td key="track">{student.track}</td>;
+                            case 'section':
+                              return <td key="section">{student.section}</td>;
+                            case 'yearLevel':
+                              return <td key="yearLevel">{student.yearLevel}</td>;
+                            case 'isActive':
+                              return <td key="isActive">{student.isActive ? 'Active' : 'Inactive'}</td>;
+                            case 'lastLogin':
+                              return <td key="lastLogin">{student.lastLogin ? new Date(student.lastLogin).toLocaleString() : '-'}</td>;
+                            case 'totalPoints':
+                              return <td key="totalPoints">{student.totalPoints ?? 0}</td>;
+                            default:
+                              return null;
+                          }
+                        })}
                         <td className="text-right">
                           <div className="flex justify-end gap-2">
-                            <button className="btn btn-ghost btn-sm">
+                            <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(student)}>
                               <MdEdit className="w-5 h-5" />
                             </button>
-                            <button className="btn btn-ghost btn-sm text-error">
+                            <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDelete(student.studentId)}>
                               <MdDelete className="w-5 h-5" />
                             </button>
                           </div>
@@ -269,6 +430,35 @@ const StudentList = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
+            <button className="absolute top-2 right-2 btn btn-ghost btn-sm" onClick={closeEditModal}>
+              <MdClose className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold mb-4">Edit Student</h2>
+            {editError && <div className="alert alert-error mb-2"><span>{editError}</span></div>}
+            <form onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
+              <div className="grid grid-cols-1 gap-3">
+                <input type="text" name="firstName" value={editForm.firstName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="First Name" required />
+                <input type="text" name="middleName" value={editForm.middleName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Middle Name" />
+                <input type="text" name="lastName" value={editForm.lastName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Last Name" required />
+                <input type="email" name="email" value={editForm.email || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Email" required />
+                <input type="text" name="studentId" value={editForm.studentId || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Student ID" required disabled />
+                <input type="text" name="track" value={editForm.track || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Track" required />
+                <input type="text" name="section" value={editForm.section || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Section" required />
+                <input type="text" name="yearLevel" value={editForm.yearLevel || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Year Level" required />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <button type="button" className="btn btn-ghost" onClick={closeEditModal}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
