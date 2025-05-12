@@ -87,7 +87,7 @@ const Signup = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className={styles.loginForm}>
-            <div className="signupGrid--3col">
+            <div className="signupGrid">
               <div className={styles.inputGroup}>
                 <label htmlFor="firstName">First Name:</label>
                 <input
@@ -139,8 +139,6 @@ const Signup = () => {
                   placeholder="Email"
                 />
               </div>
-            </div>
-            <div className="signupGrid">
               <div className={styles.inputGroup}>
                 <label htmlFor="studentId">Service ID:</label>
                 <input
@@ -198,7 +196,7 @@ const Signup = () => {
                   <option value="Grade 12">Grade 12</option>
                 </select>
               </div>
-              <div className={styles.inputGroup}>
+              <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
                 <label htmlFor="password">Password Matrix:</label>
                 <input
                   type="password"
