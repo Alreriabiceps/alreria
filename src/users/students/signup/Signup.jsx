@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../login/Login.module.css';
+import styles from './Signup.module.css';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -66,11 +66,11 @@ const Signup = () => {
   };
 
   return (
-    <div className={styles.loginScreen}>
+    <div className={styles.signupScreen}>
       <div className={styles.scanlineOverlay}></div>
 
-      <div className={styles.loginContainer}>
-        <h1 className={`${styles.loginTitle} ${styles.textShadowGlow}`}>
+      <div className={styles.signupContainer}>
+        <h1 className={`${styles.signupTitle} ${styles.textShadowGlow}`}>
           // CREATE NEW ACCOUNT //
         </h1>
 
@@ -86,8 +86,8 @@ const Signup = () => {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className={styles.loginForm}>
-            <div className="signupGrid">
+          <form onSubmit={handleSubmit} className={styles.signupForm}>
+            <div className={styles.signupGrid}>
               <div className={styles.inputGroup}>
                 <label htmlFor="firstName">First Name:</label>
                 <input
@@ -217,7 +217,7 @@ const Signup = () => {
 
             <button
               type="submit"
-              className={`${styles.gameButton} ${styles.loginButton}`}
+              className={styles.signupButton}
               disabled={isLoading}
             >
               {isLoading ? 'REGISTERING...' : 'SIGN UP'}

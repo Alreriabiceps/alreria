@@ -1,15 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-/* Apply box-sizing only within the login screen context */
-.loginScreen *,
-.loginScreen *::before,
-.loginScreen *::after {
+.signupScreen *,
+.signupScreen *::before,
+.signupScreen *::after {
   box-sizing: border-box;
 }
 
-.loginScreen {
-  /* --- CSS Variables scoped to .loginScreen --- */
+.signupScreen {
   --game-font-family: 'Press Start 2P', cursive;
   --body-font-family: 'VT323', monospace;
   --background-color-start: #0c051a;
@@ -29,7 +27,6 @@
   --panel-border-glow: rgba(0, 255, 157, 0.3);
   --wrong-color: #ff4f7a;
   --pixel-shadow-color: rgba(0, 0, 0, 0.7);
-  /* --- End of scoped variables --- */
 
   height: 100vh;
   width: 100vw;
@@ -53,30 +50,7 @@
   background-position: 0 0, 100px 100px, center, center, center;
 }
 
-.scanlineOverlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.scanlineOverlay::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%; height: 100%;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-  background-size: 100% 4px;
-  animation: scanline-anim 15s linear infinite;
-  opacity: 0.1;
-}
-
-@keyframes scanline-anim {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 100px; }
-}
-
-.loginContainer {
+.signupContainer {
   background-color: var(--panel-background);
   border: 2px solid var(--panel-border-color);
   box-shadow:
@@ -98,7 +72,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.loginTitle {
+.signupTitle {
   color: var(--accent-color);
   font-size: 1.4rem;
   margin-bottom: 16px;
@@ -113,10 +87,23 @@
     3px 3px 0 var(--pixel-shadow-color);
 }
 
-.loginForm {
+.signupForm {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.signupGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+@media (max-width: 600px) {
+  .signupGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 .inputGroup {
@@ -153,12 +140,14 @@
   font-family: var(--body-font-family);
 }
 
-.inputGroup input:focus {
+.inputGroup input:focus,
+.inputGroup select:focus {
   border-color: var(--input-focus-border-color);
   box-shadow: inset 2px 2px 0 rgba(0,0,0,0.4), 0 0 8px var(--panel-border-glow);
 }
 
-.inputGroup input:disabled {
+.inputGroup input:disabled,
+.inputGroup select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: rgba(0,0,0,0.6);
@@ -176,7 +165,7 @@
   text-align: center;
 }
 
-.gameButton {
+.signupButton {
   font-family: var(--game-font-family);
   padding: 10px 20px;
   border: 2px solid var(--accent-color);
@@ -192,19 +181,19 @@
   user-select: none;
 }
 
-.gameButton:hover {
+.signupButton:hover {
   background-color: var(--accent-color);
   color: var(--background-color-start);
   box-shadow: 0 0 10px var(--accent-color), inset 0 0 10px rgba(0, 255, 157, 0.7);
   transform: translateY(-2px);
 }
 
-.gameButton:active {
+.signupButton:active {
   transform: translateY(1px);
   box-shadow: 0 0 5px var(--accent-color), inset 0 0 5px rgba(0, 255, 157, 0.5);
 }
 
-.gameButton:disabled {
+.signupButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: rgba(0, 0, 0, 0.6);
@@ -213,7 +202,7 @@
   animation: pulse-disabled 2s infinite;
 }
 
-.gameButton:disabled:hover {
+.signupButton:disabled:hover {
   transform: none;
   background-color: rgba(0, 0, 0, 0.6);
   color: var(--accent-color);
@@ -224,17 +213,4 @@
   0% { opacity: 0.5; }
   50% { opacity: 0.3; }
   100% { opacity: 0.5; }
-}
-
-.signupGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 16px;
-}
-
-@media (max-width: 600px) {
-  .signupGrid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
 } 
