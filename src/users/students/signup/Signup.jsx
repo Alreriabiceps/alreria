@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import styles from './Login.module.css';
+import styles from '../login/Login.module.css';
 
-const Login = () => {
+const Signup = () => {
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     try {
@@ -22,8 +22,7 @@ const Login = () => {
         throw new Error('Backend URL is not configured. Please check your environment variables.');
       }
 
-      console.log('Attempting student login with:', { studentId, password });
-      const response = await fetch(`${backendUrl}/api/auth/student-login`, {
+      const response = await fetch(`${backendUrl}/api/auth/student-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,30 +33,15 @@ const Login = () => {
         }),
       });
 
-      console.log('Login response status:', response.status);
       const data = await response.json();
-      console.log('Login response data:', data);
 
       if (!response.ok) {
-        console.error('Login error:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: data
-        });
-        throw new Error(data.error || `Login failed: ${response.status} ${response.statusText}`);
+        throw new Error(data.error || `Registration failed: ${response.status} ${response.statusText}`);
       }
 
-      // Store token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.student));
-
-      // Update auth context
-      await login({ studentId, password });
-
-      // Redirect to student dashboard
-      navigate('/start');
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      console.error('Login error details:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -70,7 +54,7 @@ const Login = () => {
 
       <div className={styles.loginContainer}>
         <h1 className={`${styles.loginTitle} ${styles.textShadowGlow}`}>
-          // AUTHENTICATION REQUIRED //
+          // CREATE NEW ACCOUNT //
         </h1>
 
         <form onSubmit={handleSubmit} className={styles.loginForm}>
@@ -98,34 +82,26 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
               disabled={isLoading}
               placeholder="••••••••"
             />
           </div>
 
           {error && <p className={styles.errorMessage}>{error}</p>}
+          {success && <p className={styles.successMessage}>{success}</p>}
 
           <button
             type="submit"
             className={`${styles.gameButton} ${styles.loginButton}`}
             disabled={isLoading}
           >
-            {isLoading ? 'AUTHENTICATING...' : 'ENGAGE'}
+            {isLoading ? 'REGISTERING...' : 'SIGN UP'}
           </button>
         </form>
-        <button
-          type="button"
-          className={`${styles.gameButton} ${styles.loginButton}`}
-          style={{ marginTop: '1rem', background: '#222', color: '#fff' }}
-          onClick={() => navigate('/register')}
-          disabled={isLoading}
-        >
-          New here? Register
-        </button>
       </div>
     </div>
   );
 };
 
-export default Login; 
+export default Signup; 

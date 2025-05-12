@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { GuideModeProvider } from './contexts/GuideModeContext';
 
 import StudentLogin from "./users/students/login/Login.jsx";
+import StudentSignup from "./users/students/signup/Signup.jsx";
 import AdminLogin from "./users/admin/login/Login.jsx";
 
 // Student routes
@@ -42,6 +43,7 @@ const App = () => {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<StudentLogin />} />
+            <Route path="/register" element={<StudentSignup />} />
             <Route path="/alogin" element={<AdminLogin />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="start" element={<Start />} />
