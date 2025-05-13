@@ -10,6 +10,7 @@ const Signup = () => {
     email: '',
     studentId: '',
     password: '',
+    confirmPassword: '',
     track: '',
     section: '',
     yearLevel: ''
@@ -17,20 +18,57 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
   const navigate = useNavigate();
+
+  const checkPasswordStrength = (password) => {
+    setPasswordStrength({
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'password') {
+      checkPasswordStrength(value);
+    }
     setFormData(prev => ({
       ...prev,
       [name]: name === 'studentId' ? value.replace(/\D/, '') : value
     }));
   };
 
+  const validatePassword = () => {
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+    if (!Object.values(passwordStrength).every(Boolean)) {
+      setError('Password does not meet all requirements');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    
+    if (!validatePassword()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -56,8 +94,7 @@ const Signup = () => {
         throw new Error(data.error || `Registration failed: ${response.status} ${response.statusText}`);
       }
 
-      setSuccess('Registration successful! Redirecting to login...');
-      setTimeout(() => navigate('/'), 2000);
+      setSuccess('Registration successful! Please check your email to confirm your account.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -76,14 +113,25 @@ const Signup = () => {
 
         {success ? (
           <div>
-            <div className={styles.successMessage}>{success}</div>
-            <div className="mt-4 text-base text-center text-accent-content">
-              <p>
-                Please check your email inbox for a confirmation link.<br />
-                <b>Don&apos;t forget to check your Spam or Promotions folder</b> if you don&apos;t see it in your inbox.<br />
-                You must confirm your email before you can log in.
-              </p>
+            <div className={styles.successMessageBox}>
+              <div className={styles.successIcon}>📧</div>
+              <div>
+                <h2 className={styles.successTitle}>Check Your Email!</h2>
+                <p className={styles.successText}>
+                  We've sent a confirmation link to your email address.<br />
+                  <b>Don't forget to check your <span style={{color:'#00b894'}}>Spam</span> or <span style={{color:'#00b894'}}>Promotions</span> folder</b> if you don't see it in your inbox.<br />
+                  <span style={{color:'#00b894'}}>You must confirm your email before you can log in.</span>
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              className={styles.signupButton}
+              style={{ marginTop: '2rem' }}
+              onClick={() => navigate('/')}
+            >
+              Log In
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className={styles.signupForm}>
@@ -208,7 +256,43 @@ const Signup = () => {
                   autoComplete="new-password"
                   disabled={isLoading}
                   placeholder="••••••••"
-                  minLength={6}
+                  minLength={8}
+                />
+                <div className={styles.passwordRequirements}>
+                  <p>Password must contain:</p>
+                  <ul>
+                    <li className={passwordStrength.length ? styles.requirementMet : ''}>
+                      At least 8 characters
+                    </li>
+                    <li className={passwordStrength.uppercase ? styles.requirementMet : ''}>
+                      One uppercase letter
+                    </li>
+                    <li className={passwordStrength.lowercase ? styles.requirementMet : ''}>
+                      One lowercase letter
+                    </li>
+                    <li className={passwordStrength.number ? styles.requirementMet : ''}>
+                      One number
+                    </li>
+                    <li className={passwordStrength.special ? styles.requirementMet : ''}>
+                      One special character
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="confirmPassword">Confirm Password Matrix:</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  placeholder="••••••••"
+                  minLength={8}
                 />
               </div>
             </div>

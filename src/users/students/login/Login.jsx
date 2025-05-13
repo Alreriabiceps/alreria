@@ -123,6 +123,17 @@ const Login = () => {
         >
           New here? Register
         </button>
+        <div style={{ marginTop: '1.2rem', textAlign: 'center' }}>
+          <button
+            type="button"
+            className={styles.forgotPasswordLink}
+            style={{ background: 'none', border: 'none', color: '#00ff9d', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.95rem', marginTop: '0.5rem' }}
+            onClick={() => navigate('/forgot-password')}
+            disabled={isLoading}
+          >
+            Forgot Password?
+          </button>
+        </div>
       </div>
     </div>
   );

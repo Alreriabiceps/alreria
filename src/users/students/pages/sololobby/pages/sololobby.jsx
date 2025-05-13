@@ -3,6 +3,7 @@ import styles from "./Sololobby.module.css"; // Import the CSS module
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import QueueForMatch from '../../../pvp/QueueForMatch';
 
 // Function to format time (MM:SS)
 const formatTime = (seconds) => {
@@ -749,41 +750,10 @@ const SoloLobby = () => {
             <span className={styles.panelIcon}>🛰️</span> Matchmaking Queue
           </h3>
           <div className={styles.queuePanelContent}>
-            {isQueueing ? (
-              <>
-                <p className={styles.queueStatus}>Searching for opponent...</p>
-                <p className={styles.queueTime}>{formatTime(queueTime)}</p>
-                <button
-                  onClick={handleCancelQueue}
-                  className={`${styles.gameButton} ${styles.cancelQueueButton}`}
-                >
-                  Cancel Search
-                </button>
-              </>
-            ) : (
-              <>
-                <p className={styles.createDescription}>
-                  Find a random opponent near your skill level for a quick 1v1
-                  duel.
-                </p>
-                <div className={styles.queueButtons}>
-                  <button
-                    onClick={handleQueueMatchmaking}
-                    className={`${styles.gameButton} ${styles.queueButton}`}
-                    disabled={isLoadingAction}
-                  >
-                    Queue for Match
-                  </button>
-                  <button
-                    onClick={() => navigate('/student/pvp', { state: { isDemo: true } })}
-                    className={`${styles.gameButton} ${styles.demoButton}`}
-                    disabled={isLoadingAction}
-                  >
-                    Try Demo
-                  </button>
-                </div>
-              </>
-            )}
+            <div className={styles.matchmakingQueueBox}>
+              <h2>Matchmaking Queue</h2>
+              <QueueForMatch />
+            </div>
           </div>
         </div>
         <div className={`${styles.panel} ${styles.joinLobbyPanel}`}>

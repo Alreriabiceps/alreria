@@ -28,14 +28,13 @@
   --wrong-color: #ff4f7a;
   --pixel-shadow-color: rgba(0, 0, 0, 0.7);
 
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
-  overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   font-family: var(--game-font-family);
-  padding: 0;
+  padding: 20px 0;
   margin: 0;
   position: relative;
   background-color: var(--background-color-start);
@@ -48,6 +47,8 @@
   background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
   background-size: 150px 150px, 200px 200px, 100% 100%, 100% 100%, 100% 100%;
   background-position: 0 0, 100px 100px, center, center, center;
+  background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 .signupContainer {
@@ -100,9 +101,54 @@
 }
 
 @media (max-width: 600px) {
-  .signupGrid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .signupScreen {
+    padding: 10px 0;
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .signupContainer {
+    max-width: 95%;
+    padding: 8px;
+    margin: 0 10px;
+    margin-bottom: 20px;
+  }
+
+  .signupTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .inputGroup label {
+    font-size: 0.65rem;
+    margin-bottom: 4px;
+  }
+
+  .inputGroup input,
+  .inputGroup select {
+    padding: 4px 6px;
+    font-size: 0.9rem;
+  }
+
+  .passwordRequirements {
+    font-size: 0.75rem;
+  }
+
+  .passwordRequirements li {
+    padding-left: 1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .signupButton {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .errorMessage {
+    font-size: 0.9rem;
+    margin-top: -8px;
+    margin-bottom: 6px;
   }
 }
 
@@ -213,4 +259,103 @@
   0% { opacity: 0.5; }
   50% { opacity: 0.3; }
   100% { opacity: 0.5; }
+}
+
+.passwordRequirements {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.passwordRequirements p {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.passwordRequirements ul {
+  list-style: none;
+  padding-left: 0.5rem;
+  margin: 0;
+}
+
+.passwordRequirements li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: #666;
+}
+
+.passwordRequirements li::before {
+  content: "×";
+  position: absolute;
+  left: 0;
+  color: #ff4444;
+}
+
+.passwordRequirements li.requirementMet {
+  color: #00C851;
+}
+
+.passwordRequirements li.requirementMet::before {
+  content: "✓";
+  color: #00C851;
+}
+
+.successMessageBox {
+  background: rgba(0,255,157,0.08);
+  border: 2px solid var(--accent-color);
+  border-radius: 8px;
+  box-shadow: 0 0 10px var(--panel-border-glow), 2px 2px 0 var(--pixel-shadow-color);
+  padding: 1.5rem 1rem 1rem 1rem;
+  margin: 1.5rem 0 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  flex-direction: row;
+  justify-content: center;
+  text-align: left;
+}
+
+.successIcon {
+  font-size: 2.5rem;
+  margin-top: 0.1em;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px var(--accent-color));
+}
+
+.successTitle {
+  font-family: var(--game-font-family);
+  color: var(--accent-color);
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px var(--accent-color), 2px 2px 0 var(--pixel-shadow-color);
+}
+
+.successText {
+  font-family: var(--body-font-family);
+  color: var(--text-color);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .successMessageBox {
+    flex-direction: column;
+    align-items: center;
+    padding: 1.2rem 0.5rem 0.8rem 0.5rem;
+    font-size: 0.97rem;
+  }
+  .successIcon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .successTitle {
+    font-size: 1.05rem;
+  }
+  .successText {
+    font-size: 0.97rem;
+  }
 } 

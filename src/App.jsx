@@ -8,6 +8,8 @@ import StudentLogin from "./users/students/login/Login.jsx";
 import StudentSignup from "./users/students/signup/Signup.jsx";
 import AdminLogin from "./users/admin/login/Login.jsx";
 import RegistrationSuccess from "./users/students/signup/RegistrationSuccess.jsx";
+import ForgotPassword from "./users/students/login/ForgotPassword.jsx";
+import ResetPassword from "./users/students/login/ResetPassword.jsx";
 
 // Student routes
 import StudentLayout from "./layout/StudentLayout.jsx";
@@ -49,6 +51,8 @@ const App = () => {
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="start" element={<Start />} />
             <Route path="/registration-success" element={<RegistrationSuccess />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Student routes */}
             <Route
