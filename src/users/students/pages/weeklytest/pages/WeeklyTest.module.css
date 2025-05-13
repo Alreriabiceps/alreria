@@ -349,12 +349,14 @@
   border-radius: 0; /* Consistent no rounded corners */
   transition: background-color 0.2s ease;
 }
-
 .choiceItem:hover {
   background-color: rgba(0, 255, 157, 0.08); /* Subtle hover */
 }
-
-/* Custom Radio Button */
+.choiceSelected {
+  border-color: var(--color-accent);
+  background: rgba(0,255,157,0.18);
+  box-shadow: 0 0 0 2px var(--color-accent), 0 2px 12px rgba(0,255,157,0.10);
+}
 .radioInput {
   margin-right: 12px;
   appearance: none; /* Remove default style */
@@ -369,13 +371,10 @@
   flex-shrink: 0; /* Prevent shrinking if label is long */
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .radioInput:checked {
   background-color: var(--color-accent);
   box-shadow: 0 0 5px var(--color-accent); /* Glow when checked */
 }
-
-/* Inner dot for checked state */
 .radioInput:checked::after {
   content: '';
   display: block;
@@ -388,7 +387,6 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
 .radioLabel {
   font-family: var(--font-body);
   font-size: 1.1rem;

@@ -34,45 +34,9 @@ const AdminDashboard = () => {
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [leaderboardData, setLeaderboardData] = useState({
-    topStudents: [
-      {
-        id: 1,
-        name: "John Doe",
-        points: 1250,
-        rank: "Gold",
-        avatar: "JD"
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        points: 1100,
-        rank: "Silver",
-        avatar: "JS"
-      },
-      {
-        id: 3,
-        name: "Mike Johnson",
-        points: 950,
-        rank: "Silver",
-        avatar: "MJ"
-      },
-      {
-        id: 4,
-        name: "Sarah Williams",
-        points: 800,
-        rank: "Bronze",
-        avatar: "SW"
-      },
-      {
-        id: 5,
-        name: "David Brown",
-        points: 750,
-        rank: "Bronze",
-        avatar: "DB"
-      }
-    ],
+    topStudents: [],
     currentPage: 1,
-    totalPages: 3,
+    totalPages: 1,
     itemsPerPage: 5
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -80,35 +44,7 @@ const AdminDashboard = () => {
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
-  const [pendingActions, setPendingActions] = useState([
-    {
-      id: 1,
-      type: 'user_approval',
-      title: 'New Student Registration',
-      description: '5 new student registrations pending approval',
-      timestamp: '2 hours ago',
-      priority: 'high',
-      icon: <MdPeople className="w-5 h-5" />
-    },
-    {
-      id: 2,
-      type: 'content_moderation',
-      title: 'Question Review',
-      description: '3 new questions need review',
-      timestamp: '4 hours ago',
-      priority: 'medium',
-      icon: <MdQuiz className="w-5 h-5" />
-    },
-    {
-      id: 3,
-      type: 'report',
-      title: 'User Reports',
-      description: '2 new user reports to review',
-      timestamp: '1 day ago',
-      priority: 'high',
-      icon: <MdWarning className="w-5 h-5" />
-    }
-  ]);
+  const [pendingActions, setPendingActions] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -288,30 +224,34 @@ const AdminDashboard = () => {
                   <h2 className="text-base sm:text-lg font-semibold">Pending Actions</h2>
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  {pendingActions.map((action) => (
-                    <div
-                      key={action.id}
-                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
-                    >
-                      <div className={`p-1 sm:p-2 rounded-full ${action.priority === 'high' ? 'bg-error/20 text-error' :
-                        action.priority === 'medium' ? 'bg-warning/20 text-warning' :
-                          'bg-success/20 text-success'
-                        }`}>
-                        {action.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-xs sm:text-sm truncate">{action.title}</h3>
-                          <span className="text-[10px] sm:text-xs text-base-content/70 ml-2">{action.timestamp}</span>
+                  {pendingActions.length === 0 ? (
+                    <div className="text-center text-xs sm:text-sm text-base-content/70">No pending actions (or not implemented)</div>
+                  ) : (
+                    pendingActions.map((action) => (
+                      <div
+                        key={action.id}
+                        className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
+                      >
+                        <div className={`p-1 sm:p-2 rounded-full ${action.priority === 'high' ? 'bg-error/20 text-error' :
+                          action.priority === 'medium' ? 'bg-warning/20 text-warning' :
+                            'bg-success/20 text-success'
+                          }`}>
+                          {action.icon}
                         </div>
-                        <p className="text-[10px] sm:text-xs text-base-content/70 mt-1 line-clamp-2">{action.description}</p>
-                        <div className="mt-2 flex gap-1 sm:gap-2">
-                          <button className="btn btn-xs btn-primary">Review</button>
-                          <button className="btn btn-xs btn-ghost">Dismiss</button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-xs sm:text-sm truncate">{action.title}</h3>
+                            <span className="text-[10px] sm:text-xs text-base-content/70 ml-2">{action.timestamp}</span>
+                          </div>
+                          <p className="text-[10px] sm:text-xs text-base-content/70 mt-1 line-clamp-2">{action.description}</p>
+                          <div className="mt-2 flex gap-1 sm:gap-2">
+                            <button className="btn btn-xs btn-primary">Review</button>
+                            <button className="btn btn-xs btn-ghost">Dismiss</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -351,7 +291,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <div className="overflow-x-auto -mx-2 sm:mx-0">
-                  <div className="min-w-full inline-block align-middle">
+                  {/* Only show leaderboard if real data is available */}
+                  {leaderboardData.topStudents.length === 0 ? (
+                    <div className="text-center text-xs sm:text-sm text-base-content/70">Leaderboard not implemented or no data</div>
+                  ) : (
                     <div className="overflow-hidden">
                       <table className="table table-xs w-full">
                         <thead>
@@ -378,7 +321,7 @@ const AdminDashboard = () => {
                               </td>
                               <td className="whitespace-nowrap">{student.points}</td>
                               <td className="whitespace-nowrap">
-                                <span className={`badge badge-xs badge-${student.rank.toLowerCase()}`}>
+                                <span className={`badge badge-xs badge-${student.rank?.toLowerCase?.() || 'default'}`}>
                                   {student.rank}
                                 </span>
                               </td>
@@ -387,36 +330,7 @@ const AdminDashboard = () => {
                         </tbody>
                       </table>
                     </div>
-                  </div>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex justify-center mt-3">
-                  <div className="join">
-                    <button
-                      className="join-item btn btn-xs"
-                      onClick={() => setLeaderboardData(prev => ({
-                        ...prev,
-                        currentPage: Math.max(1, prev.currentPage - 1)
-                      }))}
-                      disabled={leaderboardData.currentPage === 1}
-                    >
-                      «
-                    </button>
-                    <button className="join-item btn btn-xs">
-                      Page {leaderboardData.currentPage} of {leaderboardData.totalPages}
-                    </button>
-                    <button
-                      className="join-item btn btn-xs"
-                      onClick={() => setLeaderboardData(prev => ({
-                        ...prev,
-                        currentPage: Math.min(prev.totalPages, prev.currentPage + 1)
-                      }))}
-                      disabled={leaderboardData.currentPage === leaderboardData.totalPages}
-                    >
-                      »
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

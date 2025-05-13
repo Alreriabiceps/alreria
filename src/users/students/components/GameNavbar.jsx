@@ -38,6 +38,8 @@ const getMusicTrack = (path) => {
   return "/default.mp3";
 };
 
+const BURGER_BREAKPOINT = 1200;
+
 const GameNavbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,6 +51,7 @@ const GameNavbar = () => {
   );
   const [isDragging, setIsDragging] = useState(false);
   const volumeBoxRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const navigate = useNavigate();
   const audioRef = useRef(null);
@@ -163,6 +166,12 @@ const GameNavbar = () => {
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const navLinkClass = ({ isActive }) =>
@@ -281,14 +290,16 @@ const GameNavbar = () => {
           GLEAS
         </Link>
       </div>
-      <div className={styles.desktopNavLinks}>
-        <NavLinks isMobile={false} />
-      </div>
+      {windowWidth >= BURGER_BREAKPOINT && (
+        <div className={styles.desktopNavLinks}>
+          <NavLinks isMobile={false} />
+        </div>
+      )}
       <button className={styles.mobileMenuButton} onClick={toggleMobileMenu}>
         {isMobileMenuOpen ? Icons.MenuClose : Icons.MenuOpen}
       </button>
-      {isMobileMenuOpen && (
-        <div className={`${styles.mobileNavLinks} ${styles.open}`}>
+      {isMobileMenuOpen && windowWidth < BURGER_BREAKPOINT && (
+        <div className={`${styles.mobileNavLinks} ${styles.open}`} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10,5,25,0.98)', zIndex: 999, overflowY: 'auto', paddingTop: 70 }}>
           <NavLinks isMobile={true} />
         </div>
       )}

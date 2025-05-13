@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -247,6 +248,25 @@ const QueueForMatch = () => {
     }
   };
 
+  // Ban modal live countdown
+  const [banSeconds, setBanSeconds] = useState(banInfo ? banInfo.seconds : 0);
+  useEffect(() => {
+    if (banInfo && banInfo.seconds > 0) {
+      setBanSeconds(banInfo.seconds);
+      const banTimer = setInterval(() => {
+        setBanSeconds((prev) => {
+          if (prev <= 1) {
+            clearInterval(banTimer);
+            setBanInfo(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(banTimer);
+    }
+  }, [banInfo]);
+
   if (!studentId) {
     return <div>Please log in to queue for a match.</div>;
   }
@@ -257,7 +277,7 @@ const QueueForMatch = () => {
       <div style={{ textAlign: 'center', marginTop: '2rem' }}>
         <div style={{ background: '#222', color: '#ff4f7a', padding: 24, borderRadius: 8, display: 'inline-block', fontSize: '1.1rem', fontWeight: 600 }}>
           <div style={{ marginBottom: 12 }}>You are banned from matchmaking.</div>
-          <div style={{ marginBottom: 12 }}>Time remaining: <b>{formatTime(banInfo.seconds)}</b></div>
+          <div style={{ marginBottom: 12 }}>Time remaining: <b>{formatTime(banSeconds)}</b></div>
           <div style={{ fontSize: '0.95rem', color: '#ffbaba' }}>Ban escalates with each failed accept.</div>
         </div>
       </div>
@@ -280,7 +300,7 @@ const QueueForMatch = () => {
           </button>
         </div>
       )}
-      {showConfirm && (
+      {showConfirm && createPortal(
         <div style={{
           position: 'fixed',
           top: 0,
@@ -294,49 +314,54 @@ const QueueForMatch = () => {
           justifyContent: 'center',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
+          margin: 0,
+          padding: 0,
+          boxSizing: 'border-box',
         }}>
           <div style={{
             background: '#181c2f',
             color: '#00ff9d',
-            padding: 36,
-            borderRadius: 16,
-            minWidth: 340,
-            minHeight: 260,
+            padding: '20px 18px',
+            borderRadius: 12,
+            minWidth: 220,
+            maxWidth: '90vw',
+            width: '100%',
+            boxSizing: 'border-box',
             textAlign: 'center',
-            boxShadow: '0 4px 32px #000a',
+            boxShadow: '0 4px 24px #000a',
             border: '2px solid #00ff9d',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            position: 'relative',
+            margin: 0,
           }}>
-            <div style={{ fontSize: '1.7rem', fontWeight: 700, marginBottom: 18 }}>Match Found!</div>
-            <div style={{ fontSize: '1.15rem', marginBottom: 20 }}>Opponent ID: <b>{opponent}</b></div>
-            <div style={{ fontSize: '1.25rem', marginBottom: 20 }}>Accept match?</div>
-            <div style={{ fontSize: '2rem', color: '#ff4f7a', marginBottom: 22 }}>{formatTime(confirmTimer)}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 12 }}>Match Found!</div>
+            <div style={{ fontSize: '1.05rem', marginBottom: 14 }}>Accept match?</div>
+            <div style={{ fontSize: '1.5rem', color: '#ff4f7a', marginBottom: 16 }}>{formatTime(confirmTimer)}</div>
             <button
               onClick={handleAccept}
               disabled={waitingForOther}
               style={{
-                padding: '14px 36px',
-                fontSize: '1.15rem',
+                padding: '10px 24px',
+                fontSize: '1rem',
                 background: waitingForOther ? '#888' : '#00ff9d',
                 color: '#222',
                 border: 'none',
-                borderRadius: 6,
+                borderRadius: 5,
                 cursor: waitingForOther ? 'not-allowed' : 'pointer',
                 fontWeight: 700,
-                marginBottom: 10,
+                marginBottom: 8,
                 transition: 'background 0.2s',
               }}
             >
               Accept
             </button>
-            {waitingForOther && <div style={{ fontSize: '1.1rem', color: '#ffbaba', marginTop: 14 }}>Waiting for other player to accept...</div>}
-            <div style={{ fontSize: '1rem', color: '#ffbaba', marginTop: 10 }}>You must accept within 30 seconds.</div>
+            {waitingForOther && <div style={{ fontSize: '0.98rem', color: '#ffbaba', marginTop: 10 }}>Waiting for other player to accept...</div>}
+            <div style={{ fontSize: '0.92rem', color: '#ffbaba', marginTop: 7 }}>You must accept within 30 seconds.</div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {status === 'matched' && !lobbyId && !showConfirm && (
         <div>

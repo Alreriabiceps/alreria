@@ -19,15 +19,16 @@ const SOUNDS = {
   complete: '/sounds/complete.mp3'
 };
 
-// Constants for Ranks and Points
-const RANKS = {
-  APPRENTICE: { name: 'Apprentice', points: 100 },
-  SCHOLAR: { name: 'Scholar', points: 250 },
-  HONOR_STUDENT: { name: 'Honor Student', points: 400 },
-  HIGH_HONORS: { name: 'High Honors', points: 550 },
-  DEANS_LISTER: { name: "Dean's Lister", points: 700 },
-  VALEDICTORIAN: { name: 'Valedictorian', points: 850 }
-};
+// New Rank System
+const RANKS = [
+  { min: 0, max: 99, name: 'Grass', emoji: '🌱', description: 'Still growing' },
+  { min: 100, max: 199, name: 'Wood', emoji: '🪵', description: 'Getting sturdy' },
+  { min: 200, max: 299, name: 'Rock', emoji: '🪨', description: 'Solid start' },
+  { min: 300, max: 399, name: 'Iron', emoji: '⚒️', description: 'Forged with effort' },
+  { min: 400, max: 499, name: 'Silver', emoji: '🥈', description: 'Shiny and polished' },
+  { min: 500, max: 599, name: 'Gold', emoji: '🥇', description: 'Shining like a star' },
+  { min: 600, max: 700, name: 'Diamond', emoji: '💎', description: "You're a gem" },
+];
 
 // Points calculation based on score percentage
 const calculatePointsGain = (score, totalQuestions) => {
@@ -46,12 +47,12 @@ const calculatePointsGain = (score, totalQuestions) => {
 
 // Get rank based on total points
 const getRank = (totalPoints) => {
-  if (totalPoints >= RANKS.VALEDICTORIAN.points) return RANKS.VALEDICTORIAN;
-  if (totalPoints >= RANKS.DEANS_LISTER.points) return RANKS.DEANS_LISTER;
-  if (totalPoints >= RANKS.HIGH_HONORS.points) return RANKS.HIGH_HONORS;
-  if (totalPoints >= RANKS.HONOR_STUDENT.points) return RANKS.HONOR_STUDENT;
-  if (totalPoints >= RANKS.SCHOLAR.points) return RANKS.SCHOLAR;
-  return RANKS.APPRENTICE;
+  for (let i = RANKS.length - 1; i >= 0; i--) {
+    if (totalPoints >= RANKS[i].min) {
+      return RANKS[i];
+    }
+  }
+  return RANKS[0];
 };
 
 const WeeklyTest = () => {
@@ -109,12 +110,16 @@ const WeeklyTest = () => {
         }
 
         // Extract unique subjects and weeks from the weekschedules
-        const uniqueSubjects = [...new Set(scheduleArray
+        const subjectMap = {};
+        scheduleArray
           .filter(item => item && item.subjectId && item.isActive)
-          .map(item => ({
-            id: item.subjectId._id,
-            name: item.subjectId.subject || `Subject ${item.subjectId._id}`
-          })))];
+          .forEach(item => {
+            subjectMap[item.subjectId._id] = {
+              id: item.subjectId._id,
+              name: item.subjectId.subject || `Subject ${item.subjectId._id}`
+            };
+          });
+        const uniqueSubjects = Object.values(subjectMap);
 
         // Filter weeks based on the selected subject
         const uniqueWeeks = [...new Set(scheduleArray
@@ -270,7 +275,7 @@ const WeeklyTest = () => {
 
   // --- Handle Answer Selection ---
   const handleAnswerSelect = (questionId, answer) => {
-    if (isTestStarted && !answers[questionId]) {
+    if (isTestStarted) {
       const currentQuestion = tests[currentQuestionIndex];
       const isCorrect = currentQuestion.correctAnswer === answer;
       setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -281,15 +286,7 @@ const WeeklyTest = () => {
       } else {
         playSound('wrong');
       }
-
-      // Move to next question after a short delay
-      setTimeout(() => {
-        if (currentQuestionIndex < tests.length - 1) {
-          setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-          handleTestComplete();
-        }
-      }, 1000);
+      // No auto-advance; user must click Next
     }
   };
 
@@ -615,25 +612,35 @@ const WeeklyTest = () => {
               key={currentQuestionIndex}
               className={`${styles.questionContainer} ${showAnimation ? styles.questionVisible : styles.questionHidden}`}
             >
+              {/* Bloom's Taxonomy Level */}
+              {currentQuestion.bloomsLevel && (
+                <div style={{ fontSize: '0.95rem', color: '#80ffce', marginBottom: 4, fontFamily: 'var(--font-body)' }}>
+                  Bloom's Taxonomy Level: <b>{currentQuestion.bloomsLevel}</b>
+                </div>
+              )}
               {/* Question Text */}
               <h4>{`Q${currentQuestionIndex + 1}: ${currentQuestion.questionText}`}</h4>
 
               {/* Choices List */}
               {currentQuestion.choices && currentQuestion.choices.length > 0 ? (
                 <div className={styles.choicesList}>
-                  {currentQuestion.choices.map((choice, idx) => (
-                    <div key={idx} className={styles.choiceItem}>
-                      <input
-                        type="radio"
-                        value={choice}
-                        checked={answers[currentQuestion._id] === choice}
-                        onChange={() => handleAnswerSelect(currentQuestion._id, choice)}
-                      />
-                      <label htmlFor={`q${currentQuestionIndex}-choice${idx}`} className={styles.radioLabel}>
-                        {choice}
+                  {currentQuestion.choices.map((choice, idx) => {
+                    const inputId = `q${currentQuestionIndex}-choice${idx}`;
+                    const isSelected = answers[currentQuestion._id] === choice;
+                    return (
+                      <label key={idx} htmlFor={inputId} className={`${styles.choiceItem} ${isSelected ? styles.choiceSelected : ''}`}> 
+                        <input
+                          id={inputId}
+                          type="radio"
+                          className={styles.radioInput}
+                          value={choice}
+                          checked={isSelected}
+                          onChange={() => handleAnswerSelect(currentQuestion._id, choice)}
+                        />
+                        <span className={styles.radioLabel}>{choice}</span>
                       </label>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className={styles.infoMessage}>No choices available for this question.</p>
@@ -675,7 +682,10 @@ const WeeklyTest = () => {
               <p>Your Score: {score} out of {tests.length}</p>
               <p>Points Change: {pointsChange > 0 ? '+' : ''}{pointsChange} points</p>
               <p>Total Points: {pointsEarned}</p>
-              <p>Current Rank: {currentRank?.name || 'Apprentice'}</p>
+              <p>Current Rank: {currentRank?.emoji} {currentRank?.name}</p>
+              {currentRank?.description && (
+                <p style={{ marginBottom: 10 }}>{currentRank.description}</p>
+              )}
               <p>Subject: {selectedSubject.name}</p>
               <p>Week: {selectedWeek.display}</p>
             </div>
@@ -720,9 +730,15 @@ const WeeklyTest = () => {
             <div className={styles.rankSection}>
               <span className={styles.rankLabel}>Current Rank</span>
               <span className={`${styles.rankValue} ${styles[`rank${currentRank?.name || 'Apprentice'}`]}`}>
-                {currentRank?.name || 'Apprentice'}
+                {currentRank?.emoji} {currentRank?.name}
               </span>
             </div>
+
+            {currentRank?.description && (
+              <div style={{ fontSize: 14, color: '#80ffce', marginBottom: 10, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
+                {currentRank.description}
+              </div>
+            )}
 
             <button
               className={styles.retakeButton}
@@ -772,51 +788,57 @@ const WeeklyTest = () => {
       {/* Test Results Modal */}
       {showResultModal && testResult && (
         <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2 className={styles.resultTitle}>Test Results</h2>
-
-            <div className={styles.scoreSection}>
-              <div className={styles.scoreDisplay}>
-                <span className={`${styles.score} ${getScoreColor(testResult.score, testResult.totalQuestions)}`}>
-                  {testResult.score}/{testResult.totalQuestions}
-                </span>
-                <span className={styles.scorePercentage}>
-                  {testResult.score && testResult.totalQuestions ? 
-                    Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.pointsSection}>
-              <div className={styles.pointsDisplay}>
-                <span className={styles.pointsLabel}>PR Points</span>
-                <span className={`${styles.pointsValue} ${getPointsColor(pointsEarned)}`}>
-                  {pointsEarned > 0 ? '+' : ''}{pointsEarned}
+          <div className={styles.modalContent} style={{ maxWidth: 420, borderRadius: 12, background: 'linear-gradient(135deg, #1a1a2e 60%, #00ff9d22 100%)', boxShadow: '0 8px 32px 0 rgba(0,255,157,0.15), 0 1.5px 8px 0 #00ff9d44' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <div style={{ fontSize: 48, marginBottom: 8, color: '#00ff9d', textShadow: '0 0 12px #00ff9d88' }}>🏆</div>
+              <h2 className={styles.resultTitle} style={{ color: '#00ff9d', fontSize: '1.5rem', marginBottom: 8, textShadow: '0 0 8px #00ff9d88' }}>Test Complete!</h2>
+              <div style={{ fontSize: 18, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
+                {testResult.score && testResult.totalQuestions ? (
+                  <>
+                    <span style={{ fontWeight: 700, fontSize: 32, color: '#80ffce', textShadow: '0 0 8px #00ff9d44' }}>{testResult.score}</span>
+                    <span style={{ fontWeight: 400, fontSize: 22, color: '#fff' }}> / {testResult.totalQuestions}</span>
+                  </>
+                ) : null}
+                <span style={{ display: 'block', fontSize: 16, color: '#80ffce', marginTop: 2 }}>
+                  ({testResult.score && testResult.totalQuestions ? Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%)
                 </span>
               </div>
-              <div className={styles.totalPoints}>
-                <span className={styles.totalPointsLabel}>Total PR Points</span>
-                <span className={styles.totalPointsValue}>{pointsEarned}</span>
+              <div style={{ fontSize: 20, color: '#fff', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 28, color: testResult.pointsEarned > 0 ? '#00ff9d' : testResult.pointsEarned < 0 ? '#ff4d4f' : '#fff', textShadow: '0 0 8px #00ff9d44' }}>💎</span>
+                <span style={{ fontWeight: 700, fontSize: 24, color: testResult.pointsEarned > 0 ? '#00ff9d' : testResult.pointsEarned < 0 ? '#ff4d4f' : '#fff' }}>{testResult.pointsEarned > 0 ? '+' : ''}{testResult.pointsEarned} PR Points</span>
               </div>
-            </div>
-
-            <div className={styles.rankSection}>
-              <span className={styles.rankLabel}>Current Rank</span>
-              <span className={`${styles.rankValue} ${styles[`rank${currentRank?.name || 'Apprentice'}`]}`}>
-                {currentRank?.name || 'Apprentice'}
-              </span>
-            </div>
-
-            <div className={styles.modalActions}>
-              <button
-                className={styles.closeButton}
-                onClick={() => {
-                  setShowResultModal(false);
-                  handleResetFilters();
-                }}
-              >
-                Close
-              </button>
+              <div style={{ fontSize: 16, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
+                <span>Total PR Points: </span>
+                <span style={{ fontWeight: 700, color: '#80ffce' }}>{testResult.totalPoints}</span>
+              </div>
+              <div style={{ fontSize: 16, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
+                <span>Current Rank: </span>
+                <span style={{ fontWeight: 700, color: '#00ff9d' }}>{currentRank?.emoji} {currentRank?.name}</span>
+              </div>
+              {currentRank?.description && (
+                <div style={{ fontSize: 14, color: '#80ffce', marginBottom: 10, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
+                  {currentRank.description}
+                </div>
+              )}
+              <div style={{ fontSize: 15, color: '#80ffce', marginBottom: 18, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
+                {testResult.pointsEarned > 0
+                  ? 'Great job! Keep up the good work!'
+                  : testResult.pointsEarned < 0
+                  ? "Don't give up! Review and try again!"
+                  : 'Keep practicing to improve your score!'}
+              </div>
+              <div className={styles.modalActions} style={{ marginTop: 18 }}>
+                <button
+                  className={styles.closeButton}
+                  onClick={() => {
+                    setShowResultModal(false);
+                    handleResetFilters();
+                  }}
+                  style={{ fontWeight: 700, fontSize: 18, padding: '10px 32px', background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, boxShadow: '0 2px 8px #00ff9d44', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

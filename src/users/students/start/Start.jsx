@@ -32,7 +32,13 @@ const Start = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [screenFlash, setScreenFlash] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false); // New state to track if music is playing
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // AI Security Question State
+  const [securityQuestion, setSecurityQuestion] = useState(null);
+  const [securityChoices, setSecurityChoices] = useState([]);
+  const [securityAnswer, setSecurityAnswer] = useState("");
+  const [loadingQuestion, setLoadingQuestion] = useState(true);
 
   const audioRef = useRef(null);
   const flashTimeoutRef = useRef(null);
@@ -312,22 +318,46 @@ const Start = () => {
     }
   };
 
+  // Fetch AI security question on mount and after wrong answer
+  const fetchSecurityQuestion = useCallback(async () => {
+    setLoadingQuestion(true);
+    setIsCorrect(false);
+    setFeedbackMessage("");
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate-simple-security-question`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+      setSecurityQuestion(data.questionText);
+      setSecurityChoices(data.choices);
+      setSecurityAnswer(data.correctAnswer);
+    } catch (err) {
+      setSecurityQuestion("2 + 2 = ?");
+      setSecurityChoices(["3", "4", "5"]);
+      setSecurityAnswer("4");
+    } finally {
+      setLoadingQuestion(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSecurityQuestion();
+  }, [fetchSecurityQuestion]);
+
   const handleAnswer = (answer) => {
     if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
     if (isCorrect || isAnimating) return;
 
-    const correct = answer === "correct";
+    const correct = answer === securityAnswer;
     const message = correct
       ? "Security Cleared. Target Acquired!"
       : "Incorrect Sequence. Try Again.";
 
-    setScreenFlash(answer); // Use 'correct' or 'wrong' for flash class
+    setScreenFlash(correct ? "correct" : "wrong");
     setIsCorrect(correct);
     setFeedbackMessage(message);
-    // Reset button position when an answer is given, especially if correct
-    // We only need to reset if the button was previously evading the mouse
     if (!isPlaying) {
-      // Only reset if music wasn't playing (button might have been evading)
       setButtonPosition({ top: isMobile ? "65%" : "65%", left: "50%" });
     }
 
@@ -342,6 +372,10 @@ const Start = () => {
       setTimeout(() => {
         securityBox?.classList.remove(styles["shake-animation-box"]);
       }, 400);
+      // Fetch a new question after a short delay
+      setTimeout(() => {
+        fetchSecurityQuestion();
+      }, 600);
     }
 
     flashTimeoutRef.current = setTimeout(() => setScreenFlash(""), 200);
@@ -400,29 +434,24 @@ const Start = () => {
         {!isCorrect && (
           <div className={styles["security-check-box"]}>
             <h2 className={styles["security-title"]}>Security Check:</h2>
-            <p className={styles["security-question"]}>
-              Engage Thrusters: 2 + 2 = ?
-            </p>
-            <div className={styles["answers-container"]}>
-              <button
-                onClick={() => handleAnswer("wrong")}
-                className={`${styles["game-button"]} ${styles["answer-button"]} ${styles["wrong-button"]}`}
-              >
-                3
-              </button>
-              <button
-                onClick={() => handleAnswer("correct")}
-                className={`${styles["game-button"]} ${styles["answer-button"]} ${styles["correct-button"]}`}
-              >
-                4
-              </button>
-              <button
-                onClick={() => handleAnswer("wrong")}
-                className={`${styles["game-button"]} ${styles["answer-button"]} ${styles["wrong-button"]}`}
-              >
-                5
-              </button>
-            </div>
+            {loadingQuestion ? (
+              <p className={styles["security-question"]}>Loading question...</p>
+            ) : (
+              <>
+                <p className={styles["security-question"]}>{securityQuestion}</p>
+                <div className={styles["answers-container"]}>
+                  {securityChoices.map((choice, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleAnswer(choice)}
+                      className={`${styles["game-button"]} ${styles["answer-button"]}`}
+                    >
+                      {choice}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
