@@ -255,6 +255,12 @@
   animation: panelFlyIn 0.5s ease-out 1.0s forwards; /* Stagger after filter panel */
   overflow: hidden;
   position: relative;
+  border-radius: 0; /* No separate border-radius */
+  box-shadow: none; /* No separate shadow */
+  background-color: #2c2c2c; /* Dark background for content */
+  color: #e0e0e0; /* Light text for readability */
+  max-width: 700px; /* Constrain content width within contentPanel */
+  margin: 20px auto; /* Center panel with some margin */
 }
 
 /* Message Container (for loading, error, info) */
@@ -1046,11 +1052,11 @@
   /* min-height: 400px; /* Removed, let content dictate height or QuestionDisplay handle if needed */
   /* height: 100%; */
   background: transparent; /* No separate background, it's inside a themed contentPanel */
-  border_radius: 0; /* No separate border-radius */
-  box_shadow: none; /* No separate shadow */
+  border-radius: 0; /* No separate border-radius */
+  box-shadow: none; /* No separate shadow */
   padding: 0; /* Parent contentPanel or questionContainer will provide padding */
   margin: 0 auto 24px auto; /* Keep auto horizontal margins for centering, and bottom margin */
-  max_width: 700px; /* Constrain content width within contentPanel */
+  max-width: 700px; /* Constrain content width within contentPanel */
   width: 100%;
 }
 

@@ -21,7 +21,7 @@ import Ranking from "./users/students/pages/ranking/pages/Ranking.jsx";
 import Profile from "./users/students/pages/profile/pages/Profile.jsx";
 import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
-import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/versusmodelobby.jsx";
+import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
 import SketchfabViewer from "./users/students/pages/dashboard/pages/SketchfabViewer.jsx";
 
 // Admin routes
