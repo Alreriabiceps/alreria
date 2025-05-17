@@ -9,6 +9,7 @@ import {
   FaChevronDown,
   FaBed, FaPaperclip, FaSearch, FaBookReader, FaMicrophoneAlt
 } from 'react-icons/fa';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars';
 
 const iconComponents = {
   FaLeaf, FaTree, FaMountain, FaShieldAlt, FaMedal, FaTrophy, FaGem,
@@ -315,6 +316,7 @@ const Profile = () => {
 
   return (
     <div className={styles.profileContainer}>
+      <FloatingStars />
       {/* Top Navigation Tabs - Using CSS Module Styles */}
       <div className={styles.tabsContainer}>
         <button

@@ -5,6 +5,7 @@ import {
     FaBed, FaClock, FaBookOpen, FaPaperclip, FaBookReader, FaMedal, FaMicrophoneAlt, // Weekly rank icons
     FaBug, FaUserShield, FaShieldAlt, FaCrown, FaStar, FaFistRaised, FaAward // PvP rank icons
 } from 'react-icons/fa';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars'; // Import FloatingStars
 
 // --- Icon Components (copied from Profile.jsx) ---
 const iconComponents = {
@@ -138,6 +139,7 @@ const Ranking = () => {
   return (
     // Apply CSS Module classes - no structural changes needed from previous CSS module version
     <div className={styles.rankingContainer}>
+      <FloatingStars />
       <div className={styles.rankingPanel}>
         {/* No main title here, it moves to the right column or could be a global page title if needed */}
         

@@ -3,6 +3,7 @@ import styles from './Crew.module.css'; // Import the CSS module
 import { 
     FaUserPlus, FaUsers, FaGlobeAmericas, FaCheckCircle, FaHourglassHalf, FaSearch 
 } from 'react-icons/fa';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars'; // Import FloatingStars
 
 // --- Sample Data (Replace with actual friend data/state) ---
 const sampleFriendsData = {
@@ -42,6 +43,7 @@ const Crew = () => {
 
     return (
         <div className={styles.crewContainer}>
+            <FloatingStars /> {/* Add FloatingStars component here */}
 
             {/* Page Header */}
             <div className={styles.pageHeader}>

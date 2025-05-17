@@ -276,21 +276,24 @@
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(var(--blueprint-panel-bg-opaque-rgb), 0.85);
-  color: var(--blueprint-accent-secondary);
+  width: auto;
+  white-space: nowrap;
   padding: 8px 15px;
-  border-radius: 20px;
+  background-color: rgba(var(--blueprint-panel-bg-opaque-rgb, 20, 30, 40), 0.85);
+  color: var(--blueprint-accent-secondary);
   font-family: var(--font-header);
   font-size: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--blueprint-accent-secondary);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
   z-index: 10;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--blueprint-panel-border);
-  box-shadow: var(--blueprint-panel-shadow);
   opacity: 0;
-  animation: fadeInSlideUp 0.4s ease-out forwards;
-  animation-delay: 0.5s;
+  animation: fadeInSlideUp 0.5s ease-out 0.2s forwards;
+  text-align: left;
 }
 
 .musicIcon {

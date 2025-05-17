@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './Login.module.css';
 import { FaUserCircle, FaShoppingCart, FaCog } from 'react-icons/fa';
+import FloatingStars from '../components/FloatingStars/FloatingStars';
 
 // Old SVG Icons removed
 
@@ -50,11 +51,11 @@ const Login = () => {
 
   return (
     <div className={styles.loginPageWrapper}>
-      {/* Removed: animatedBg div - background handled by loginPageWrapper */}
+      <FloatingStars />
       
       {/* Top Navigation Bar - Simplified */}
       <nav className={styles.topNavBar}>
-        <div className={styles.navBrand}>Gleas Adventure</div>
+        <div className={styles.navBrand}>AGILA Adventure</div>
         <div className={styles.navActions}>
           {/* Using FaUserCircle as a placeholder profile/login icon, can be removed if not needed on login page */}
           {/* <span className={styles.navIcon}><FaUserCircle /></span>  */}

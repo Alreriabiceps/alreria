@@ -4,6 +4,7 @@ import { useAuth } from "../../../../../contexts/AuthContext";
 import styles from "./Dashboard.module.css";
 import { MdAssignment } from 'react-icons/md';
 import { FaFire, FaBullseye, FaTrophy, FaChartBar, FaCalendarAlt, FaGift, FaTasks } from 'react-icons/fa';
+import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // Corrected Import FloatingStars
 
 const rankingTiers = [
   { name: "Trainee Technician", mmr: "0+", colorClass: styles.rankBronze },
@@ -258,7 +259,7 @@ const Dashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Floating shapes removed for Capsule Corp theme */}
+      <FloatingStars /> {/* Add FloatingStars component here */}
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './PartyMMR.module.css';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars';
 
 // --- Sample Data ---
 const samplePublicParties = [
@@ -147,6 +148,7 @@ const Partymmr = () => {
 
     return (
         <div className={styles.partyContainer}>
+             <FloatingStars />
              <div className={styles.pageHeader}>
                 <h1 className={styles.pageTitle}>Party Queue</h1>
                 <p className={styles.pageSubtitle}>Team up with friends for ranked challenges</p>

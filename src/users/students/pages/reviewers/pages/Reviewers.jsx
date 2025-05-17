@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Added hooks
 import styles from './Reviewers.module.css';
 import { FaSearch, FaBook, FaFileAlt } from 'react-icons/fa'; // Import FaSearch and other potential icons
+import FloatingStars from '../../../components/FloatingStars/FloatingStars'; // Import FloatingStars
 
 // --- Sample Data (Ensure 'subject' is added) ---
 const allReviewersData = [
@@ -77,6 +78,7 @@ const Reviewers = () => {
 
   return (
     <div className={styles.reviewersContainer}>
+      <FloatingStars />
       <div className={styles.reviewersPanel}>
         <h1 className={styles.reviewersTitle}>// Review Materials //</h1>
 

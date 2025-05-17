@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
+import FloatingStars from '../components/FloatingStars/FloatingStars';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ const ForgotPassword = () => {
 
   return (
     <div className={styles.loginPageWrapper}>
+      <FloatingStars />
       <div className={styles.loginPanel}>
         <h1 className={styles.loginTitle}>Reset Password</h1>
         

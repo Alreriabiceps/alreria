@@ -277,7 +277,7 @@ const GameNavbar = () => {
           className={styles.navbarLogo}
           onClick={closeMenus}
         >
-          GLEAS
+          AGILA
         </Link>
       </div>
       {windowWidth >= BURGER_BREAKPOINT && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import { FaEnvelope } from 'react-icons/fa';
+import FloatingStars from '../components/FloatingStars/FloatingStars';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -106,6 +107,7 @@ const Signup = () => {
 
   return (
     <div className={styles.signupPageWrapper}>
+      <FloatingStars />
       <div className={styles.signupPanel}>
         <h1 className={styles.pageTitle}>
           Create New Account

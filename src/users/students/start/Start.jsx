@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Start.module.css";
+import FloatingStars from "../components/FloatingStars/FloatingStars";
 
 const BACKGROUND_MUSIC_SRC = "/shs.mp3";
 const INITIAL_VOLUME = 1;
@@ -22,7 +23,7 @@ const playSound = (src, volume = SFX_VOLUME) => {
 const Start = () => {
   const navigate = useNavigate();
   const [buttonPosition, setButtonPosition] = useState({
-    top: "70%",
+    top: "78%",
     left: "50%",
   });
   const [isCorrect, setIsCorrect] = useState(false);
@@ -339,6 +340,7 @@ const Start = () => {
         }`}
       onMouseMove={handleMouseMove}
     >
+      <FloatingStars />
       <div
         className={`${styles.screenFlashOverlay} ${
           screenFlash === "correct" ? styles.flashCorrect : screenFlash === "wrong" ? styles.flashWrong : ""

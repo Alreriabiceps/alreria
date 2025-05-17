@@ -5,6 +5,7 @@ import FilterPanel from '../components/FilterPanel';
 import QuestionDisplay from '../components/QuestionDisplay';
 import ResultModal from '../components/ResultModal';
 import Leaderboard from '../components/Leaderboard';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars'; // Import FloatingStars
 
 // Constants for Filters
 const SUBJECTS = [
@@ -730,6 +731,7 @@ const WeeklyTest = () => {
   // --- Render Logic ---
   return (
     <div className={styles.testListContainer}>
+      <FloatingStars />
       {/* <div className={styles.floatingShapes}>
         <div className={styles.floatingShape1}></div>
         <div className={styles.floatingShape2}></div>

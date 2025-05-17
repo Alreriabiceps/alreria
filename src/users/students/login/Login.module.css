@@ -53,6 +53,8 @@
   padding: 20px;
   overflow: hidden; /* Prevent scrollbars from subtle gradients */
   animation: fadeInPage 0.7s ease-out forwards;
+  position: relative; /* Establish stacking context */
+  z-index: 1;      /* Ensure it's above particles (z-index: 0) */
 }
 
 /* Top Navigation Bar (Simplified for Login) */
@@ -104,6 +106,8 @@
   animation: slideInFromLeft 0.6s ease-out forwards;
   animation-delay: 0.2s; /* Start after page fade-in is partially done */
   text-align: center; 
+  position: relative; /* Ensure it participates in stacking context correctly */
+  z-index: 1;      /* Ensure it's above particles if wrapper alone isn't enough */
 }
 
 @keyframes slideInFromLeft {

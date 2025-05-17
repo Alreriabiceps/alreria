@@ -8,6 +8,7 @@ import InvitePanel from '../components/InvitePanel';
 import CreatePanel from '../components/CreatePanel';
 import QueuePanel from '../components/QueuePanel';
 import JoinLobbyPanel from '../components/JoinLobbyPanel';
+import FloatingStars from '../../../components/FloatingStars/FloatingStars'; // Import FloatingStars
 
 // Function to format time (MM:SS)
 const formatTime = (seconds) => {
@@ -529,6 +530,7 @@ const VersusModeLobby = () => {
 
   return (
     <div className={styles.pvpContainer}>
+      <FloatingStars />
       <div className={styles.floatingShapes}>
         <div className={styles.floatingShape1}></div>
         <div className={styles.floatingShape2}></div>
