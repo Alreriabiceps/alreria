@@ -232,7 +232,8 @@
   max-width: 360px;
   max-height: calc(100vh - 80px); 
   overflow-y: auto;
-  background-color: var(--navbar-panel-bg); 
+  background-color: rgba(30, 45, 60, 0.9); /* Slightly more opaque */
+  backdrop-filter: blur(8px); /* Added blur effect */
   border: 1px solid var(--navbar-border);
   border-top: none; 
   border-radius: 0 0 12px 12px;
