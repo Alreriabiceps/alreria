@@ -21,7 +21,6 @@ const playSound = (src, volume = SFX_VOLUME) => {
 
 const Start = () => {
   const navigate = useNavigate();
-  const [stars, setStars] = useState([]);
   const [buttonPosition, setButtonPosition] = useState({
     top: "70%",
     left: "50%",
@@ -129,14 +128,6 @@ const Start = () => {
 
   // Separate effect for other initial setups like stars and event listeners
   useEffect(() => {
-    const initialStars = Array.from({ length: isMobile ? 100 : 100 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: Math.random() * (isMobile ? 1.2 : 1.8) + 0.8,
-      opacity: Math.random() * 0.5 + 0.3,
-    }));
-    setStars(initialStars);
-
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -176,7 +167,7 @@ const Start = () => {
   const handleLaunchClick = useCallback(() => {
     if (isCorrect && !isAnimating) {
       playSound(SFX_LAUNCH_SRC);
-      setFeedbackMessage("Initializing Warp Sequence...");
+      setFeedbackMessage("Let's jump into the adventure!");
       setIsAnimating(true);
 
       // Fade out music if it's currently playing and not muted
@@ -204,16 +195,16 @@ const Start = () => {
       }, 1200);
     } else if (!isCorrect) {
       playSound(SFX_INCORRECT_SRC);
-      setFeedbackMessage("ACCESS DENIED. Complete the security check!");
+      setFeedbackMessage("Not quite! Solve the puzzle to continue!");
       const securityBox = containerRef.current?.querySelector(
-        `.${styles["security-check-box"]}`
+        `.${styles.securityPanel}`
       );
-      securityBox?.classList.add(styles["shake-animation-box"]);
+      securityBox?.classList.add(styles.shakeAnimationBox);
       setTimeout(() => {
-        securityBox?.classList.remove(styles["shake-animation-box"]);
+        securityBox?.classList.remove(styles.shakeAnimationBox);
       }, 400);
     }
-  }, [isCorrect, isAnimating, navigate, isMuted]); // Depends on relevant states/functions
+  }, [isCorrect, isAnimating, navigate, isMuted, styles.securityPanel, styles.shakeAnimationBox]);
 
   // Keydown event listener (now in its own effect)
   useEffect(() => {
@@ -249,46 +240,6 @@ const Start = () => {
   ]); // Depends on relevant states/functions
 
   const handleMouseMove = (e) => {
-    let didStarsMove = false;
-    const updatedStars = stars.map((star) => {
-      const dx = e.clientX - (window.innerWidth * star.left) / 100;
-      const dy = e.clientY - (window.innerHeight * star.top) / 100;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      const maxDistance = isMobile ? 100 : 180;
-      const baseMoveStrength = isMobile ? 1.5 : 3;
-      const starMoveStrength = baseMoveStrength * (star.opacity * 1.2 + 0.4);
-
-      let newLeft = star.left;
-      let newTop = star.top;
-
-      if (distance < maxDistance && distance > 0) {
-        const force = (maxDistance - distance) / maxDistance;
-        const moveX = (dx / distance) * force * starMoveStrength;
-        const moveY = (dy / distance) * force * starMoveStrength;
-
-        let potentialLeft = star.left - (moveX / window.innerWidth) * 100;
-        let potentialTop = star.top - (moveY / window.innerHeight) * 100;
-
-        potentialLeft = Math.max(0, Math.min(100, potentialLeft));
-        potentialTop = Math.max(0, Math.min(100, potentialTop));
-
-        if (
-          Math.abs(potentialLeft - star.left) > 0.02 ||
-          Math.abs(potentialTop - star.top) > 0.02
-        ) {
-          newLeft = potentialLeft;
-          newTop = potentialTop;
-          didStarsMove = true;
-        }
-      }
-      return { ...star, left: newLeft, top: newTop };
-    });
-
-    if (didStarsMove) {
-      setStars(updatedStars);
-    }
-
     // Only enable button movement if music is NOT playing and other conditions met
     if (!isMobile && !isCorrect && !isAnimating && !isPlaying) {
       const buttonElement = document.getElementById("launch-button");
@@ -351,8 +302,8 @@ const Start = () => {
 
     const correct = answer === securityAnswer;
     const message = correct
-      ? "Security Cleared. Target Acquired!"
-      : "Incorrect Sequence. Try Again.";
+      ? "You did it! The adventure continues!"
+      : "Oops! Try working together and try again!";
 
     setScreenFlash(correct ? "correct" : "wrong");
     setIsCorrect(correct);
@@ -366,11 +317,11 @@ const Start = () => {
     } else {
       playSound(SFX_INCORRECT_SRC);
       const securityBox = containerRef.current?.querySelector(
-        `.${styles["security-check-box"]}`
+        `.${styles.securityPanel}`
       );
-      securityBox?.classList.add(styles["shake-animation-box"]);
+      securityBox?.classList.add(styles.shakeAnimationBox);
       setTimeout(() => {
-        securityBox?.classList.remove(styles["shake-animation-box"]);
+        securityBox?.classList.remove(styles.shakeAnimationBox);
       }, 400);
       // Fetch a new question after a short delay
       setTimeout(() => {
@@ -384,27 +335,28 @@ const Start = () => {
   return (
     <div
       ref={containerRef}
-      className={`${styles["start-screen-container"]} ${isAnimating ? styles["slide-up-animation"] : ""
+      className={`${styles.startPageWrapper} ${isAnimating ? styles.slideUpAnimation : ""
         }`}
       onMouseMove={handleMouseMove}
     >
       <div
-        className={`${styles["screen-flash-overlay"]} ${screenFlash ? styles[`flash-${screenFlash}`] : ""
-          }`}
+        className={`${styles.screenFlashOverlay} ${
+          screenFlash === "correct" ? styles.flashCorrect : screenFlash === "wrong" ? styles.flashWrong : ""
+        }`}
       ></div>
       {/* Music playing message */}
       {isPlaying && (
-        <div className={styles["music-playing-message"]}>
-          <span className={styles["music-icon"]}>♪</span>
-          <span className={styles["music-text"]}>GLEAS POP ANTHEM PLAYING</span>
-          <span className={styles["music-icon"]}>♪</span>
+        <div className={styles.musicPlayingMessage}>
+          <span className={styles.musicIcon}>♪</span>
+          <span className={styles.musicText}>GLEAS POP ANTHEM PLAYING</span>
+          <span className={styles.musicIcon}>♪</span>
         </div>
       )}
 
       {/* Mute Button - Always show once audio has loaded */}
       <button
         onClick={handleMuteToggle}
-        className={`${styles["game-button-small"]} ${styles["mute-button"]}`}
+        className={`${styles.gameButton} ${styles.muteButton}`}
         aria-label={
           isMuted ? "Unmute Background Music" : "Mute Background Music"
         }
@@ -413,10 +365,10 @@ const Start = () => {
         {isMuted ? "[Unmute]" : "[Mute]"}
       </button>
 
-      <div className={styles["content-wrapper"]}>
+      <div className={styles.contentWrapper}>
         {/* Logo image above the title */}
 
-        <h1 className={`${styles["title-text"]} ${styles["text-shadow-glow"]}`}>
+        <h1 className={styles.pageTitle}>
           READY PLAYER?
         </h1>
 
@@ -424,7 +376,7 @@ const Start = () => {
         {!isPlaying && (
           <button
             onClick={handlePlayAnthem}
-            className={`${styles["game-button"]} ${styles["play-anthem-button"]}`}
+            className={`${styles.gameButton} ${styles.playAnthemButton}`}
             title="Play The Gleas Anthem (A)"
           >
             Play The Gleas Anthem
@@ -432,19 +384,19 @@ const Start = () => {
         )}
 
         {!isCorrect && (
-          <div className={styles["security-check-box"]}>
-            <h2 className={styles["security-title"]}>Security Check:</h2>
+          <div className={styles.securityPanel}>
+            <h2 className={styles.securityTitle}>Security Check:</h2>
             {loadingQuestion ? (
-              <p className={styles["security-question"]}>Loading question...</p>
+              <p className={styles.securityQuestion}>Loading question...</p>
             ) : (
               <>
-                <p className={styles["security-question"]}>{securityQuestion}</p>
-                <div className={styles["answers-container"]}>
+                <p className={styles.securityQuestion}>{securityQuestion}</p>
+                <div className={styles.answersContainer}>
                   {securityChoices.map((choice, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleAnswer(choice)}
-                      className={`${styles["game-button"]} ${styles["answer-button"]}`}
+                      className={`${styles.gameButton} ${styles.answerButton}`}
                     >
                       {choice}
                     </button>
@@ -457,9 +409,9 @@ const Start = () => {
 
         {feedbackMessage && (
           <p
-            className={`${styles["feedback-message"]} ${isCorrect
-              ? styles["feedback-correct"]
-              : styles["feedback-incorrect"]
+            className={`${styles.feedbackMessage} ${isCorrect
+              ? styles.feedbackCorrect
+              : styles.feedbackIncorrect
               }`}
           >
             {feedbackMessage}
@@ -470,8 +422,8 @@ const Start = () => {
       <button
         id="launch-button"
         onClick={handleLaunchClick}
-        className={`${styles["game-button"]} ${styles["launch-button"]} ${isCorrect ? styles["button-ready"] : styles["button-waiting"]
-          } ${isAnimating ? styles["button-animating"] : ""}`}
+        className={`${styles.gameButton} ${styles.launchButton} ${isCorrect ? styles.buttonReady : styles.buttonWaiting
+          }`}
         style={{
           top: buttonPosition.top,
           left: buttonPosition.left,
@@ -491,23 +443,6 @@ const Start = () => {
       >
         LAUNCH
       </button>
-
-      <div className={styles["starfield"]}>
-        {stars.map((star, index) => (
-          <div
-            key={index}
-            className={styles["star-particle"]}
-            style={{
-              left: `${star.left}%`,
-              top: `${star.top}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              opacity: star.opacity,
-              transition: "left 0.8s linear, top 0.8s linear",
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 };

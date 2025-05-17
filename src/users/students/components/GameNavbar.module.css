@@ -3,479 +3,497 @@
 /* ==========================================================================
    Imports
    ========================================================================== */
-   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-   @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-   
-   /* --- Removed global variable definition block --- */
-   
-   /* ==========================================================================
-      Navbar Base
-      ========================================================================== */
-   .navbar {
-     /* --- Theme Variables Scoped to .navbar --- */
-     --font-game: 'Press Start 2P', cursive;
-     --font-body: 'VT323', monospace;
-     --color-accent: #00ff9d;
-     --color-accent-hover: #80ffce;
-     --color-text-base: #e0e0e0;
-     --color-text-muted: #a0a0a0;
-     --color-bg-start: #0c051a; /* Note: These bg colors aren't used in the navbar itself, */
-     --color-bg-mid: #1d1135;   /* but are kept here if needed by child elements */
-     --color-panel: rgba(15, 12, 41, 0.9);
-     --color-panel-border: rgba(0, 255, 157, 0.6);
-     --color-pixel-shadow: rgba(0,0,0, 0.7);
-     --color-navbar-bg: rgba(10, 5, 25, 0.95);
-     --color-dropdown-bg: var(--color-panel);
-     /* --- End of Scoped Variables --- */
-   
-     background-color: var(--color-navbar-bg);
-     border-bottom: 2px solid var(--color-panel-border);
-     box-shadow: 0 4px 0 0 var(--color-pixel-shadow);
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-     padding: 10px 25px;
-     min-height: 60px;
-     position: sticky;
-     top: 0;
-     left: 0;
-     right: 0;
-     z-index: 100;
-     font-family: var(--font-body); /* Set base font for navbar text */
-     color: var(--color-text-base); /* Set base text color */
-     box-sizing: border-box;
-     max-width: 100vw;
-     overflow-x: hidden;
-   }
-   
-   /* ==========================================================================
-      Brand / Logo
-      ========================================================================== */
-   .navbarBrand {
-     flex-shrink: 0;
-   }
-   .navbarLogo {
-     font-family: var(--font-game); /* Use game font for logo */
-     font-size: 1.5rem;
-     color: var(--color-accent);
-     text-decoration: none;
-     text-shadow: 2px 2px 0 var(--color-pixel-shadow);
-     transition: color 0.2s ease;
-   }
-   .navbarLogo:hover {
-     color: var(--color-accent-hover);
-   }
-   
-   /* ==========================================================================
-      Desktop Navigation Links Container
-      ========================================================================== */
-   .desktopNavLinks {
-     display: flex;
-     align-items: center;
-     gap: 15px;
-     max-width: 100vw;
-     box-sizing: border-box;
-   }
-   
-   /* ==========================================================================
-      Generic Link / Button Styling (used for links, dropdown toggle, logout)
-      ========================================================================== */
-      .navbarLink {
-        font-family: var(--font-game); /* Use game font for links */
-        font-size: 0.8rem;
-        color: var(--color-text-muted);
-        text-decoration: none;
-        padding: 8px 10px;
-        border: 1px solid transparent; /* For layout consistency */
-        background: none;
-        cursor: pointer;
-        transition: color 0.2s ease, border-color 0.2s ease; /* Remove bg transition */
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 0;
-      }
-   .navbarLink:hover {
-     color: var(--color-accent-hover);
-   }
-   /* Active NavLink state */
-   .activeLink {
-     color: var(--color-accent);
-     border-bottom-color: var(--color-accent);
-   }
-   
-   /* ==========================================================================
-      Dropdown Menu Styling
-      ========================================================================== */
-   .dropdown {
-     position: relative; /* Anchor for the absolute menu */
-   }
-   .dropdownToggle {
-    composes: navbarLink; /* Inherits base styles from navbarLink */
-   }
-   
-   /* No specific background needed on hover for toggle, inherits from navbarLink */
-   .dropdownToggle:hover {
-    /* Hover effect comes from .navbarLink:hover */
-   }
-   /* Style toggle when active (either direct NavLink match or dropdown open) */
-   .dropdownToggle.activeLink, /* If NavLink detects active child */
-   .dropdown.open .dropdownToggle {
-     color: var(--color-accent); /* Use active color */
-     /* Optionally keep the border bottom like activeLink */
-     /* border-bottom-color: var(--color-accent); */
-   }
-   
-   .dropdownToggle::after { /* Basic arrow */
-     content: '▼';
-     font-size: 0.6em;
-     margin-left: 4px;
-     opacity: 0.7;
-     display: inline-block;
-     transition: transform 0.2s ease-out;
-   }
-   /* Rotate arrow when parent .dropdown has .open class */
-   .dropdown.open .dropdownToggle::after {
-       transform: rotate(180deg);
-   }
-   
-   .dropdownMenu {
-     position: absolute;
-     top: calc(100% + 5px);
-     left: 50%;
-     transform: translateX(-50%);
-     min-width: 200px;
-     background-color: var(--color-dropdown-bg);
-     border: 1px solid var(--color-panel-border);
-     box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
-     padding: 8px 0;
-     z-index: 110;
-     display: flex;
-     flex-direction: column;
-     opacity: 0;
-     visibility: hidden;
-     pointer-events: none;
-     transition: opacity 0.2s ease, visibility 0s linear 0.2s;
-   }
-   /* Show menu when parent .dropdown has .open class */
-   .dropdown.open .dropdownMenu {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transition-delay: 0s;
-   }
-   .dropdownItem {
-     font-family: var(--font-game); /* Use game font for items */
-     font-size: 0.75rem;
-     color: var(--color-text-muted);
-     text-decoration: none;
-     padding: 10px 15px;
-     transition: color 0.2s ease, background-color 0.2s ease;
-     white-space: nowrap;
-     display: flex;
-     align-items: center;
-     gap: 8px;
-   }
-   .dropdownItem:hover {
-     color: var(--color-accent-hover);
-     background-color: rgba(0, 255, 157, 0.1); /* Use accent with alpha */
-   }
-   /* Active NavLink state within dropdown */
-   .dropdownItem.activeLink {
-      color: var(--color-accent);
-      background-color: rgba(0, 255, 157, 0.15); /* Slightly darker accent bg */
-   }
-   
-   /* ==========================================================================
-      Mobile Navigation Styles
-      ========================================================================== */
-   .mobileMenuButton {
-     display: none; /* Hidden on desktop */
-     background: none; border: none; color: var(--color-accent);
-     font-size: 1.8rem; cursor: pointer; padding: 5px; z-index: 120;
-   }
-   
-   .mobileNavLinks {
-     display: none; /* Hidden by default */
-     flex-direction: column; position: absolute;
-     top: 100%; /* Directly below navbar */
-     left: 0; right: 0;
-     background-color: var(--color-navbar-bg);
-     border-bottom: 2px solid var(--color-panel-border);
-     padding: 10px 0; /* Reduced padding */
-     box-shadow: 0 4px 0 0 var(--color-pixel-shadow);
-     animation: slideDown 0.3s ease-out forwards;
-     max-width: 100vw;
-     box-sizing: border-box;
-   }
-   /* Show mobile menu when it has the .open class */
-   .mobileNavLinks.open {
-     display: flex;
-   }
-   
-   /* Mobile Link/Dropdown Toggle Overrides */
-   .mobileNavLinks .navbarLink,
-   .mobileNavLinks .dropdownToggle {
-     /* Inherits font-family from .navbarLink */
-     text-align: center; width: 100%; padding: 12px 20px; font-size: 0.9rem;
-     border: none; border-bottom: 1px solid rgba(0, 255, 157, 0.1);
-     justify-content: center; /* Center content */
-   }
-   .mobileNavLinks .activeLink {
-      border: none; border-left: 3px solid var(--color-accent);
-      background-color: rgba(0, 255, 157, 0.1);
-      padding-left: 17px; /* Adjust padding */
-   }
-   .mobileNavLinks .navbarLink:last-child,
-   .mobileNavLinks .dropdown:last-child .dropdownToggle {
-       border-bottom: none;
-   }
-   
-   /* Mobile Dropdown Menu Overrides */
-   .mobileNavLinks .dropdown { width: 100%; }
-   .mobileNavLinks .dropdownToggle::after { display: none; } /* Hide arrow */
-   .mobileNavLinks .dropdownMenu {
-       position: static; transform: none; box-shadow: none; border: none;
-       border-top: 1px solid rgba(0, 255, 157, 0.1);
-       background-color: rgba(0,0,0, 0.2); padding: 0;
-       max-height: 0; overflow: hidden; opacity: 1; visibility: visible;
-       transition: max-height 0.3s ease-out; pointer-events: auto;
-   }
-   /* Expand menu when parent .dropdown has .open class */
-   .mobileNavLinks .dropdown.open .dropdownMenu {
-      max-height: 500px; /* Allow space for items */
-   }
-   .mobileNavLinks .dropdownItem {
-      /* Inherits font-family from .dropdownItem */
-      padding: 10px 30px; font-size: 0.8rem; text-align: center;
-      border-bottom: 1px solid rgba(0, 255, 157, 0.08);
-      justify-content: center; /* Center icon + text */
-   }
-   .mobileNavLinks .dropdownItem:last-child { border-bottom: none; }
-   .mobileNavLinks .dropdownItem.activeLink {
-       border-left: none; background-color: rgba(0, 255, 157, 0.15);
-   }
-   
-   /* ==========================================================================
-      Panel Icon (Used in mobile links and dropdown items)
-      ========================================================================== */
-   .panelIcon {
-       font-size: 1.1rem;
-       opacity: 0.8;
-       width: 20px; /* Consistent width */
-       text-align: center;
-       flex-shrink: 0; /* Prevent shrinking */
-   }
-   
-   /* ==========================================================================
-      Responsive Breakpoint
-      ========================================================================== */
-   @media (max-width: 1200px) {
-     .desktopNavLinks { display: none; }
-     .mobileMenuButton { display: block; }
-   }
-   
-   @media (max-width: 992px) {
-     .navbar {
-       padding: 10px 10px;
-       flex-wrap: wrap;
-       max-width: 100vw;
-       overflow-x: hidden;
-     }
-     .navbarBrand {
-       flex-basis: 100%;
-       margin-bottom: 8px;
-     }
-     .volumeControls {
-       margin-top: 8px;
-       width: 100%;
-       justify-content: flex-end;
-     }
-     .mobileNavLinks {
-       display: flex;
-       flex-direction: column;
-       position: absolute;
-       top: 100%;
-       left: 0;
-       right: 0;
-       background-color: var(--color-navbar-bg);
-       border-bottom: 2px solid var(--color-panel-border);
-       max-height: 70vh;
-       overflow-y: auto;
-       z-index: 200;
-       max-width: 100vw;
-       overflow-x: hidden;
-     }
-   }
-   
-   @media (max-width: 600px) {
-     .navbar {
-       flex-direction: column;
-       align-items: stretch;
-       padding: 6px 2vw;
-       min-height: 48px;
-       max-width: 100vw;
-       overflow-x: hidden;
-     }
-     .navbarLogo {
-       font-size: 1.1rem;
-     }
-     .mobileMenuButton {
-       font-size: 1.3rem;
-       margin-left: auto;
-     }
-     .volumeControls {
-       width: 100%;
-       margin-top: 6px;
-       justify-content: flex-end;
-     }
-     .mobileNavLinks {
-       font-size: 0.95rem;
-       padding-bottom: 10px;
-       max-height: 60vh;
-       max-width: 100vw;
-       overflow-x: hidden;
-     }
-     .navbarLink, .dropdownToggle {
-       font-size: 0.9rem;
-       padding: 7px 6px;
-     }
-   }
-   
-   /* ==========================================================================
-      Keyframes
-      ========================================================================== */
-   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-   @keyframes slideDown {
-       from { opacity: 0; transform: translateY(-15px); }
-       to { opacity: 1; transform: translateY(0); }
-   }
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@400;700&family=Montserrat:wght@400;600;700&display=swap');
 
-   .volumeControls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .muteButton {
-    background: transparent;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--color-accent);
-    transition: color 0.2s ease;
-  }
-  
-  .muteButton:hover {
-    color: var(--color-accent-hover);
-  }
-  
-  .volumeBox {
-    position: relative;
-    width: 150px;
-    height: 30px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid var(--color-accent);
-    border-radius: 4px;
-    cursor: pointer;
-    overflow: hidden;
-    transition: border-color 0.2s ease;
-  }
-  
-  .volumeBox:hover {
-    border-color: var(--color-accent-hover);
-  }
-  
-  .volumeFill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: var(--color-accent);
-    opacity: 0.3;
-    transition: width 0.1s ease;
-  }
-  
-  .volumePercentage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--color-accent);
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.8rem;
-    text-shadow: 0 0 5px var(--color-accent);
-    pointer-events: none;
-  }
-  
-  .volumeSlider {
-    width: 100px; /* Adjust width as needed */
-    cursor: pointer;
-  }
-  
-  .mathVolumeControl {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--color-accent);
-  }
+/* ==========================================================================
+   Base & Variables - Synced with Blueprint Dashboard Theme
+   ========================================================================== */
+.navbar {
+  /* DBZ Accents (from Blueprint theme) */
+  --dbz-orange: #f39c12;
+  --dbz-blue: #3498db;
+  --dbz-red: #e74c3c;
+  --dbz-yellow: #f1c40f;
+  --dbz-dark-blue: #2c3e50;
+  --dbz-light-gray: #ecf0f1;
+  --dbz-dark-gray: #34495e;
+  --dbz-black: #1C1C1C;
 
-  .mathInput {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--color-accent);
-    color: var(--color-accent);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.8rem;
-    width: 60px;
-    text-align: center;
-  }
+  /* Blueprint Theme Variables (adapted for Navbar context) */
+  --navbar-bg: #0D131A; /* Very dark blue, from blueprint-bg */
+  --navbar-text: #E0F2F7; /* Light cyan/off-white, from blueprint-text */
+  --navbar-accent: var(--dbz-yellow); /* Bright yellow, from blueprint-accent */
+  --navbar-accent-text-dark: var(--dbz-black);
+  --navbar-panel-bg: rgba(30, 45, 60, 0.85); /* Panels from blueprint-panel-bg */
+  --navbar-border: rgba(173, 216, 230, 0.6); /* Grid line strong from blueprint, for borders */
+  --navbar-secondary-border: rgba(173, 216, 230, 0.35); /* Grid line regular */
+  --navbar-shadow: rgba(0, 0, 0, 0.4);
+  --navbar-logo-bg: rgba(30, 45, 60, 0.7); /* Slightly different for logo panel if needed */
 
-  .mathInput:focus {
-    outline: none;
-    box-shadow: 0 0 5px var(--color-accent);
-  }
+  --font-header: 'Bangers', cursive;
+  --font-body: 'Montserrat', sans-serif;
+  --font-accent: 'Roboto Condensed', sans-serif;
 
-  .mathOperator {
-    color: var(--color-accent);
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.8rem;
-    text-shadow: 0 0 5px var(--color-accent);
-  }
+  background-color: var(--navbar-bg);
+  background-image: none; /* Plain background, no grid */
+  box-shadow: 0 4px 15px var(--navbar-shadow);
+  border-bottom: 2px solid var(--navbar-border); 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 30px;
+  min-height: 65px;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  font-family: var(--font-accent);
+  color: var(--navbar-text); /* Default text color for navbar */
+}
 
-  .mathSubmit {
-    background: var(--color-accent);
-    color: black;
-    border: none;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.7rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
+/* ==========================================================================
+   Brand / Logo
+   ========================================================================== */
+.navbarBrand {
+  flex-shrink: 0;
+}
+.navbarLogo {
+  font-family: var(--font-header);
+  font-size: 1.8rem;
+  color: var(--navbar-accent); /* Yellow logo text */
+  text-decoration: none;
+  letter-spacing: 1.5px;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+  padding: 8px 15px;
+  border-radius: 8px;
+  background-color: var(--navbar-logo-bg); /* Panel BG for logo */
+  border: 1px solid var(--navbar-accent); /* Yellow border for logo */
+  transition: color 0.2s, background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.navbarLogo:hover {
+  color: var(--dbz-black);
+  background-color: var(--navbar-accent);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px var(--dbz-orange);
+}
 
-  .mathSubmit:hover {
-    background: var(--color-accent-hover);
-    transform: scale(1.05);
-  }
-  
-  /* Prevent horizontal scroll globally */
-  html, body {
-    overflow-x: hidden !important;
-    max-width: 100vw;
-    box-sizing: border-box;
-  }
+/* ==========================================================================
+   Desktop Navigation Links Container
+   ========================================================================== */
+.desktopNavLinks {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
-  /* Ensure all direct children of navbar wrap and don't overflow */
-  .navbar > * {
-    max-width: 100%;
-    box-sizing: border-box;
-    flex-shrink: 1;
-  }
+/* ==========================================================================
+   Generic Link / Button Styling
+   ========================================================================== */
+.navbarLink {
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--navbar-text); /* Light text for links */
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.navbarLink:hover {
+  background-color: var(--navbar-accent); /* Yellow hover */
+  color: var(--navbar-accent-text-dark); /* Dark text on yellow */
+  border-color: var(--dbz-orange);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.activeLink {
+  background-color: var(--navbar-accent) !important; /* Yellow for active */
+  color: var(--navbar-accent-text-dark) !important; /* Dark text on yellow */
+  border-color: var(--dbz-orange) !important;
+  box-shadow: 0 0 10px var(--navbar-accent);
+}
+
+/* ==========================================================================
+   Dropdown Menu Styling
+   ========================================================================== */
+.dropdown {
+  position: relative;
+}
+.dropdownToggle {
+  composes: navbarLink;
+}
+.dropdownToggle.activeLink, /* If a child is active */
+.dropdown.open .dropdownToggle {
+  background-color: var(--dbz-blue); /* Keep DBZ Blue for open dropdown toggle, distinct from yellow active links */
+  color: var(--navbar-text); /* Use main light text */
+  border-color: var(--navbar-secondary-border);
+}
+.dropdownToggle::after { 
+  content: '▾';
+  font-size: 0.8em;
+  margin-left: 5px;
+  opacity: 0.9;
+  display: inline-block;
+  transition: transform 0.2s ease-in-out;
+}
+.dropdown.open .dropdownToggle::after {
+  transform: rotateX(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  background-color: rgb(30, 45, 60); /* Solid opaque background */
+  backdrop-filter: blur(5px); 
+  border: 1px solid var(--navbar-border); 
+  box-shadow: 0 6px 15px var(--navbar-shadow);
+  padding: 8px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform-origin: top center;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transform: translateY(-10px) translateX(-50%);
+}
+.dropdown.open .dropdownMenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) translateX(-50%);
+}
+.dropdownItem {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--navbar-text); /* Light text for items */
+  text-decoration: none;
+  padding: 10px 15px;
+  transition: background-color 0.18s, color 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+.dropdownItem:hover {
+  background-color: var(--navbar-accent); /* Yellow hover */
+  color: var(--navbar-accent-text-dark);
+}
+.dropdownItem.activeLink {
+  background-color: var(--navbar-accent) !important; /* Yellow for active item in dropdown */
+  color: var(--navbar-accent-text-dark) !important;
+}
+
+/* ==========================================================================
+   Mobile Navigation Styles
+   ========================================================================== */
+.mobileMenuButton {
+  display: none; 
+  background-color: var(--navbar-accent); /* Yellow base for mobile button */
+  border: 1px solid var(--dbz-orange);
+  color: var(--navbar-accent-text-dark);
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px var(--navbar-shadow);
+  z-index: 1020;
+  margin-left: 15px;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s, color 0.2s;
+}
+.mobileMenuButton:hover {
+  background-color: var(--dbz-orange); 
+  color: var(--navbar-text);
+  transform: scale(1.1);
+  box-shadow: 0 0 8px var(--dbz-yellow);
+}
+
+.mobileNavLinks {
+  display: none; 
+  flex-direction: column;
+  position: fixed;
+  top: 65px; /* Adjusted to navbar height */ 
+  left: 50%;
+  width: 90vw;
+  max-width: 360px;
+  max-height: calc(100vh - 80px); 
+  overflow-y: auto;
+  background-color: var(--navbar-panel-bg); 
+  border: 1px solid var(--navbar-border);
+  border-top: none; 
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 10px 25px var(--navbar-shadow);
+  z-index: 1010; 
+  padding: 15px 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease-out, visibility 0.25s ease-out, transform 0.25s ease-out;
+  transform: translateX(-50%) translateY(-15px); 
+}
+
+.mobileNavLinks.open {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* Styling links within the mobile menu */
+.mobileNavLinks .navbarLink,
+.mobileNavLinks .dropdownToggle {
+  font-size: 1.1rem; 
+  padding: 12px 20px;
+  margin: 8px 15px; 
+  background-color: transparent; 
+  color: var(--navbar-text);
+  border: 1px solid var(--navbar-secondary-border); /* Lighter border for links inside panel */
+  border-radius: 6px;
+}
+
+.mobileNavLinks .navbarLink:hover,
+.mobileNavLinks .dropdownToggle:hover {
+  background-color: var(--navbar-accent); /* Yellow hover */
+  color: var(--navbar-accent-text-dark);
+  border-color: var(--dbz-orange);
+}
+
+.mobileNavLinks .activeLink {
+  background-color: var(--navbar-accent) !important; /* Yellow active */
+  color: var(--navbar-accent-text-dark) !important;
+  border-color: var(--dbz-orange) !important;
+}
+
+.mobileNavLinks .dropdownMenu {
+  position: static; 
+  width: auto;
+  background-color: rgb(30, 45, 60); /* Solid version of --navbar-panel-bg base color */
+  border: none;
+  box-shadow: none;
+  padding: 5px 0 5px 20px; 
+  transform: none !important; 
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mobileNavLinks .dropdownItem {
+  padding: 10px 15px;
+  color: var(--navbar-text);
+}
+.mobileNavLinks .dropdownItem:hover {
+  background-color: var(--navbar-accent);
+  color: var(--navbar-accent-text-dark);
+}
+.mobileNavLinks .dropdownItem.activeLink {
+  background-color: var(--navbar-accent) !important;
+  color: var(--navbar-accent-text-dark) !important;
+}
+
+/* ==========================================================================
+   Icon Styling (shared by desktop and mobile)
+   ========================================================================== */
+.panelIcon {
+  font-size: 1.2em; 
+  margin-right: 5px; 
+  opacity: 0.9;
+  vertical-align: middle; 
+  /* Color will be inherited or can be set if specific icons need different colors */
+}
+
+.navbarLink > .panelIcon:first-child,
+.dropdownToggle > .panelIcon:first-child,
+.dropdownItem > .panelIcon:first-child {
+  margin-right: 8px;
+}
+
+/* ==========================================================================
+   Media Queries (breakpoints from original, can be adjusted)
+   ========================================================================== */
+@media (max-width: 1200px) { 
+  .desktopNavLinks { display: none; }
+  .mobileMenuButton { display: block; }
+}
+
+@media (max-width: 992px) {
+  .navbar { padding: 10px 20px; min-height: 60px; }
+  .navbarLogo { font-size: 1.6rem; padding: 6px 12px; }
+}
+
+@media (max-width: 600px) {
+  .navbar { padding: 10px 15px; }
+  .navbarLogo { font-size: 1.4rem; letter-spacing: 1px; }
+  .mobileMenuButton { font-size: 1.6rem; padding: 6px 10px; }
+  .volumeControls { padding-left: 10px; }
+  .volumeBox { width: 80px; }
+}
+
+/* ==========================================================================
+   Animations 
+   ========================================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chargeEnergy { 
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ==========================================================================
+   Volume Controls - Themed for Blueprint Navbar
+   ========================================================================== */
+.volumeControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto; 
+  padding-left: 20px; 
+}
+
+.muteButton {
+  background: transparent;
+  border: 1px solid var(--navbar-border); 
+  color: var(--navbar-text); /* Light text for icon */
+  font-size: 1.5rem; 
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  width: 36px; 
+  height: 36px; 
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.muteButton:hover {
+  background-color: var(--navbar-accent);
+  color: var(--navbar-accent-text-dark);
+  box-shadow: 0 0 8px var(--navbar-accent);
+  border-color: var(--dbz-orange);
+}
+
+.volumeBox {
+  width: 100px; 
+  height: 12px;
+  background-color: var(--dbz-dark-gray); 
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden; 
+  border: 1px solid var(--dbz-black); 
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.volumeFill {
+  height: 100%;
+  background: var(--navbar-accent); /* Solid Yellow Fill */
+  border-radius: 6px 0 0 6px; 
+  transition: width 0.1s linear; 
+  position: relative;
+}
+.volumeFill::after { 
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    -75deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%, /* Adjusted shine for solid yellow */
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: chargeEnergy 2s linear infinite;
+}
+
+.volumePercentage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--navbar-accent-text-dark); 
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3); /* Lighter shadow for dark text on yellow */
+  pointer-events: none; 
+}
+
+.panelIcon svg {
+  vertical-align: middle;
+}
+
+
+/* Remove redundant html, body, .navbar > * styles if they were placeholders */
+/* The following were at the end of the original file, might be project-wide defaults */
+/* Consider if they are still needed or should be in a global stylesheet */
+/* html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-body); 
+} */
+
+/* .navbar > * {
+  margin: 0 10px;
+} */
+
+/* Ensure icons align well with text if react-icons are used */
+.panelIcon svg {
+  vertical-align: middle;
+}
+
+
+/* Fallback styles for mobileNavLinks if inline styles from JSX are removed/problematic */
+/* This provides a CSS-first approach for the mobile dropdown panel */
+.mobileNavLinks {
+  display: none; /* Initially hidden */
+  flex-direction: column;
+  position: fixed;
+  top: 60px; /* Example: below navbar */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90vw;
+  max-width: 360px;
+  max-height: calc(100vh - 80px); /* Example: leave some space */
+  overflow-y: auto;
+  background-color: var(--capsule-corp-panel-bg);
+  border: 1px solid var(--capsule-corp-border);
+  border-top: none; /* Assuming navbar has top border */
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 10px 25px var(--capsule-corp-shadow);
+  z-index: 1010; /* Below menu button if it needs to overlay */
+  padding: 15px 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease-out, visibility 0.25s ease-out, transform 0.25s ease-out;
+  transform: translateX(-50%) translateY(-15px); /* Start slightly up for entry animation */
+}
+
+.mobileNavLinks.open {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* The general .mobileNavLinks .navbarLink styling from above will apply to items inside */
   

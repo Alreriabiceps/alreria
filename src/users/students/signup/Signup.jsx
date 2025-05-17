@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
+import { FaEnvelope } from 'react-icons/fa';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -53,9 +54,10 @@ const Signup = () => {
       setError('Passwords do not match');
       return false;
     }
-    if (!Object.values(passwordStrength).every(Boolean)) {
-      setError('Password does not meet all requirements');
-      return false;
+    const strengthValues = Object.values(passwordStrength);
+    if (strengthValues.some(val => val === false)) {
+        setError('Password does not meet all requirements');
+        return false;
     }
     return true;
   };
@@ -103,45 +105,44 @@ const Signup = () => {
   };
 
   return (
-    <div className={styles.signupScreen}>
-      <div className={styles.scanlineOverlay}></div>
-
-      <div className={styles.signupContainer}>
-        <h1 className={`${styles.signupTitle} ${styles.textShadowGlow}`}>
-          // CREATE NEW ACCOUNT //
+    <div className={styles.signupPageWrapper}>
+      <div className={styles.signupPanel}>
+        <h1 className={styles.pageTitle}>
+          Create New Account
         </h1>
 
         {success ? (
           <div>
-            <div className={styles.successMessageBox}>
-              <div className={styles.successIcon}>📧</div>
+            <div className={styles.successMessagePanel}>
+              <FaEnvelope className={styles.successIcon} />
               <div>
                 <h2 className={styles.successTitle}>Check Your Email!</h2>
                 <p className={styles.successText}>
                   We've sent a confirmation link to your email address.<br />
-                  <b>Don't forget to check your <span style={{color:'#00b894'}}>Spam</span> or <span style={{color:'#00b894'}}>Promotions</span> folder</b> if you don't see it in your inbox.<br />
-                  <span style={{color:'#00b894'}}>You must confirm your email before you can log in.</span>
+                  <b>Don't forget to check your <span>Spam</span> or <span>Promotions</span> folder</b> if you don't see it in your inbox.<br />
+                  <span>You must confirm your email before you can log in.</span>
                 </p>
               </div>
             </div>
             <button
               type="button"
-              className={styles.signupButton}
+              className={`${styles.signupButton} ${styles.backToLoginButton}`}
               style={{ marginTop: '2rem' }}
               onClick={() => navigate('/')}
             >
-              Log In
+              Back to Log In
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className={styles.signupForm}>
-            <div className={styles.signupGrid}>
+          <form onSubmit={handleSubmit}>
+            <div className={styles.signupFormGrid}>
               <div className={styles.inputGroup}>
                 <label htmlFor="firstName">First Name:</label>
                 <input
                   type="text"
                   id="firstName"
                   name="firstName"
+                  className={styles.inputField}
                   value={formData.firstName}
                   onChange={handleChange}
                   required
@@ -155,6 +156,7 @@ const Signup = () => {
                   type="text"
                   id="middleName"
                   name="middleName"
+                  className={styles.inputField}
                   value={formData.middleName}
                   onChange={handleChange}
                   disabled={isLoading}
@@ -167,6 +169,7 @@ const Signup = () => {
                   type="text"
                   id="lastName"
                   name="lastName"
+                  className={styles.inputField}
                   value={formData.lastName}
                   onChange={handleChange}
                   required
@@ -180,6 +183,7 @@ const Signup = () => {
                   type="email"
                   id="email"
                   name="email"
+                  className={styles.inputField}
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -193,6 +197,7 @@ const Signup = () => {
                   type="text"
                   id="studentId"
                   name="studentId"
+                  className={styles.inputField}
                   value={formData.studentId}
                   onChange={handleChange}
                   required
@@ -206,6 +211,7 @@ const Signup = () => {
                 <select
                   id="track"
                   name="track"
+                  className={styles.selectField}
                   value={formData.track}
                   onChange={handleChange}
                   required
@@ -222,6 +228,7 @@ const Signup = () => {
                   type="text"
                   id="section"
                   name="section"
+                  className={styles.inputField}
                   value={formData.section}
                   onChange={handleChange}
                   required
@@ -234,6 +241,7 @@ const Signup = () => {
                 <select
                   id="yearLevel"
                   name="yearLevel"
+                  className={styles.selectField}
                   value={formData.yearLevel}
                   onChange={handleChange}
                   required
@@ -244,12 +252,14 @@ const Signup = () => {
                   <option value="Grade 12">Grade 12</option>
                 </select>
               </div>
-              <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
+
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}> 
                 <label htmlFor="password">Password Matrix:</label>
                 <input
                   type="password"
                   id="password"
                   name="password"
+                  className={styles.inputField}
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -261,31 +271,26 @@ const Signup = () => {
                 <div className={styles.passwordRequirements}>
                   <p>Password must contain:</p>
                   <ul>
-                    <li className={passwordStrength.length ? styles.requirementMet : ''}>
-                      At least 8 characters
-                    </li>
-                    <li className={passwordStrength.uppercase ? styles.requirementMet : ''}>
-                      One uppercase letter
-                    </li>
-                    <li className={passwordStrength.lowercase ? styles.requirementMet : ''}>
-                      One lowercase letter
-                    </li>
-                    <li className={passwordStrength.number ? styles.requirementMet : ''}>
-                      One number
-                    </li>
-                    <li className={passwordStrength.special ? styles.requirementMet : ''}>
-                      One special character
-                    </li>
+                    {Object.entries(passwordStrength).map(([key, met]) => (
+                      <li key={key} className={met ? styles.requirementMet : styles.requirementNotMet}>
+                        {key === 'length' && 'At least 8 characters'}
+                        {key === 'uppercase' && 'One uppercase letter'}
+                        {key === 'lowercase' && 'One lowercase letter'}
+                        {key === 'number' && 'One number'}
+                        {key === 'special' && 'One special character'}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
 
-              <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}> 
                 <label htmlFor="confirmPassword">Confirm Password Matrix:</label>
                 <input
                   type="password"
                   id="confirmPassword"
                   name="confirmPassword"
+                  className={styles.inputField}
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
@@ -297,7 +302,7 @@ const Signup = () => {
               </div>
             </div>
 
-            {error && <p className={styles.errorMessage}>{error}</p>}
+            {error && <p className={`${styles.messageBox} ${styles.errorMessage}`}>{error}</p>}
 
             <button
               type="submit"

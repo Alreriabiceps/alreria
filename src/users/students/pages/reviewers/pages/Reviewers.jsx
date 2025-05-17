@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'; // Added hooks
 import styles from './Reviewers.module.css';
+import { FaSearch, FaBook, FaFileAlt } from 'react-icons/fa'; // Import FaSearch and other potential icons
 
 // --- Sample Data (Ensure 'subject' is added) ---
 const allReviewersData = [
@@ -87,14 +88,12 @@ const Reviewers = () => {
             <div className={styles.filterGroup}>
               <label htmlFor="subject-filter" className={styles.filterLabel}>Subject</label>
               <div className={styles.filterInputContainer}>
-                {/* Optional Icon */}
-                {/* <span className={styles.filterInputIcon}>📚</span> */}
+                <FaBook className={styles.filterInputIcon} />
                 <select
                   id="subject-filter"
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
-                  className={styles.filterSelect}
-                  style={{ paddingLeft: '12px'}} // Adjust padding if no icon
+                  className={styles.filterSelectWithIcon} /* Use class for padding with icon */
                 >
                   <option value="">All Subjects</option>
                   {SUBJECTS.map(subject => (
@@ -108,14 +107,12 @@ const Reviewers = () => {
             <div className={styles.filterGroup}>
               <label htmlFor="filetype-filter" className={styles.filterLabel}>File Type</label>
               <div className={styles.filterInputContainer}>
-                 {/* Optional Icon */}
-                {/* <span className={styles.filterInputIcon}>📄</span> */}
+                <FaFileAlt className={styles.filterInputIcon} />
                 <select
                   id="filetype-filter"
                   value={selectedFileType}
                   onChange={(e) => setSelectedFileType(e.target.value)}
-                  className={styles.filterSelect}
-                   style={{ paddingLeft: '12px'}} // Adjust padding if no icon
+                  className={styles.filterSelectWithIcon} /* Use class for padding with icon */
                 >
                   <option value="">All Types</option>
                   {FILE_TYPES.map(type => (
@@ -129,7 +126,7 @@ const Reviewers = () => {
             <div className={styles.filterGroup}>
               <label htmlFor="search-filter" className={styles.filterLabel}>Search</label>
               <div className={styles.filterInputContainer}>
-                 <span className={styles.filterInputIcon}>🔍</span>
+                 <FaSearch className={styles.filterInputIcon} />
                 <input
                   type="text"
                   id="search-filter"
@@ -148,15 +145,17 @@ const Reviewers = () => {
         <ul className={styles.reviewersList}>
           {/* Map over FILTERED data */}
           {filteredReviewers.length > 0 ? (
-            filteredReviewers.map((reviewer) => (
-              <li key={reviewer.id} className={styles.reviewerItem}>
-                <div className={`${styles.fileIcon} ${getIconClass(reviewer.type)}`}>
-                  {reviewer.type?.toUpperCase()}
+            filteredReviewers.map((reviewer, index) => (
+              <li key={reviewer.id} className={styles.reviewerItem} style={{ animationDelay: `${index * 0.05}s`}}>
+                <div className={styles.fileHeader}>
+                  <div className={`${styles.fileIcon} ${getIconClass(reviewer.type)}`}>
+                    {reviewer.type?.toUpperCase()}
+                  </div>
+                  <div className={styles.fileInfo}>
+                    <h3 className={styles.fileTitle}>{reviewer.title}</h3>
+                  </div>
                 </div>
-                <div className={styles.fileInfo}>
-                  <h3 className={styles.fileTitle}>{reviewer.title}</h3>
-                  <p className={styles.fileDescription}>{reviewer.description}</p>
-                </div>
+                <p className={styles.fileDescription}>{reviewer.description}</p>
                 <a
                   href={reviewer.url}
                   download

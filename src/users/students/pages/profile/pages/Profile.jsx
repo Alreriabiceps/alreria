@@ -2,6 +2,30 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import styles from "./Profile.module.css";
 import Modal from 'react-modal';
+import { 
+  FaLeaf, FaTree, FaMountain, FaShieldAlt, FaMedal, FaTrophy, FaGem, 
+  FaBug, FaUserShield, FaCrown, FaStar, FaFistRaised, FaAward,
+  FaBookOpen, FaCalendarCheck, FaUsers, FaChartBar, FaCrosshairs, FaFire, FaBolt, FaClock,
+  FaChevronDown,
+  FaBed, FaPaperclip, FaSearch, FaBookReader, FaMicrophoneAlt
+} from 'react-icons/fa';
+
+const iconComponents = {
+  FaLeaf, FaTree, FaMountain, FaShieldAlt, FaMedal, FaTrophy, FaGem,
+  FaBug, FaUserShield, FaCrown, FaStar, FaFistRaised, FaAward,
+  FaBookOpen, FaCalendarCheck, FaUsers, FaChartBar, FaCrosshairs, FaFire, FaBolt, FaClock,
+  FaChevronDown,
+  FaBed, FaPaperclip, FaSearch, FaBookReader, FaMicrophoneAlt
+};
+
+const IconComponent = ({ iconName, ...props }) => {
+  const ActualIcon = iconComponents[iconName];
+  if (!ActualIcon) {
+    console.warn(`Icon "${iconName}" not found in iconComponents.`);
+    return null; 
+  }
+  return <ActualIcon {...props} />;
+};
 
 const TAB_OVERVIEW = 'overview';
 const TAB_WEEKLY = 'weekly';
@@ -26,29 +50,30 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(TAB_OVERVIEW);
   const [testResults, setTestResults] = useState([]);
-  const [showWeeklyRanksModal, setShowWeeklyRanksModal] = useState(false);
-  const [showPvpRanksModal, setShowPvpRanksModal] = useState(false);
+  const [showWeeklyRanks, setShowWeeklyRanks] = useState(false);
+  const [showPvpRanks, setShowPvpRanks] = useState(false);
 
-  // New Rank System
+  // New Rank System - Updated to match WeeklyTest.jsx (8-Tier Funny School Ranking)
   const RANKS = [
-    { min: 0, max: 99, name: 'Grass', emoji: '🌱', description: 'Still growing', color: '#7ec850' },
-    { min: 100, max: 199, name: 'Wood', emoji: '🪵', description: 'Getting sturdy', color: '#a67c52' },
-    { min: 200, max: 299, name: 'Rock', emoji: '🪨', description: 'Solid start', color: '#b0b0b0' },
-    { min: 300, max: 399, name: 'Iron', emoji: '⚒️', description: 'Forged with effort', color: '#8a8a8a' },
-    { min: 400, max: 499, name: 'Silver', emoji: '🥈', description: 'Shiny and polished', color: '#c0c0c0' },
-    { min: 500, max: 599, name: 'Gold', emoji: '🥇', description: 'Shining like a star', color: '#ffd700' },
-    { min: 600, max: 700, name: 'Diamond', emoji: '💎', description: "You're a gem", color: '#b9f2ff' },
+    { min: 0, max: 149, name: 'Absent Legend', prIcon: 'FaBed', description: 'Technically enrolled.', color: 'var(--blueprint-text-muted)' }, // Using FaBed for 🛌
+    { min: 150, max: 299, name: 'The Crammer', prIcon: 'FaClock', description: 'Studies best under extreme pressure—like 5 minutes before class.', color: '#FFC107' }, // FaClock for ⏰
+    { min: 300, max: 449, name: 'Seatwarmer', prIcon: 'FaBookOpen', description: 'Physically present, mentally... buffering.', color: '#A0522D' }, // FaBookOpen for 📖
+    { min: 450, max: 599, name: 'Group Project Ghost', prIcon: 'FaPaperclip', description: 'Appears only during final presentation day.', color: '#B0C4DE' }, // FaPaperclip for 📎
+    { min: 600, max: 749, name: 'Google Scholar (Unofficial)', prIcon: 'FaSearch', description: 'Master of Ctrl+F and "Quizlet."' , color: 'var(--blueprint-success)'}, // FaSearch for 🔍
+    { min: 750, max: 899, name: 'The Lowkey Genius', prIcon: 'FaBookReader', description: 'Never recites, still gets the highest score.', color: 'var(--blueprint-accent-secondary)' }, // FaBookReader for 📚 (FaBook is taken)
+    { min: 900, max: 1049, name: 'Almost Valedictorian', prIcon: 'FaMedal', description: 'Always 0.01 short—every time.', color: 'var(--blueprint-accent)' }, // FaMedal for 🏅
+    { min: 1050, max: Infinity, name: 'The Valedictornator', prIcon: 'FaMicrophoneAlt', description: 'Delivers speeches, aces tests, and might run the school.', color: 'var(--blueprint-danger)' } // FaMicrophoneAlt for 🎤
   ];
 
-  // PvP Rank System
+  // PvP Rank System - Updated Colors
   const PVP_RANKS = [
-    { min: 0, max: 79, name: 'Grasshopper', emoji: '🌱', description: 'Newbie — Just starting out.', color: '#7ec850' },
-    { min: 80, max: 159, name: 'Knight', emoji: '⚔️', description: 'Rising Warrior — Showing promise.', color: '#a67c52' },
-    { min: 160, max: 239, name: 'Gladiator', emoji: '🛡️', description: 'Skilled Fighter — Battle-ready.', color: '#b0b0b0' },
-    { min: 240, max: 319, name: 'Elite', emoji: '💎', description: 'Champion in the Making.', color: '#b9f2ff' },
-    { min: 320, max: 399, name: 'Legend', emoji: '🏆', description: 'Feared by many.', color: '#ffd700' },
-    { min: 400, max: 479, name: 'Titan', emoji: '🏋️', description: 'Legendary Force — Near unstoppable.', color: '#c0c0c0' },
-    { min: 480, max: 500, name: 'Supreme', emoji: '👑', description: 'Absolute Peak — Top of the ranks.', color: '#ffb347' },
+    { min: 0, max: 79, name: 'Grasshopper', pvpIcon: 'FaBug', description: 'Newbie — Just starting out.', color: 'var(--blueprint-success)' },
+    { min: 80, max: 159, name: 'Knight', pvpIcon: 'FaUserShield', description: 'Rising Warrior — Showing promise.', color: '#B0C4DE' },
+    { min: 160, max: 239, name: 'Gladiator', pvpIcon: 'FaShieldAlt', description: 'Skilled Fighter — Battle-ready.', color: '#C0C0C0' },
+    { min: 240, max: 319, name: 'Elite', pvpIcon: 'FaCrown', description: 'Champion in the Making.', color: 'var(--blueprint-accent)' },
+    { min: 320, max: 399, name: 'Legend', pvpIcon: 'FaStar', description: 'Feared by many.', color: 'var(--blueprint-accent-secondary)' },
+    { min: 400, max: 479, name: 'Titan', pvpIcon: 'FaFistRaised', description: 'Legendary Force — Near unstoppable.', color: '#D8A2FF' },
+    { min: 480, max: 500, name: 'Supreme', pvpIcon: 'FaAward', description: 'Absolute Peak — Top of the ranks.', color: 'var(--blueprint-danger)' },
   ];
 
   const getRank = (totalPoints) => {
@@ -125,7 +150,7 @@ const Profile = () => {
       try {
         const backendurl = import.meta.env.VITE_BACKEND_URL;
         // First get all test results for the student
-        const response = await fetch(`${backendurl}/api/weekly-test/results/${user.id}`, {
+        const response = await fetch(`${backendurl}/api/weekly-test/results/student/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -285,75 +310,34 @@ const Profile = () => {
     : 100;
   const pvpStarsToNext = nextPvpRank ? nextPvpRank.min - pvpStars : 0;
 
+  const CurrentRankIcon = currentRank && iconComponents[currentRank.prIcon];
+  const PvpRankIcon = pvpRank && iconComponents[pvpRank.pvpIcon];
+
   return (
     <div className={styles.profileContainer}>
-      {/* Top Navigation Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, gap: 8 }}>
+      {/* Top Navigation Tabs - Using CSS Module Styles */}
+      <div className={styles.tabsContainer}>
         <button
           onClick={() => setActiveTab(TAB_OVERVIEW)}
-          style={{
-            padding: '10px 28px',
-            fontWeight: 700,
-            fontSize: 16,
-            border: 'none',
-            borderBottom: activeTab === TAB_OVERVIEW ? '3px solid #00ff9d' : '3px solid transparent',
-            background: 'none',
-            color: activeTab === TAB_OVERVIEW ? '#00ff9d' : '#80ffce',
-            cursor: 'pointer',
-            transition: 'color 0.2s, border-bottom 0.2s',
-            outline: 'none',
-          }}
+          className={`${styles.tabButton} ${activeTab === TAB_OVERVIEW ? styles.tabButtonActive : ''}`}
         >
           Overview
         </button>
         <button
           onClick={() => setActiveTab(TAB_ANALYTICS)}
-          style={{
-            padding: '10px 28px',
-            fontWeight: 700,
-            fontSize: 16,
-            border: 'none',
-            borderBottom: activeTab === TAB_ANALYTICS ? '3px solid #00ff9d' : '3px solid transparent',
-            background: 'none',
-            color: activeTab === TAB_ANALYTICS ? '#00ff9d' : '#80ffce',
-            cursor: 'pointer',
-            transition: 'color 0.2s, border-bottom 0.2s',
-            outline: 'none',
-          }}
+          className={`${styles.tabButton} ${activeTab === TAB_ANALYTICS ? styles.tabButtonActive : ''}`}
         >
           Analytics
         </button>
         <button
           onClick={() => setActiveTab(TAB_WEEKLY)}
-          style={{
-            padding: '10px 28px',
-            fontWeight: 700,
-            fontSize: 16,
-            border: 'none',
-            borderBottom: activeTab === TAB_WEEKLY ? '3px solid #00ff9d' : '3px solid transparent',
-            background: 'none',
-            color: activeTab === TAB_WEEKLY ? '#00ff9d' : '#80ffce',
-            cursor: 'pointer',
-            transition: 'color 0.2s, border-bottom 0.2s',
-            outline: 'none',
-          }}
+          className={`${styles.tabButton} ${activeTab === TAB_WEEKLY ? styles.tabButtonActive : ''}`}
         >
           Weekly Tests
         </button>
         <button
           onClick={() => setActiveTab(TAB_PVP)}
-          style={{
-            padding: '10px 28px',
-            fontWeight: 700,
-            fontSize: 16,
-            border: 'none',
-            borderBottom: activeTab === TAB_PVP ? '3px solid #00ff9d' : '3px solid transparent',
-            background: 'none',
-            color: activeTab === TAB_PVP ? '#00ff9d' : '#80ffce',
-            cursor: 'pointer',
-            transition: 'color 0.2s, border-bottom 0.2s',
-            outline: 'none',
-          }}
+          className={`${styles.tabButton} ${activeTab === TAB_PVP ? styles.tabButtonActive : ''}`}
         >
           PvP History
         </button>
@@ -361,287 +345,282 @@ const Profile = () => {
 
       {/* Tab Content */}
       {activeTab === TAB_OVERVIEW && (
-        <>
-          {/* Modern Horizontal Profile Card Layout */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            background: 'linear-gradient(135deg, #181a2e 60%, #00ff9d22 100%)',
-            borderRadius: 18,
-            boxShadow: '0 8px 32px 0 rgba(0,255,157,0.10), 0 1.5px 8px 0 #00ff9d22',
-            padding: '2.5rem 2.5rem 2.5rem 2rem',
-            margin: '0 auto 2.5rem auto',
-            maxWidth: 700,
-            minHeight: 180,
-            position: 'relative',
-            gap: 36,
-            flexWrap: 'wrap',
-          }}>
-            {/* Avatar + Medal Layered */}
-            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120 }}>
-              <div style={{ position: 'relative' }}>
-                <div className={styles.profileAvatar} style={{ width: 90, height: 90, fontSize: 38, marginBottom: 0, background: '#23234a', border: '4px solid #222', borderRadius: '50%' }}>
-                  <div className={styles.avatarPlaceholder} style={{ width: 90, height: 90, fontSize: 38 }}>
-            {studentData.firstName?.[0]}{studentData.lastName?.[0]}
-          </div>
-        </div>
-                {/* Medal/Rank Badge - layered on avatar */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: -14,
-                  right: -14,
-                  background: currentRank.color,
-                  borderRadius: '50%',
-                  width: 40,
-                  height: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: `0 0 8px 2px ${currentRank.color}55`,
-                  border: '3px solid #19122e',
-                  zIndex: 2,
-                }}>
-                  <span style={{ fontSize: 28, filter: 'drop-shadow(0 0 4px #fff8)' }}>{currentRank.emoji}</span>
-                </div>
+        <div
+            key={TAB_OVERVIEW} 
+            className={`${styles.profileSection} ${styles.overviewLayoutContainer}`}
+            style={{ animationDelay: '0.1s' }} 
+        >
+            {/* Weekly Ranks - Left Side */}
+            <div 
+              className={styles.rankSidePanel}
+              style={{ animationDelay: '0.3s' }} 
+            >
+              <div className={styles.rankPanelToggleHeader} onClick={() => setShowWeeklyRanks(!showWeeklyRanks)}>
+                <span className={styles.rankPanelTitleText}>
+                  <IconComponent iconName={currentRank.prIcon || 'FaLeaf'} /> Weekly Progress Ranks
+                </span>
+                <FaChevronDown className={`${styles.rankPanelToggleIcon} ${showWeeklyRanks ? styles.rankPanelToggleIconOpen : ''}`} />
               </div>
-              <div style={{ fontSize: 16, color: '#80ffce', marginTop: 12, textAlign: 'center', fontWeight: 700 }}>{currentRank.name}</div>
-            </div>
-            {/* PR Points, PvP Rank, and Info */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 44, fontWeight: 900, color: currentRank.color, textShadow: '0 0 8px #00ff9d44', letterSpacing: 1, lineHeight: 1 }}>
-                  {prPoints} <span style={{ fontSize: 20, color: '#80ffce', fontWeight: 500 }}>PR Points</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 28, background: pvpRank.color, borderRadius: '50%', padding: 6, boxShadow: `0 0 8px 2px ${pvpRank.color}55`, border: '2px solid #19122e', marginRight: 6 }}>{pvpRank.emoji}</span>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: pvpRank.color }}>{pvpRank.name}</span>
-                  <span style={{ fontSize: 24, fontWeight: 900, color: pvpRank.color, marginLeft: 8 }}>{pvpStars} <span style={{ fontSize: 14, color: '#80ffce', fontWeight: 500 }}>Stars</span></span>
-                </div>
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginTop: 2, marginBottom: 2 }}>
-            {studentData.firstName} {studentData.lastName}
-              </div>
-              <div style={{ fontSize: 15, color: '#80ffce', marginBottom: 2 }}>{currentRank.description}</div>
-        </div>
-      </div>
 
-          {/* Progress Bars Side by Side */}
-          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 700, margin: '0 auto 24px auto', width: '100%' }}>
-            {/* Weekly Test Progress Bar */}
-            <div className={styles.rankProgress} style={{ flex: 1, minWidth: 260, maxWidth: 340, background: '#23234a', borderRadius: 14, padding: '1.2rem 1.2rem', boxShadow: '0 1px 8px #00ff9d22', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 18, color: currentRank.color, fontWeight: 700, whiteSpace: 'nowrap' }}>{currentRank.emoji} {currentRank.name}</span>
-                <span style={{ fontSize: 32, fontWeight: 900, color: currentRank.color, whiteSpace: 'nowrap' }}>{prPoints}</span>
-                <button onClick={() => setShowWeeklyRanksModal(true)} style={{ background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, padding: '6px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginLeft: 'auto', marginTop: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>View Ranks</button>
-              </div>
-              <div style={{ background: '#222', borderRadius: 8, height: 18, margin: '14px 0 0 0', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                <div
-                  style={{
-                    width: `${progressPercent}%`,
-                    background: `linear-gradient(90deg, ${currentRank.color} 60%, #00ff9d 100%)`,
-                    borderRadius: 8,
-                    height: 18,
-                    transition: 'width 0.5s',
-                    boxShadow: '0 0 8px #00ff9d44',
-                  }}
-                />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: 13, color: '#80ffce', marginTop: 6 }}>
-                <span>{currentRank.min} pts</span>
-                {nextRank && <span>{nextRank.min} pts</span>}
-              </div>
-              {nextRank && (
-                <div style={{ fontSize: 13, color: '#fff', marginBottom: 4 }}>
-                  {pointsToNext} points to next rank
+              {showWeeklyRanks && (
+                <div className={styles.rankListScrollable}>
+                  {RANKS.map((rank, index) => {
+                    const Icon = iconComponents[rank.prIcon];
+                    return (
+                      <div 
+                        key={rank.name} 
+                        className={styles.modalListItem}
+                        style={{ animationDelay: `${0.1 + index * 0.05}s` }} // Staggered animation
+                      >
+                        {Icon && <Icon className={styles.modalListItemEmoji} style={{color: rank.color }} />}                    
+                        <div className={styles.modalListItemInfo}>
+                          <div className={styles.modalListItemName} style={{ color: rank.color }}>{rank.name}</div>
+                          <div className={styles.modalListItemDescription}>{rank.description}</div>
+                        </div>
+                        <div className={styles.modalListItemPoints}>{rank.min} pts</div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
-            {/* PvP Progress Bar */}
-            <div className={styles.rankProgress} style={{ flex: 1, minWidth: 260, maxWidth: 340, background: '#23234a', borderRadius: 14, padding: '1.2rem 1.2rem', boxShadow: '0 1px 8px #00ff9d22', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 18, color: pvpRank.color, fontWeight: 700, whiteSpace: 'nowrap' }}>{pvpRank.emoji} {pvpRank.name}</span>
-                <span style={{ fontSize: 32, fontWeight: 900, color: pvpRank.color, whiteSpace: 'nowrap' }}>{pvpStars}</span>
-                <button onClick={() => setShowPvpRanksModal(true)} style={{ background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, padding: '6px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginLeft: 'auto', marginTop: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>View Ranks</button>
+
+            {/* Center Content: Main Profile Card + Progress Bars */}
+            <div 
+              className={styles.overviewCenterContent}
+              style={{ animationDelay: '0.4s' }} // Stagger after left panel
+            >
+              {/* Modern Horizontal Profile Card Layout */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                background: `linear-gradient(135deg, var(--blueprint-panel-bg-opaque) 60%, ${getComputedStyle(document.documentElement).getPropertyValue('--blueprint-accent').trim()}22 100%)`,
+                borderRadius: 18,
+                padding: '2.5rem 2.5rem 2.5rem 2rem',
+                margin: '0 auto 2.5rem auto',
+                maxWidth: 700,
+                minHeight: 180,
+                position: 'relative',
+                gap: 36,
+                flexWrap: 'wrap',
+                opacity: 0,
+                animation: `${styles.panelFlyIn} 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
+                animationDelay: '0.1s',
+                border: '1px solid var(--blueprint-panel-border)',
+                boxShadow: 'var(--blueprint-panel-shadow)'
+              }}>
+                {/* Avatar + Medal Layered */}
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120, opacity: 0, animation: `${styles.fadeInSlideUp} 0.5s ease-out 0.3s forwards` }}>
+                  <div style={{ position: 'relative' }}>
+                    <div className={styles.avatarPlaceholder} style={{
+                      width: 90, height: 90, fontSize: 38, marginBottom: 0, 
+                      backgroundColor: 'var(--blueprint-input-bg)',
+                      border: '4px solid var(--blueprint-bg)',
+                      borderRadius: '50%' }}>
+                      {studentData.firstName?.[0]}{studentData.lastName?.[0]}
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: -14,
+                      right: -14,
+                      background: currentRank.color,
+                      borderRadius: '50%',
+                      width: 40,
+                      height: 40,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 0 8px 2px ${currentRank.color}55`,
+                      border: '3px solid var(--blueprint-panel-bg-opaque)',
+                      zIndex: 2,
+                    }}>
+                      {CurrentRankIcon && <CurrentRankIcon style={{ fontSize: 28, filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.8))' }} />}
+                    </div>
+                  </div>
+                </div>
+                {/* INFO BLOCK - Redesigned */}
+                <div className={styles.profileInfoContainer} style={{ flex: 1, opacity: 0, animation: `${styles.fadeInSlideUp} 0.5s ease-out 0.5s forwards` }}>
+                  
+                  <div className={styles.profileNameLarge}>
+                    {studentData.firstName} {studentData.lastName}
+                  </div>
+
+                  <div className={styles.profileStatsRow}>
+                    {/* PR Stats Block */}
+                    <div className={styles.statBlock}>
+                      <div className={styles.statPointsHighlight} style={{ color: currentRank.color }}>{prPoints}</div>
+                      <div className={styles.statLabelWithIcon}>
+                        {CurrentRankIcon && <CurrentRankIcon style={{ color: currentRank.color }} className={styles.statRankIcon} />}
+                        <span className={styles.statRankName}>{currentRank.name}</span>
+                      </div>
+                      <div className={styles.statSubLabel}>PR Points</div>
+                    </div>
+
+                    {/* PvP Stats Block */}
+                    <div className={styles.statBlock}>
+                      <div className={styles.statPointsHighlight} style={{ color: pvpRank.color }}>{pvpStars}</div>
+                      <div className={styles.statLabelWithIcon}>
+                        {PvpRankIcon && <PvpRankIcon style={{ color: pvpRank.color }} className={styles.statRankIcon} />}
+                        <span className={styles.statRankName}>{pvpRank.name}</span>
+                      </div>
+                      <div className={styles.statSubLabel}>Stars</div>
+                    </div>
+                  </div>
+
+                  <div className={styles.profileDescription}>
+                    {currentRank.description} {/* This is PR rank description */}
+                  </div>
+
+                </div>
+                {/* END INFO BLOCK */}
               </div>
-              <div style={{ background: '#222', borderRadius: 8, height: 18, margin: '14px 0 0 0', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                <div
-                  style={{
-                    width: `${pvpProgressPercent}%`,
-                    background: `linear-gradient(90deg, ${pvpRank.color} 60%, #00ff9d 100%)`,
-                    borderRadius: 8,
-                    height: 18,
-                    transition: 'width 0.5s',
-                    boxShadow: '0 0 8px #00ff9d44',
-                  }}
-                />
-        </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: 13, color: '#80ffce', marginTop: 6 }}>
-                <span>{pvpRank.min} stars</span>
-                {nextPvpRank && <span>{nextPvpRank.min} stars</span>}
-        </div>
-              {nextPvpRank && (
-                <div style={{ fontSize: 13, color: '#fff', marginBottom: 4 }}>
-                  {pvpStarsToNext} stars to next rank
-        </div>
+
+              {/* Progress Bars Side by Side */}
+              <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 700, margin: '0 auto 24px auto', width: '100%' }}>
+                {/* Weekly Test Progress Bar - Using CSS Modules */}
+                <div className={styles.progressCard} style={{ animationDelay: '0.3s'}}>
+                  <div className={styles.progressCardHeader}>
+                    {CurrentRankIcon && <CurrentRankIcon style={{ color: currentRank.color, marginRight: 8, fontSize: '1.2em' }} />}
+                    <span className={styles.progressCardRankName} style={{ color: currentRank.color }}>{currentRank.name}</span>
+                    <span className={styles.progressCardPoints} style={{ color: currentRank.color }}>{prPoints}</span>
+                  </div>
+                  <div className={styles.progressBarContainer}>
+                    <div
+                      className={styles.progressFill}
+                      style={{
+                        width: `${progressPercent}%`,
+                        background: `linear-gradient(90deg, ${currentRank.color} 60%, var(--blueprint-accent) 100%)`,
+                      }}
+                    />
+                  </div>
+                  <div className={styles.progressTextContainer}>
+                    <span>{currentRank.min} pts</span>
+                    {nextRank && <span>{nextRank.min} pts</span>}
+                  </div>
+                  {nextRank && (
+                    <div className={styles.progressNextRankText}>
+                      {pointsToNext} points to next rank
+                    </div>
+                  )}
+                </div>
+
+                {/* PvP Progress Bar - Using CSS Modules */}
+                <div className={styles.progressCard} style={{ animationDelay: '0.5s'}}>
+                  <div className={styles.progressCardHeader}>
+                    {PvpRankIcon && <PvpRankIcon style={{ color: pvpRank.color, marginRight: 8, fontSize: '1.2em' }} />}
+                    <span className={styles.progressCardRankName} style={{ color: pvpRank.color }}>{pvpRank.name}</span>
+                    <span className={styles.progressCardPoints} style={{ color: pvpRank.color }}>{pvpStars}</span>
+                  </div>
+                  <div className={styles.progressBarContainer}>
+                    <div
+                      className={styles.progressFill}
+                      style={{
+                        width: `${pvpProgressPercent}%`,
+                        background: `linear-gradient(90deg, ${pvpRank.color} 60%, var(--blueprint-accent) 100%)`,
+                      }}
+                    />
+                  </div>
+                  <div className={styles.progressTextContainer}>
+                    <span>{pvpRank.min} stars</span>
+                    {nextPvpRank && <span>{nextPvpRank.min} stars</span>}
+                  </div>
+                  {nextPvpRank && (
+                    <div className={styles.progressNextRankText}>
+                      {pvpStarsToNext} stars to next rank
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel: PvP Ranks */}
+            <div 
+              className={styles.rankSidePanel}
+              style={{ animationDelay: '0.5s' }} 
+            >
+              <div className={styles.rankPanelToggleHeader} onClick={() => setShowPvpRanks(!showPvpRanks)}>
+                <span className={styles.rankPanelTitleText}>
+                  <IconComponent iconName={pvpRank.pvpIcon || 'FaStar'} /> PvP Arena Ranks
+                </span>
+                <FaChevronDown className={`${styles.rankPanelToggleIcon} ${showPvpRanks ? styles.rankPanelToggleIconOpen : ''}`} />
+              </div>
+
+              {showPvpRanks && (
+                <div className={styles.rankListScrollable}>
+                  {PVP_RANKS.map((rank, index) => {
+                    const Icon = iconComponents[rank.pvpIcon];
+                    return (
+                      <div 
+                        key={rank.name} 
+                        className={styles.modalListItem}
+                        style={{ animationDelay: `${0.1 + index * 0.05}s` }} // Staggered animation
+                      >
+                        {Icon && <Icon className={styles.modalListItemEmoji} style={{color: rank.color }} />}                    
+                        <div className={styles.modalListItemInfo}>
+                          <div className={styles.modalListItemName} style={{ color: rank.color }}>{rank.name}</div>
+                          <div className={styles.modalListItemDescription}>{rank.description}</div>
+                        </div>
+                        <div className={styles.modalListItemPoints}>{rank.min} stars</div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
+            </div>
         </div>
-      </div>
-
-          {/* Weekly Ranks Modal */}
-          <Modal
-            isOpen={showWeeklyRanksModal}
-            onRequestClose={() => setShowWeeklyRanksModal(false)}
-            style={{
-              overlay: { backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000 },
-              content: {
-                maxWidth: 420,
-                margin: 'auto',
-                borderRadius: 16,
-                background: '#181a2e',
-                color: '#fff',
-                padding: '2rem 2.5rem',
-                border: 'none',
-                boxShadow: '0 8px 32px 0 rgba(0,255,157,0.15), 0 1.5px 8px 0 #00ff9d44',
-              }
-            }}
-            ariaHideApp={false}
-          >
-            <h2 style={{ color: '#00ff9d', fontWeight: 800, fontSize: 26, textAlign: 'center', marginBottom: 18 }}>Weekly Test Ranks</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {RANKS.map(rank => (
-                <div key={rank.name} style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#23234a', borderRadius: 10, padding: '12px 18px', boxShadow: '0 1px 6px #00ff9d22' }}>
-                  <span style={{ fontSize: 28 }}>{rank.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: rank.color, fontSize: 17 }}>{rank.name}</div>
-                    <div style={{ color: '#80ffce', fontSize: 14 }}>{rank.description}</div>
-                  </div>
-                  <div style={{ fontWeight: 700, color: '#fff', fontSize: 16 }}>{rank.min} pts</div>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setShowWeeklyRanksModal(false)} style={{ margin: '24px auto 0 auto', display: 'block', background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, padding: '10px 32px', fontWeight: 700, fontSize: 18, cursor: 'pointer' }}>Close</button>
-          </Modal>
-
-          {/* PvP Ranks Modal */}
-          <Modal
-            isOpen={showPvpRanksModal}
-            onRequestClose={() => setShowPvpRanksModal(false)}
-            style={{
-              overlay: { backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000 },
-              content: {
-                maxWidth: 420,
-                margin: 'auto',
-                borderRadius: 16,
-                background: '#181a2e',
-                color: '#fff',
-                padding: '2rem 2.5rem',
-                border: 'none',
-                boxShadow: '0 8px 32px 0 rgba(0,255,157,0.15), 0 1.5px 8px 0 #00ff9d44',
-              }
-            }}
-            ariaHideApp={false}
-          >
-            <h2 style={{ color: '#00ff9d', fontWeight: 800, fontSize: 26, textAlign: 'center', marginBottom: 18 }}>PvP Ranks</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {PVP_RANKS.map(rank => (
-                <div key={rank.name} style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#23234a', borderRadius: 10, padding: '12px 18px', boxShadow: '0 1px 6px #00ff9d22' }}>
-                  <span style={{ fontSize: 28 }}>{rank.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: rank.color, fontSize: 17 }}>{rank.name}</div>
-                    <div style={{ color: '#80ffce', fontSize: 14 }}>{rank.description}</div>
-                  </div>
-                  <div style={{ fontWeight: 700, color: '#fff', fontSize: 16 }}>{rank.min} stars</div>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setShowPvpRanksModal(false)} style={{ margin: '24px auto 0 auto', display: 'block', background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, padding: '10px 32px', fontWeight: 700, fontSize: 18, cursor: 'pointer' }}>Close</button>
-          </Modal>
-        </>
       )}
 
       {activeTab === TAB_ANALYTICS && (
-        <div style={{ maxWidth: 600, margin: '0 auto', marginTop: 24 }}>
-          <div style={{ fontSize: 24, color: '#00ff9d', fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>Test Analytics</div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 18,
-            justifyContent: 'center',
-            marginBottom: 36,
-          }}>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>📝</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Tests</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.totalTests}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>🎯</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Best</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.bestScore ?? '-'}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>📉</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Lowest</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.lowestScore ?? '-'}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>💯</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Accuracy</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.bestAccuracy ? `${testStats.bestAccuracy}%` : '-'}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>🔥</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Streak</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.currentStreak}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>⚡</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Recent PR</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.recentPRChange > 0 ? '+' : ''}{testStats.recentPRChange}</div>
-            </div>
-            <div style={{ minWidth: 110, background: '#23234a', borderRadius: 32, padding: '12px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 1px 6px #00ff9d22' }}>
-              <div style={{ fontSize: 22, color: '#00ff9d' }}>⏰</div>
-              <div style={{ fontSize: 13, color: '#80ffce', marginBottom: 2 }}>Last Test</div>
-              <div style={{ fontWeight: 700, color: '#fff', fontSize: 19 }}>{testStats.lastTestDate ? new Date(testStats.lastTestDate).toLocaleDateString() : '-'}</div>
-            </div>
+        <div key={TAB_ANALYTICS} className={styles.profileSection} style={{ maxWidth: 700, margin: '0 auto', animationDelay: '0.5s' }}>
+          <h2 className={styles.sectionTitle}>Test Analytics</h2>
+          <div className={styles.analyticsGrid}>
+            {[testStats.totalTests, testStats.bestScore, testStats.lowestScore, testStats.bestAccuracy, testStats.currentStreak, testStats.recentPRChange, testStats.lastTestDate].map((stat, index) => {
+              const labels = ['Tests', 'Best Score', 'Lowest Score', 'Best Accuracy', 'Streak', 'Recent PR', 'Last Test'];
+              const icons = [FaBookOpen, FaCrosshairs, FaChartBar, FaStar, FaFire, FaBolt, FaClock];
+              const IconComponent = icons[index];
+              let displayValue = stat;
+              if (index === 1 || index === 2) displayValue = stat ?? '-';
+              if (index === 3) displayValue = stat ? `${stat}%` : '-';
+              if (index === 5 && stat > 0) displayValue = `+${stat}`;
+              if (index === 6) displayValue = stat ? new Date(stat).toLocaleDateString() : '-';
+
+              return (
+                <div key={labels[index]} className={styles.statCard} style={{ animationDelay: `${0.2 + index * 0.1}s` }}>
+                  <div className={styles.statCardIcon}><IconComponent /></div>
+                  <div className={styles.statCardLabel}>{labels[index]}</div>
+                  <div className={styles.statCardValue}>{displayValue}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
       {activeTab === TAB_WEEKLY && (
-        <div style={{ maxWidth: 520, margin: '0 auto', marginTop: 24 }}>
-          <div style={{ fontSize: 24, color: '#00ff9d', fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>Weekly Test History</div>
+        <div key={TAB_WEEKLY} className={styles.profileSection} style={{ maxWidth: 600, margin: '0 auto', animationDelay: '0.5s' }}>
+          <h2 className={styles.sectionTitle}>Weekly Test History</h2>
           {testResults.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#80ffce', fontSize: 18, marginTop: 40 }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>📅</div>
+            <div className={styles.noHistoryMessage} style={{ opacity: 0, animation: `${styles.fadeInSlideUp} 0.5s ease-out 0.2s forwards`}}>
+              <FaCalendarCheck className={styles.noHistoryEmoji} />
               <div>No weekly tests taken yet.</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className={styles.historyListContainer}>
               {testResults.map((test, idx) => (
-                <div key={test.id || idx} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'linear-gradient(90deg, #23234a 70%, #00ff9d22 100%)',
-                  borderRadius: 10,
-                  boxShadow: '0 2px 8px #00ff9d22',
-                  padding: '14px 18px',
-                  gap: 18,
-                  borderLeft: `5px solid #00ff9d`,
-                }}>
-                  <div style={{ fontSize: 28, marginRight: 10 }}>📖</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: '#00ff9d', fontSize: 17 }}>
+                <div key={test.id || idx} className={styles.historyItem} style={{ borderLeft: `5px solid var(--blueprint-accent)`, animationDelay: `${0.2 + idx * 0.1}s`}}>
+                  <FaBookOpen className={styles.historyItemIcon} style={{color: 'var(--blueprint-accent)'}}/>
+                  <div className={styles.historyItemDetails}>
+                    <div className={styles.historyItemTitle} style={{ color: 'var(--blueprint-accent)' }}>
                       {test.subject || 'Subject'} - Week {test.weekNumber}
                     </div>
-                    <div style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>
+                    <div className={styles.historyItemSubtitle}>
                       {test.score}/{test.totalQuestions} correct
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: 90 }}>
-                    <div style={{ fontSize: 15, color: '#80ffce', fontWeight: 600 }}>{test.score && test.totalQuestions ? Math.round((test.score / test.totalQuestions) * 100) : 0}%</div>
-                    <div style={{ fontSize: 13, color: '#b9f2ff', marginTop: 2 }}>{test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}</div>
+                  <div className={styles.historyItemMeta}>
+                    <div className={styles.historyItemScorePercent}>{test.score && test.totalQuestions ? Math.round((test.score / test.totalQuestions) * 100) : 0}%</div>
+                    <div className={styles.historyItemDate}>{test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}</div>
                   </div>
                 </div>
               ))}
@@ -650,44 +629,46 @@ const Profile = () => {
         </div>
       )}
       {activeTab === TAB_PVP && (
-        <div style={{ maxWidth: 520, margin: '0 auto', marginTop: 24 }}>
-          <div style={{ fontSize: 24, color: '#00ff9d', fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>PvP Match History</div>
+        <div key={TAB_PVP} className={styles.profileSection} style={{ maxWidth: 600, margin: '0 auto', animationDelay: '0.5s' }}>
+          <h2 className={styles.sectionTitle}>PvP Match History</h2>
           {mockPvpHistory.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#80ffce', fontSize: 18, marginTop: 40 }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>⚔️</div>
+            <div className={styles.noHistoryMessage} style={{ opacity: 0, animation: `${styles.fadeInSlideUp} 0.5s ease-out 0.2s forwards`}}>
+              <FaUsers className={styles.noHistoryEmoji} />
               <div>No PvP matches yet.</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {mockPvpHistory.map(match => (
-                <div key={match.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'linear-gradient(90deg, #23234a 70%, #00ff9d22 100%)',
-                  borderRadius: 10,
-                  boxShadow: '0 2px 8px #00ff9d22',
-                  padding: '14px 18px',
-                  gap: 18,
-                  borderLeft: `5px solid ${match.result === 'win' ? '#00ff9d' : '#ff4d4f'}`,
-                }}>
-                  <div style={{ fontSize: 28, marginRight: 10 }}>{match.medal}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: match.result === 'win' ? '#00ff9d' : '#ff4d4f', fontSize: 17 }}>
-                      {match.result === 'win' ? 'Victory' : 'Defeat'}
+            <div className={styles.historyListContainer}>
+              {mockPvpHistory.map((match, idx) => {
+                const MedalIcon = iconComponents[match.medalIcon] || FaMedal;
+                let displayMedal;
+                if (match.medalIcon && iconComponents[match.medalIcon]) {
+                  const SpecificMedalIcon = iconComponents[match.medalIcon];
+                  displayMedal = <SpecificMedalIcon />;
+                } else {
+                  displayMedal = match.medal; 
+                }
+
+                return (
+                  <div key={match.id} className={styles.historyItem} style={{ borderLeft: `5px solid ${match.result === 'win' ? 'var(--blueprint-success)' : 'var(--blueprint-danger)'}`, animationDelay: `${0.2 + idx * 0.1}s`}}>
+                    <div className={styles.historyItemIcon} style={{color: match.result === 'win' ? 'var(--blueprint-success)' : 'var(--blueprint-danger)'}}>{displayMedal}</div>
+                    <div className={styles.historyItemDetails}>
+                      <div className={styles.historyItemTitle} style={{ color: match.result === 'win' ? 'var(--blueprint-success)' : 'var(--blueprint-danger)' }}>
+                        {match.result === 'win' ? 'Victory' : 'Defeat'}
+                      </div>
+                      <div className={styles.historyItemSubtitle}>
+                        vs <span style={{ color: 'var(--blueprint-text-muted)', fontWeight: 600 }}>{match.opponent}</span>
+                      </div>
                     </div>
-                    <div style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>
-                      vs <span style={{ color: '#80ffce', fontWeight: 600 }}>{match.opponent}</span>
+                    <div className={styles.historyItemMeta}>
+                      <div className={styles.historyItemScorePercent}>{match.myScore} - {match.opponentScore}</div>
+                      <div className={styles.historyItemDate}>{new Date(match.date).toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: 80 }}>
-                    <div style={{ fontSize: 15, color: '#80ffce', fontWeight: 600 }}>{match.myScore} - {match.opponentScore}</div>
-                    <div style={{ fontSize: 13, color: '#b9f2ff', marginTop: 2 }}>{new Date(match.date).toLocaleDateString()}</div>
-                  </div>
-                </div>
-              ))}
-      </div>
+                );
+              })}
+            </div>
           )}
-      </div>
+        </div>
       )}
     </div>
   );

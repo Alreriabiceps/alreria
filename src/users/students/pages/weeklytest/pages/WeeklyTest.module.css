@@ -1,102 +1,152 @@
 /* src/components/WeeklyTest.module.css */
 
 /* Import Fonts (Keep if needed) */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap');
 
 /* --- Base Container and Theme Variables --- */
 .testListContainer {
-  /* Theme Variables Scoped */
-  --font-game: 'Press Start 2P', cursive;
-  --font-body: 'VT323', monospace;
-  --color-accent: #00ff9d;
-  --color-accent-hover: #80ffce;
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-text-dark: #333333;
-  --color-bg-start: #0c051a;
-  --color-bg-mid: #1d1135;
-  --color-panel: rgba(30, 25, 65, 0.95);
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-panel-border-glow: rgba(0, 255, 157, 0.3);
-  --color-pixel-shadow: rgba(0, 0, 0, 0.7);
-  --color-input-bg: rgba(40, 35, 75, 0.8);
-  --color-input-border: rgba(0, 255, 157, 0.5);
-  --color-selected-border: #ffcc00;
-  --color-button-secondary-bg: rgba(255, 255, 255, 0.1);
-  --color-button-secondary-border: rgba(255, 255, 255, 0.3);
-  --color-button-secondary-hover-bg: rgba(255, 255, 255, 0.2);
-  --color-error: #ff6b6b;
-  --color-score-excellent: #00ff9d;
-  --color-score-good: #80ffce;
-  --color-score-average: #ffcc00;
-  --color-score-poor: #ff6b6b;
-  --color-points-positive: #00ff9d;
-  --color-points-negative: #ff6b6b;
-  --color-points-neutral: #ffcc00;
-  --color-rank-bronze: #cd7f32;
-  --color-rank-silver: #c0c0c0;
-  --color-rank-gold: #ffd700;
-  --color-rank-platinum: #e5e4e2;
-  --color-rank-diamond: #b9f2ff;
-  --color-rank-master: #ff00ff;
-  --color-rank-grandmaster: #ff0000;
-  --color-card-bg: rgba(30, 25, 65, 0.8);
-  --color-card-border: rgba(0, 255, 157, 0.4);
+  /* Dashboard Theme Variables */
+  --dbz-orange: #f39c12;
+  --dbz-blue: #3498db;
+  --dbz-red: #e74c3c;
+  --dbz-yellow: #f1c40f;
+  --dbz-dark-blue: #2c3e50;
+  --dbz-light-gray: #ecf0f1;
+  --dbz-dark-gray: #34495e;
+  --dbz-black: #1C1C1C;
 
-  /* Base Styles */
+  /* Blueprint Capsule Corp Theme - Plain Dark Background */
+  --blueprint-bg: #0D131A; /* Very dark blue, near black */
+  --blueprint-grid-line: rgba(173, 216, 230, 0.35);
+  --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
+  --blueprint-text: #E0F2F7;
+  --blueprint-panel-bg: rgba(30, 45, 60, 0.85); /* Panels slightly more opaque for readability */
+  --blueprint-panel-border: var(--blueprint-grid-line-strong);
+  --blueprint-accent: var(--dbz-yellow);
+  --blueprint-accent-text-dark: var(--dbz-black);
+  --blueprint-shadow: rgba(0, 0, 0, 0.4);
+
+  --font-header: 'Bangers', cursive;
+  --font-body: 'Montserrat', sans-serif;
+  --font-accent: 'Roboto Condensed', sans-serif;
+
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px 60px 20px;
-  font-family: var(--font-game);
-  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
-  color: var(--color-text-base);
+  padding: 25px 15px 50px 15px; /* Match dashboard padding */
+  font-family: var(--font-body);
+  background-color: var(--blueprint-bg); /* Match dashboard background */
+  background-image: none; /* Plain background */
+  color: var(--blueprint-text); /* Match dashboard text color */
+  position: relative;
+  overflow-x: hidden;
+  animation: powerUpBg 0.7s ease-out forwards; /* Match dashboard animation */
+}
+
+@keyframes powerUpBg { /* Match dashboard animation */
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Add missing keyframes if not already present, ensure they match Blueprint standard */
+@keyframes titleSmash {
+  0% { opacity: 0; transform: scale(1.5) translateY(-20px); }
+  60% { opacity: 1; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes fadeInSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* --- Page Header --- */
 .pageHeader {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px; /* Match dashboard */
     margin-bottom: 25px;
-    text-align: left;
+    text-align: center; /* Match dashboard */
+    z-index: 1;
+    position: relative;
+    /* animation: fadeInUp 0.7s cubic-bezier(.25,1.7,.45,.85) 0.2s both; */ /* Replaced by dashboard's powerUpBg */
+    opacity: 1; /* Ensure visible after animation change -- can be removed if children handle opacity */
 }
 .pageTitle {
-    font-size: 1.8rem;
-    color: var(--color-accent);
-    margin-bottom: 5px;
-    text-shadow: 2px 2px 0 var(--color-pixel-shadow);
+    font-family: var(--font-header); /* Match dashboard */
+    font-size: 4rem;  /* Match dashboard */
+    color: var(--blueprint-accent); /* Match dashboard (Yellow title) */
+    letter-spacing: 3px; /* Match dashboard */
+    text-shadow: /* Match dashboard */
+      3px 3px 0 var(--dbz-black),
+      -1px -1px 0 var(--blueprint-bg),
+      1px -1px 0 var(--blueprint-bg),
+      -1px 1px 0 var(--blueprint-bg),
+      1px 1px 0 var(--blueprint-bg);
+    margin-bottom: 0.2rem; /* Match dashboard */
+    line-height: 1.1; /* Match dashboard */
+    opacity: 0; /* Start hidden */
+    animation: titleSmash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards; /* Stagger after page load, ensure visible */
 }
 .pageSubtitle {
-    font-family: var(--font-body);
-    font-size: 1.1rem;
-    color: var(--color-text-muted);
+    font-family: var(--font-accent); /* Match dashboard */
+    font-size: 1.3rem; /* Match dashboard */
+    color: var(--blueprint-text); /* Match dashboard */
+    opacity: 0.85; /* Match dashboard */
+    text-shadow: 1px 1px 2px var(--dbz-black); /* Match dashboard */
+    margin-top: 5px; /* Match dashboard */
+    opacity: 0; /* Start hidden */
+    animation: fadeInSlideUp 0.5s ease-out 0.6s forwards; /* Stagger after title */
 }
+
+/* --- Panel Style (Applied to FilterPanel, ContentPanel, StartTestContainer, ResultsContainer etc.) --- */
+.panelStyle { /* New reusable class for panel styling */
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 15px; /* Match dashboard panel */
+  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25); /* Match dashboard panel */
+  padding: 20px 25px; /* Match dashboard panel */
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(3px); /* Match dashboard panel */
+  /* animation: panelFlyIn 0.5s ease-out backwards; */ /* Default animation, will be overridden with delays */
+  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out; /* Match dashboard panel */
+  width: 100%;
+  max-width: 900px; /* Keep original max-width or adjust */
+  margin-bottom: 25px;
+  opacity: 0; /* Start hidden, animation will make it visible */
+}
+.panelStyle:hover { /* Match dashboard panel hover */
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 8px 25px var(--blueprint-shadow), 0 0 15px var(--blueprint-accent);
+}
+@keyframes panelFlyIn { /* Match dashboard panel animation */
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 
 /* --- Filter Panel --- */
 .filterPanel {
-  width: 100%;
-  max-width: 900px;
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 
-              0 0 15px var(--color-panel-border-glow), 
-              inset 0 0 10px rgba(0, 0, 0, 0.6);
-  padding: 20px 25px;
-  border-radius: 0;
-  margin-bottom: 25px;
-  animation: fadeIn 0.5s ease-out forwards;
+  /* Apply reusable panel style */
+  composes: panelStyle;
+  /* Specific overrides if any, e.g., animation delay */
+  animation: panelFlyIn 0.5s ease-out 0.8s forwards; /* Stagger after header */
 }
 
-.panelHeader {
+.panelHeader { /* This class is used in FilterPanel, can be themed like dashboard's panelHeader */
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-accent);
-  font-size: 1.1rem;
-  font-weight: normal;
-  margin-bottom: 20px;
+  color: var(--blueprint-accent); /* Yellow panel headers */
+  font-family: var(--font-header);
+  font-size: 1.8rem; /* Match dashboard panelHeader */
+  margin-bottom: 18px; /* Match dashboard panelHeader */
+  letter-spacing: 2px; /* Match dashboard panelHeader */
+  text-shadow: 1px 1px 0 var(--dbz-black); /* Match dashboard panelHeader */
+  border-bottom: 2px dashed var(--blueprint-grid-line-strong); /* Match dashboard panelHeader */
+  padding-bottom: 10px; /* Match dashboard panelHeader */
+  text-transform: none; /* Remove uppercase from original if not matching dashboard */
 }
 
 .filterControls {
@@ -111,9 +161,10 @@
   gap: 5px;
 }
 .filterLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-size: 0.9rem; /* Slightly larger for readability on dark bg */
+  font-weight: 700; /* Match dashboard statLabel */
+  color: var(--blueprint-text); /* Match dashboard text */
+  opacity: 0.8; /* Match dashboard statLabel */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: left;
@@ -121,96 +172,89 @@
 .filterSelect {
   width: 100%;
   font-family: var(--font-body);
-  font-size: 1.1rem;
-  padding: 8px 12px;
-  background-color: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  color: var(--color-text-base);
-  border-radius: 0; /* No rounded corners */
+  font-size: 1rem; /* Adjusted for consistency */
+  padding: 10px 16px;
+  background: var(--dbz-dark-gray); /* Darker background for select */
+  border: 1.5px solid var(--blueprint-panel-border); /* Match panel border */
+  color: var(--blueprint-text); /* Light text */
+  border-radius: 8px; /* Consistent border radius */
   cursor: pointer;
-  appearance: none; /* Remove default arrow */
-  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
-  /* Custom arrow */
-  background-image: linear-gradient(45deg, transparent 50%, var(--color-accent) 50%), linear-gradient(135deg, var(--color-accent) 50%, transparent 50%);
-  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  padding-right: 30px; /* Space for custom arrow */
+  appearance: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); /* Subtle inner shadow */
+  padding-right: 30px;
 }
 .filterSelect:focus {
   outline: none;
-  border-color: var(--color-selected-border);
-  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
+  border-color: var(--blueprint-accent); /* Accent color on focus */
+  box-shadow: 0 0 8px var(--blueprint-accent); /* Glow effect */
 }
 .filterSelect option {
-    background-color: #111; /* Darker background for dropdown options */
-    color: var(--color-text-base);
+    background: var(--dbz-dark-gray); /* Dark background for options */
+    color: var(--blueprint-text); /* Light text */
 }
 .filterSelect:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%), linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%); /* Dim arrow when disabled */
+    background: var(--dbz-dark-gray); /* Keep dark for disabled state */
+    border-color: var(--blueprint-grid-line); /* Less prominent border */
 }
 
 
-/* --- THEMED Button Base Style --- */
-/* This is the base style that other buttons will compose */
-.filterButton {
-  font-family: var(--font-game);
-  padding: 8px 15px; /* Base padding */
-  border: 1px solid var(--color-button-secondary-border);
-  color: var(--color-text-muted);
-  background-color: var(--color-button-secondary-bg);
+/* --- THEMED Button Base Style (Dashboard Aligned) --- */
+.themedButton { /* New base class for all buttons */
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  letter-spacing: 1.5px;
+  color: var(--blueprint-accent-text-dark); /* Dark text for yellow button */
+  background: var(--blueprint-accent); /* Yellow button */
+  padding: 10px 25px;
+  border-radius: 25px;
+  border: 2px solid var(--dbz-black); /* Black border for pop */
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  font-size: 0.75rem; /* Base font size */
   cursor: pointer;
-  transition: all 0.15s ease;
-  border-radius: 0; /* No rounded corners */
-  user-select: none;
-  white-space: nowrap;
-  box-shadow: 2px 2px 0 0 rgba(0,0,0,0.4); /* Pixel shadow */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out;
+  text-decoration: none;
+  display: inline-block;
   text-align: center;
+  box-shadow: 3px 3px 0 var(--dbz-black);
 }
-.filterButton:hover {
-  background-color: var(--color-button-secondary-hover-bg);
-  color: var(--color-text-base);
-  border-color: var(--color-text-muted);
+.themedButton:hover {
+  background: var(--dbz-orange); /* Orange hover */
+  color: var(--blueprint-text); /* Light text on orange hover */
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
 }
-.filterButton:active {
-    transform: translate(1px, 1px); /* Press effect */
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+.themedButton:active {
+    transform: translateY(1px) scale(1); /* Press effect */
+    box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
 }
-.filterButton:disabled {
+.themedButton:disabled {
+    background: var(--dbz-dark-gray) !important; /* Muted background */
+    color: var(--blueprint-text) !important;
     opacity: 0.5;
     cursor: not-allowed;
-    box-shadow: 2px 2px 0 0 rgba(0,0,0,0.4); /* Keep shadow but dim */
-    transform: none; /* Prevent active press effect */
-    background-color: var(--color-button-secondary-bg); /* Keep base bg */
-    color: var(--color-text-muted); /* Keep base color */
-    border-color: var(--color-button-secondary-border); /* Keep base border */
+    box-shadow: 1px 1px 0 var(--dbz-black); /* Reduced shadow */
+    transform: none;
+    border-color: var(--dbz-dark-gray) !important;
 }
 
+/* Apply themedButton to existing button classes */
+.filterButton {
+  composes: themedButton;
+  /* Specific overrides if any, e.g., smaller padding/font if needed in context */
+  padding: 8px 20px;
+  font-size: 1rem;
+}
 
 /* --- Content Panel --- */
 .contentPanel {
-  width: 100%;
-  max-width: 900px;
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 
-              0 0 15px var(--color-panel-border-glow), 
-              inset 0 0 10px rgba(0, 0, 0, 0.6);
-  padding: 30px 40px;
-  border-radius: 0;
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.5s ease-out 0.1s forwards;
-  opacity: 0;
+  /* Apply reusable panel style */
+  composes: panelStyle;
+  align-items: center; /* Keep original alignment if needed */
+  justify-content: center; /* Keep original alignment if needed */
+  animation: panelFlyIn 0.5s ease-out 1.0s forwards; /* Stagger after filter panel */
   overflow: hidden;
+  position: relative;
 }
 
 /* Message Container (for loading, error, info) */
@@ -218,66 +262,81 @@
   text-align: center;
   padding: 20px;
   font-family: var(--font-body);
-  font-size: 1.2rem;
+  width: 100%; /* Ensure it takes width for animation */
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.3s forwards; /* Delay relative to parent panel's appearance */
 }
 
 .loadingMessage {
-  color: var(--color-accent);
-  font-family: var(--font-game);
-  font-size: 1.2rem;
+  color: var(--blueprint-accent); /* Accent color for loading */
+  font-family: var(--font-header);
+  font-size: 1.3rem; /* Slightly larger */
+  letter-spacing: 1px;
 }
 
 .errorMessage {
-  color: var(--color-error); /* Use error color variable */
+  color: var(--dbz-red); /* Use a distinct error color from theme */
   font-weight: bold;
+  background-color: rgba(231, 76, 60, 0.1); /* Subtle red background */
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--dbz-red);
 }
 
 .infoMessage {
-  color: var(--color-text-muted);
+  color: var(--blueprint-text); /* Light text */
+  opacity: 0.8; /* Slightly transparent */
 }
 
 /* --- Start Test Screen --- */
 .startTestContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  /* Apply panel styling if desired, or just animate contents */
+  /* composes: panelStyle; */ /* Optional: if it should look like a distinct panel */
   text-align: center;
-  gap: 15px;
-  font-family: var(--font-body);
-  font-size: 1.1rem;
-  color: var(--color-text-base);
-  animation: fadeIn 0.3s ease-out; /* Fade in start screen */
+  padding: 30px 20px; /* More padding for a "start screen" feel */
+  border-radius: 10px; /* Softer radius if not a full panel */
+  /* background: rgba(0,0,0,0.1); */ /* Subtle background if not full panel */
+  width: 100%;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.3s forwards; /* Delay relative to parent contentPanel */
 }
 
 .startTestContainer h3 {
-  font-family: var(--font-game);
-  font-size: 1.3rem;
-  color: var(--color-accent);
-  margin-bottom: 10px;
+  font-family: var(--font-header);
+  font-size: 2rem; /* Larger header */
+  color: var(--blueprint-accent); /* Accent color */
+  margin-bottom: 15px;
+  letter-spacing: 1px;
 }
 
 /* Start Test Button - Inherits from filterButton and overrides */
 .startButton {
-  composes: filterButton; /* Inherit base styles */
-  /* Specific overrides */
-  background-color: var(--color-accent);
-  color: var(--color-text-dark);
-  border-color: var(--color-accent);
-  font-size: 1rem;
-  padding: 12px 25px;
-  margin-top: 15px;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow); /* Slightly larger shadow */
+  composes: themedButton; /* Use dashboard button style */
+  margin-top: 20px; /* Add some top margin */
+  font-size: 1.4rem; /* Make start button prominent */
+  padding: 12px 30px;
 }
 
 .startButton:hover {
-  background-color: var(--color-accent-hover);
-  color: var(--color-text-dark);
-  border-color: var(--color-accent-hover);
+  background: var(--dbz-orange); /* Orange hover */
+  color: var(--blueprint-text); /* Light text on orange hover */
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
 }
 
 .startButton:active {
-  transform: translate(2px, 2px); /* Slightly more press */
-  box-shadow: 1px 1px 0 0 var(--color-pixel-shadow);
+  transform: translateY(1px) scale(1); /* Press effect */
+  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
+}
+
+.startButton:disabled {
+  background: var(--dbz-dark-gray) !important; /* Muted background */
+  color: var(--blueprint-text) !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: 1px 1px 0 var(--dbz-black); /* Reduced shadow */
+  transform: none;
+  border-color: var(--dbz-dark-gray) !important;
 }
 
 /* --- Quiz Area --- */
@@ -289,47 +348,62 @@
 }
 
 .progressIndicator {
-  font-family: var(--font-game);
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-bottom: 25px;
-  text-align: center;
   width: 100%;
-  border-bottom: 1px dashed var(--color-panel-border);
-  padding-bottom: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: var(--font-accent);
+  font-size: 1.1rem;
+  color: var(--blueprint-text);
+  opacity: 0.9;
+  padding: 8px;
+  background-color: rgba(0,0,0,0.2); /* Darker, transparent background */
+  border-radius: 8px;
 }
 
 /* Question Container & Animation */
 .questionContainer {
-  background-color: rgba(0, 0, 0, 0.2); /* Slightly different bg for focus */
-  padding: 25px 30px;
-  border: 1px solid rgba(0, 255, 157, 0.3);
   width: 100%;
-  max-width: 700px; /* Control max width */
-  margin-bottom: 30px;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
-  /* Animation properties */
+  padding: 20px; /* Padding for question text and choices */
+  margin-bottom: 20px; /* Space before nav buttons */
+  /* background-color: rgba(var(--blueprint-text-rgb, 224, 242, 247), 0.05); /* Optional: very subtle background differentiation */
+  /* border-radius: 10px; /* Optional: slight rounding for this block */
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  /* NO opacity:0 or initial transform here by default. Controlled by Visible/Hidden classes. */
+  /* Base opacity and transform removed, will be set by questionVisible/questionHidden */
 }
 
 .questionHidden {
   opacity: 0;
-  transform: translateX(30px); /* Slide out */
+  transform: translateY(30px) scale(0.95); /* Consistent with panelFlyIn 'from' state idea */
+  pointer-events: none;
 }
 
 .questionVisible {
   opacity: 1;
-  transform: translateX(0); /* Slide in */
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 /* Question Text */
 .questionContainer h4 {
-  font-family: var(--font-body); /* More readable font for questions */
-  font-size: 1.4rem;
-  color: var(--color-text-base);
-  margin-bottom: 20px;
-  line-height: 1.6;
-  text-align: left;
+  font-family: var(--font-header); /* Header font for question */
+  font-size: 1.8rem; /* Prominent question text */
+  color: var(--blueprint-accent); /* Accent color for question */
+  margin-bottom: 25px; /* Increased margin */
+  line-height: 1.4;
+  letter-spacing: 1px;
+  text-align: center; /* Center question text */
+}
+
+/* Added definition for styles.questionText used in QuestionDisplay.jsx */
+.questionText {
+  font-family: var(--font-header);
+  font-size: 1.8rem;
+  color: var(--blueprint-accent); /* Accent color for question text */
+  margin-bottom: 25px;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  text-align: center;
 }
 
 /* --- Choices Styling --- */
@@ -341,30 +415,35 @@
 }
 
 .choiceItem {
+  background-color: rgba(var(--dbz-dark-gray-rgb, 52, 73, 94), 0.5); /* Darker, semi-transparent choices */
+  border: 1.5px solid var(--blueprint-grid-line); /* Subtle border */
+  padding: 15px 20px; /* More padding */
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
   display: flex;
   align-items: center;
-  width: 100%;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 0; /* Consistent no rounded corners */
-  transition: background-color 0.2s ease;
+  margin-bottom: 12px; /* Spacing between choices */
 }
 .choiceItem:hover {
-  background-color: rgba(0, 255, 157, 0.08); /* Subtle hover */
+  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.15); /* Subtle yellow tint on hover */
+  border-color: var(--blueprint-accent);
+  transform: translateX(5px);
 }
 .choiceSelected {
-  border-color: var(--color-accent);
-  background: rgba(0,255,157,0.18);
-  box-shadow: 0 0 0 2px var(--color-accent), 0 2px 12px rgba(0,255,157,0.10);
+  background-color: var(--blueprint-accent); /* Accent color for selected */
+  border-color: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark); /* Dark text on accent background */
+  box-shadow: 0 0 10px var(--blueprint-accent);
 }
 .radioInput {
   margin-right: 12px;
   appearance: none; /* Remove default style */
   width: 18px;
   height: 18px;
-  border: 2px solid var(--color-accent);
+  border: 2px solid var(--color-primary);
   border-radius: 50%; /* Make it round */
-  background-color: var(--color-input-bg);
+  background-color: var(--color-bg-alt);
   cursor: pointer;
   position: relative;
   top: -1px; /* Align better with text */
@@ -372,15 +451,15 @@
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .radioInput:checked {
-  background-color: var(--color-accent);
-  box-shadow: 0 0 5px var(--color-accent); /* Glow when checked */
+  background-color: var(--color-primary);
+  box-shadow: 0 0 5px var(--color-primary); /* Glow when checked */
 }
 .radioInput:checked::after {
   content: '';
   display: block;
   width: 8px;
   height: 8px;
-  background-color: var(--color-bg-mid); /* Use a dark inner color */
+  background-color: var(--color-bg-alt); /* Use a dark inner color */
   border-radius: 50%;
   position: absolute;
   top: 50%;
@@ -389,16 +468,21 @@
 }
 .radioLabel {
   font-family: var(--font-body);
-  font-size: 1.1rem;
-  color: var(--color-text-base);
-  cursor: pointer;
-  line-height: 1.4;
+  font-size: 1.1rem; /* Readable choice text */
+  color: var(--blueprint-text); /* Light text for choices */
+  margin-left: 12px;
+  flex-grow: 1;
+}
+.choiceSelected .radioLabel {
+  color: var(--blueprint-accent-text-dark); /* Dark text when selected */
+  font-weight: 700;
 }
 
 /* --- Navigation & Submit Buttons --- */
 .navigationButtons {
   display: flex;
   justify-content: space-between; /* Pushes Prev/Next apart */
+  align-items: center; /* Added for vertical alignment */
   width: 100%;
   max-width: 700px; /* Align with question container */
   margin-top: 20px; /* Space above buttons */
@@ -406,30 +490,74 @@
 
 /* Navigation Button (Prev/Next) - Inherits from filterButton */
 .navButton {
-  composes: filterButton; /* Inherit base filter button styles */
-  /* Specific overrides for nav buttons */
-  font-size: 0.9rem;
+  composes: themedButton;
+  font-size: 1.2rem; /* Changed from 1rem to 1.2rem for consistency with themedButton/submitButton */
   padding: 10px 20px;
+  background: var(--dbz-dark-blue); /* Different color for nav buttons */
+  color: var(--blueprint-text);
+  border-color: var(--blueprint-grid-line-strong);
+  box-shadow: 2px 2px 0 var(--dbz-black);
 }
 
-/* Disabled state specifically for navButton (if different needed, otherwise filterButton:disabled handles it) */
+.navButton:hover {
+  background: var(--dbz-blue); /* Lighter blue on hover */
+  border-color: var(--blueprint-accent);
+  color: var(--blueprint-text);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 3px 3px 0 var(--dbz-black), 0 0 10px var(--dbz-blue);
+}
+
 .navButton:disabled {
-  /* Inherits disabled style from filterButton via composes */
-  /* Add specific overrides here if needed, e.g., different color */
+  background: var(--dbz-dark-gray) !important;
+  color: var(--blueprint-text) !important;
+  opacity: 0.5;
+  border-color: var(--dbz-dark-gray) !important;
+  box-shadow: 1px 1px 0 var(--dbz-black);
 }
 
 /* Submit Button - Inherits from startButton */
 .submitButton {
-  composes: startButton; /* Inherit start button styles (which includes filterButton) */
-  /* Specific overrides for submit button */
-  font-size: 0.9rem;
-  padding: 10px 20px;
+  composes: themedButton; /* Use dashboard button style */
+  background: var(--dbz-orange); /* Distinct color for submit */
+  color: var(--blueprint-accent-text-dark);
+  font-size: 1.2rem;
+}
+
+.submitButton:hover {
+  background: var(--dbz-red); /* Different hover for submit */
+  color: var(--blueprint-text);
 }
 
 /* --- Keyframes --- */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(30px);}
+  100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+@keyframes slideDownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRightPop {
+  0% { opacity: 0; transform: translateX(60px) scale(0.95); }
+  60% { opacity: 1; transform: translateX(-8px) scale(1.04); }
+  80% { transform: translateX(0) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* --- Responsive --- */
@@ -451,11 +579,18 @@
 }
 
 .resultsContainer {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 2rem;
+  /* Apply reusable panel style */
+  composes: panelStyle;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* animation: panelFlyIn 0.5s ease-out 0.1s backwards; */ /* Already has panelFlyIn */
+}
+
+.resultsContainer h3 {
+  font-family: var(--font-header);
+  font-size: 2.5rem;
+  color: var(--blueprint-accent);
+  margin-bottom: 20px;
+  letter-spacing: 1.5px;
 }
 
 .resultDetails {
@@ -465,7 +600,18 @@
 
 .resultDetails p {
   margin: 0.5rem 0;
-  color: var(--text-color);
+  color: var(--blueprint-text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+.resultDetails p:last-child {
+  margin-bottom: 20px;
+}
+
+.resultDetails .rankName { /* Assuming you might add a class for rank name here */
+  font-family: var(--font-header);
+  color: var(--blueprint-accent); /* Or specific rank color */
 }
 
 .resultActions {
@@ -476,19 +622,15 @@
 }
 
 .leaderboardButton {
-  background: var(--accent-color);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  composes: themedButton;
+  background-color: var(--dbz-blue); /* Differentiate from "Take Another Test" */
+  color: var(--blueprint-text);
+  border-color: var(--blueprint-grid-line-strong);
 }
 
 .leaderboardButton:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
+  background-color: var(--dbz-dark-blue);
+  border-color: var(--blueprint-accent);
 }
 
 /* Modal Styles */
@@ -509,7 +651,7 @@
 .modalContent {
   background-color: var(--color-panel);
   border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
+  box-shadow: 4px 4px 0 0 var(--color-shadow), 0 0 15px var(--color-shadow), inset 0 0 10px rgba(0,0,0,0.6);
   padding: 30px;
   border-radius: 0;
   width: 90%;
@@ -544,13 +686,13 @@
   grid-template-columns: 50px 1fr auto auto;
   gap: 1rem;
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-panel-border);
   align-items: center;
 }
 
 .rank {
   font-weight: bold;
-  color: var(--accent-color);
+  color: var(--color-primary);
 }
 
 .name {
@@ -558,16 +700,16 @@
 }
 
 .score {
-  color: var(--text-secondary);
+  color: var(--color-text-muted);
 }
 
 .points {
-  color: var(--accent-color);
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .closeButton {
-  background: var(--error-color);
+  background: var(--color-accent);
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -579,7 +721,7 @@
 }
 
 .closeButton:hover {
-  background: var(--error-hover);
+  background: var(--color-accent);
   transform: translateY(-2px);
 }
 
@@ -587,8 +729,8 @@
 .resultSection {
   background-color: var(--color-panel);
   border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 
-              0 0 15px var(--color-panel-border-glow), 
+  box-shadow: 4px 4px 0 0 var(--color-shadow), 
+              0 0 15px var(--color-shadow), 
               inset 0 0 10px rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 0;
@@ -598,11 +740,11 @@
 
 .resultTitle {
   font-size: 1.4rem;
-  color: var(--color-accent);
+  color: var(--color-primary);
   margin-bottom: 30px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
 }
 
 .scoreSection {
@@ -618,7 +760,7 @@
 
 .score {
   font-size: 3rem;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
   line-height: 1;
 }
 
@@ -628,16 +770,16 @@
   font-family: var(--font-body);
 }
 
-.scoreExcellent { color: var(--color-score-excellent); }
-.scoreGood { color: var(--color-score-good); }
-.scoreAverage { color: var(--color-score-average); }
-.scorePoor { color: var(--color-score-poor); }
+.scoreExcellent { color: var(--color-primary); }
+.scoreGood { color: var(--color-accent); }
+.scoreAverage { color: var(--color-primary); }
+.scorePoor { color: var(--color-accent); }
 
 .pointsSection {
   margin-bottom: 30px;
   padding: 20px;
-  background-color: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
   border-radius: 0;
 }
 
@@ -654,18 +796,18 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
 }
 
 .pointsValue {
   font-size: 2rem;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
   line-height: 1;
 }
 
-.pointsPositive { color: var(--color-points-positive); }
-.pointsNegative { color: var(--color-points-negative); }
-.pointsNeutral { color: var(--color-points-neutral); }
+.pointsPositive { color: var(--color-primary); }
+.pointsNegative { color: var(--color-accent); }
+.pointsNeutral { color: var(--color-primary); }
 
 .totalPoints {
   display: flex;
@@ -681,13 +823,13 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
 }
 
 .totalPointsValue {
   font-size: 1.4rem;
-  color: var(--color-text-base);
-  font-family: var(--font-game);
+  color: var(--color-text);
+  font-family: var(--font-header);
 }
 
 .rankSection {
@@ -700,29 +842,29 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
   margin-bottom: 10px;
 }
 
 .rankValue {
   font-size: 1.4rem;
-  font-family: var(--font-game);
+  font-family: var(--font-header);
   line-height: 1;
 }
 
-.rankBronze { color: var(--color-rank-bronze); }
-.rankSilver { color: var(--color-rank-silver); }
-.rankGold { color: var(--color-rank-gold); }
-.rankPlatinum { color: var(--color-rank-platinum); }
-.rankDiamond { color: var(--color-rank-diamond); }
-.rankMaster { color: var(--color-rank-master); }
-.rankGrandmaster { color: var(--color-rank-grandmaster); }
+.rankBronze { color: var(--color-primary); }
+.rankSilver { color: var(--color-accent); }
+.rankGold { color: var(--color-primary); }
+.rankPlatinum { color: var(--color-primary); }
+.rankDiamond { color: var(--color-primary); }
+.rankMaster { color: var(--color-primary); }
+.rankGrandmaster { color: var(--color-primary); }
 
 .retakeButton {
-  font-family: var(--font-game);
+  font-family: var(--font-header);
   padding: 10px 20px;
-  border: 2px solid var(--color-accent);
-  color: var(--color-accent);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
   background-color: transparent;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -731,17 +873,258 @@
   transition: all 0.15s ease;
   border-radius: 0;
   user-select: none;
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow);
+  box-shadow: 3px 3px 0 0 var(--color-shadow);
 }
 
 .retakeButton:hover {
-  background-color: var(--color-accent);
-  color: var(--color-bg-start);
+  background-color: var(--color-primary);
+  color: var(--color-bg-alt);
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 0 var(--color-pixel-shadow);
+  box-shadow: 5px 5px 0 0 var(--color-shadow);
 }
 
 .retakeButton:active {
   transform: translate(0, 0);
-  box-shadow: 2px 2px 0 0 var(--color-pixel-shadow);
+  box-shadow: 2px 2px 0 0 var(--color-shadow);
+}
+
+.answerOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 22px 0 18px 0;
+  align-items: flex-start; /* Default, can be overridden to center if all buttons are same width */
+  width: 100%; /* Ensure it takes full width within questionContainer */
+}
+
+.answerButton {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  background: rgba(var(--dbz-dark-gray-rgb, 52, 73, 94), 0.6); /* Darker than choiceItem for more contrast or specific feel */
+  border: 1.5px solid var(--blueprint-grid-line);
+  color: var(--blueprint-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.18s;
+  font-family: var(--font-body);
+  font-weight: 600; /* Slightly less bold than 700 */
+}
+
+.answerButton:hover:not(:disabled) {
+  background: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.2); /* Slightly more pronounced hover */
+  color: var(--blueprint-accent);
+  border-color: var(--blueprint-accent);
+  transform: translateX(3px) translateY(-1px); /* Subtle lift and shift */
+}
+
+.selectedAnswer {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-family: var(--font-body);
+  font-weight: 700; /* Selected can be bolder */
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  border: 1.5px solid var(--dbz-black); /* Stronger border for selected */
+  box-shadow: 0 0 12px var(--blueprint-accent), 2px 2px 4px var(--dbz-black); /* Enhanced glow and shadow */
+  transform: scale(1.02); /* Pop effect */
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.18s, box-shadow 0.18s;
+}
+
+.answerButton:disabled, .selectedAnswer:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  background-color: var(--dbz-dark-gray) !important;
+  border-color: var(--blueprint-grid-line) !important;
+  color: rgba(var(--blueprint-text-rgb, 224, 242, 247), 0.6) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.leaderboardOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(13, 19, 26, 0.85); /* --blueprint-bg with alpha */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+.leaderboardModal {
+  composes: panelStyle; /* Use panel styling */
+  max-width: 700px;
+  width: 90%;
+  animation: panelFlyIn 0.4s ease-out 0.1s backwards; /* slightly delayed */
+}
+.leaderboardTitle { /* Panel header style is used by .panelHeader now */
+  font-family: var(--font-header);
+  font-size: 2rem;
+  color: var(--blueprint-accent);
+  text-align: center;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+.leaderboardContent {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+.leaderboardTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  margin-top: 15px;
+}
+.leaderboardTable th, .leaderboardTable td {
+  padding: 12px 10px; /* Increased padding */
+  text-align: left;
+  font-family: var(--font-accent);
+  color: var(--blueprint-text);
+  background-color: rgba(var(--dbz-dark-gray-rgb, 52, 73, 94), 0.3); /* Darker cell background */
+  border-bottom: 1px solid var(--blueprint-grid-line);
+}
+.leaderboardTable th {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--blueprint-accent);
+  letter-spacing: 1px;
+  background-color: rgba(var(--dbz-dark-gray-rgb, 52, 73, 94), 0.6); /* Even darker for header */
+  border-bottom: 2px solid var(--blueprint-grid-line-strong);
+}
+.leaderboardTable tr:hover td {
+  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.1); /* Subtle yellow tint on row hover */
+  color: var(--blueprint-accent);
+}
+.leaderboardTable td:first-child { border-radius: 8px 0 0 8px; }
+.leaderboardTable td:last-child { border-radius: 0 8px 8px 0; }
+
+.leaderboardTable tr:nth-child(1) td { font-weight: bold; } /* Highlight top ranks */
+.leaderboardTable tr:nth-child(1) td:first-child { color: var(--dbz-yellow); font-size: 1.2em; } /* Gold */
+.leaderboardTable tr:nth-child(2) td:first-child { color: var(--dbz-light-gray); font-size: 1.1em; } /* Silver */
+.leaderboardTable tr:nth-child(3) td:first-child { color: #cd7f32; } /* Bronze */
+.noLeaderboardData {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+.closeButton {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  padding: 0.7rem 2.2rem;
+  margin-top: 1.2rem;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 3px 12px var(--color-shadow);
+  transition: background 0.18s, transform 0.18s;
+}
+.closeButton:hover {
+  background: var(--color-accent-hover);
+  transform: scale(1.04) rotate(-2deg);
+}
+
+.questionPanel {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; /* Let natural flow or QuestionDisplay structure handle this */
+  /* min-height: 400px; /* Removed, let content dictate height or QuestionDisplay handle if needed */
+  /* height: 100%; */
+  background: transparent; /* No separate background, it's inside a themed contentPanel */
+  border_radius: 0; /* No separate border-radius */
+  box_shadow: none; /* No separate shadow */
+  padding: 0; /* Parent contentPanel or questionContainer will provide padding */
+  margin: 0 auto 24px auto; /* Keep auto horizontal margins for centering, and bottom margin */
+  max_width: 700px; /* Constrain content width within contentPanel */
+  width: 100%;
+}
+
+.spinner {
+  border: 4px solid rgba(var(--blueprint-text-rgb, 224, 242, 247), 0.3); /* Lighter, semi-transparent border */
+  border-top-color: var(--blueprint-accent); /* Accent color for spinning part */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.resultModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(13, 19, 26, 0.85); /* --blueprint-bg with alpha */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Ensure it's above other elements if needed */
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.resultModal {
+  composes: panelStyle; /* Use panel styling */
+  max-width: 600px; /* Or your preferred size */
+  width: 90%;
+  text-align: center;
+  animation: panelFlyIn 0.4s ease-out forwards; /* Forwards to keep final state */
+}
+
+/* Question Header, Number, and Bloom's Level */
+.questionHeader {
+  width: 100%;
+  display: flex; /* Added for alignment */
+  justify-content: space-between; /* Added for spacing */
+  align-items: center; /* Added for alignment */
+  margin-bottom: 15px; /* Added space below */
+}
+
+.questionNumber {
+  color: var(--blueprint-text);
+  opacity: 0.9;
+}
+
+.bloomLevel {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  color: var(--blueprint-text-muted);
+  background-color: rgba(var(--blueprint-accent-rgb), 0.1);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-style: italic;
+}
+
+/* Progress Indicator */
+.progressIndicator {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: var(--font-accent);
+  font-size: 1.1rem;
+  color: var(--blueprint-text);
+  opacity: 0.9;
+  padding: 8px;
+  background-color: rgba(0,0,0,0.2); /* Darker, transparent background */
+  border-radius: 8px;
 }

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import styles from './Crew.module.css'; // Import the CSS module
+import { 
+    FaUserPlus, FaUsers, FaGlobeAmericas, FaCheckCircle, FaHourglassHalf, FaSearch 
+} from 'react-icons/fa';
 
 // --- Sample Data (Replace with actual friend data/state) ---
 const sampleFriendsData = {
@@ -47,9 +50,10 @@ const Crew = () => {
             </div>
 
             {/* Add Friend Panel */}
-            <div className={styles.crewPanel}>
+            <div className={styles.crewPanel} style={{ animationDelay: '0.8s' }}>
                 <h2 className={styles.panelHeader}>
-                    <span className={styles.panelIcon}>➕</span> {/* Placeholder Icon */}
+                    {/* <span className={styles.panelIcon}>➕</span> Placeholder Icon */}
+                    <FaUserPlus className={styles.panelIcon} />
                     Add Friend
                 </h2>
                 <form className={styles.addFriendForm} onSubmit={handleSendRequest}>
@@ -68,9 +72,10 @@ const Crew = () => {
             </div>
 
             {/* All Friends Panel */}
-            <div className={styles.crewPanel}>
+            <div className={styles.crewPanel} style={{ animationDelay: '1.0s' }}>
                 <h2 className={styles.panelHeader}>
-                    <span className={styles.panelIcon}>👥</span> {/* Placeholder Icon */}
+                    {/* <span className={styles.panelIcon}>👥</span> Placeholder Icon */}
+                    <FaUsers className={styles.panelIcon} />
                     All Friends
                 </h2>
 
@@ -81,28 +86,32 @@ const Crew = () => {
                             onClick={() => setActiveTab('all')}
                             className={`${styles.tabButton} ${activeTab === 'all' ? styles.activeTab : ''}`}
                         >
-                             <span className={styles.tabIcon}>🌐</span> {/* Placeholder */}
+                             {/* <span className={styles.tabIcon}>🌐</span> Placeholder */}
+                             <FaGlobeAmericas className={styles.tabIcon} />
                              All <span className={styles.tabCount}>{counts.all}</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('accepted')}
                             className={`${styles.tabButton} ${activeTab === 'accepted' ? styles.activeTab : ''}`}
                         >
-                             <span className={styles.tabIcon}>✔️</span> {/* Placeholder */}
+                             {/* <span className={styles.tabIcon}>✔️</span> Placeholder */}
+                             <FaCheckCircle className={styles.tabIcon} />
                              Accepted <span className={styles.tabCount}>{counts.accepted}</span>
                         </button>
                          <button
                             onClick={() => setActiveTab('pending')}
                             className={`${styles.tabButton} ${activeTab === 'pending' ? styles.activeTab : ''}`}
                         >
-                              <span className={styles.tabIcon}>⏳</span> {/* Placeholder */}
+                              {/* <span className={styles.tabIcon}>⏳</span> Placeholder */}
+                              <FaHourglassHalf className={styles.tabIcon} />
                              Pending <span className={styles.tabCount}>{counts.pending}</span>
                         </button>
                     </div>
                     {/* Search Input */}
                     <div className={styles.filterInputContainer} style={{ position: 'relative' }}> {/* Ensure relative positioning */}
                          <span className={styles.searchIconContainer} style={{ position: 'absolute' }}> {/* Explicit absolute */}
-                             <span className={styles.panelIcon}>🔍</span> {/* Placeholder */}
+                             {/* <span className={styles.panelIcon}>🔍</span> Placeholder */}
+                             <FaSearch className={styles.panelIcon} />
                          </span>
                         <input
                             type="text"
@@ -119,7 +128,8 @@ const Crew = () => {
                 <div className={styles.friendListArea}>
                     {displayList.length === 0 ? (
                         <div className={styles.noFriendsMessage}>
-                            <div className={styles.noFriendsIcon}>👥</div> {/* Placeholder Icon */}
+                            {/* <div className={styles.noFriendsIcon}>👥</div> Placeholder Icon */}
+                            <FaUsers className={styles.noFriendsIcon} /> 
                             <h3 className={styles.noFriendsTitle}>No Friends Found</h3>
                             <p className={styles.noFriendsSubtitle}>
                                 {activeTab === 'all' && searchTerm === ''

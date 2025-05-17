@@ -1,22 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./GameNavbar.module.css";
+import { FaChartBar, FaCalendarAlt, FaUserFriends, FaTrophy, FaUsers, FaUser, FaSignOutAlt, FaBars, FaTimes, FaVolumeUp, FaVolumeMute, FaBookOpen, FaUserNinja } from 'react-icons/fa';
+import { GiCrossedSwords } from 'react-icons/gi';
 
 const Icons = {
-  Dashboard: "📊",
-  Challenges: "⚔️",
-  WeeklyTest: "📅",
-  Duels: "🤺",
-  PartyQueue: "🤝",
-  Reviewers: "📚",
-  Rankings: "🏆",
-  Crew: "👥",
-  Profile: "👤",
-  Logout: "🚪",
-  MenuOpen: "☰",
-  MenuClose: "✕",
-  Mute: "🔊",
-  Unmute: "🔇",
+  Dashboard: <FaChartBar />,
+  Challenges: <GiCrossedSwords />,
+  WeeklyTest: <FaCalendarAlt />,
+  Duels: <FaUserNinja />,
+  PartyQueue: <FaUserFriends />,
+  Reviewers: <FaBookOpen />,
+  Rankings: <FaTrophy />,
+  Crew: <FaUsers />,
+  Profile: <FaUser />,
+  Logout: <FaSignOutAlt />,
+  MenuOpen: <FaBars />,
+  MenuClose: <FaTimes />,
+  Mute: <FaVolumeUp />,
+  Unmute: <FaVolumeMute />,
 };
 
 const MUSIC_MAP = {
@@ -28,13 +30,11 @@ const MUSIC_MAP = {
     "/student/crew",
   ],
   weekly: ["/student/weeklytest"],
-  pvp: ["/student/pvp", "/student/playervsplayer", "/student/partymmr"],
 };
 
 const getMusicTrack = (path) => {
   if (MUSIC_MAP.dashboard.includes(path)) return "/dashboard.mp3";
   if (MUSIC_MAP.weekly.includes(path)) return "/weekly-test.mp3";
-  if (MUSIC_MAP.pvp.includes(path)) return "/pvp.mp3";
   return "/default.mp3";
 };
 
@@ -49,14 +49,13 @@ const GameNavbar = () => {
   const [currentTrack, setCurrentTrack] = useState(
     getMusicTrack(location.pathname)
   );
-  const [isDragging, setIsDragging] = useState(false);
-  const volumeBoxRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const navigate = useNavigate();
   const audioRef = useRef(null);
   const challengesRef = useRef();
   const menuRef = useRef();
+  const justOpenedRef = useRef(false);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen((prev) => !prev);
@@ -65,7 +64,16 @@ const GameNavbar = () => {
 
   const toggleChallenges = (e) => {
     e.stopPropagation();
-    setChallengesOpen((prev) => !prev);
+    setChallengesOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        justOpenedRef.current = true;
+        setTimeout(() => {
+          justOpenedRef.current = false;
+        }, 100);
+      }
+      return next;
+    });
   };
 
   const closeMenus = () => {
@@ -83,40 +91,30 @@ const GameNavbar = () => {
       const newMuted = !prev;
       if (audioRef.current) {
         audioRef.current.muted = newMuted;
-        audioRef.current.volume = newMuted ? 0.5 : volume / 100;
+        if (!newMuted && audioRef.current.volume === 0) {
+          audioRef.current.volume = 0.5;
+          setVolume(50);
+        } else if (!newMuted) {
+          audioRef.current.volume = volume / 100;
+        }
       }
       return newMuted;
     });
   };
 
-  const handleVolumeBoxClick = (e) => {
-    if (volumeBoxRef.current) {
-      const rect = volumeBoxRef.current.getBoundingClientRect();
-      const clickPosition = e.clientX - rect.left;
-      const percentage = (clickPosition / rect.width) * 100;
-      const newVolume = Math.min(100, Math.max(0, Math.round(percentage)));
-      setVolume(newVolume);
-      if (audioRef.current) {
-        audioRef.current.volume = newVolume / 100;
+  const handleVolumeChange = (e) => {
+    const newVolume = parseInt(e.target.value, 10);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume / 100;
+      if (newVolume > 0 && isMuted) {
+        setMuted(false);
+        audioRef.current.muted = false;
+      } else if (newVolume === 0 && !isMuted) {
+        setMuted(true);
+        audioRef.current.muted = true;
       }
     }
-  };
-
-  const handleVolumeBoxDrag = (e) => {
-    if (isDragging && volumeBoxRef.current) {
-      const rect = volumeBoxRef.current.getBoundingClientRect();
-      const dragPosition = e.clientX - rect.left;
-      const percentage = (dragPosition / rect.width) * 100;
-      const newVolume = Math.min(100, Math.max(0, Math.round(percentage)));
-      setVolume(newVolume);
-      if (audioRef.current) {
-        audioRef.current.volume = newVolume / 100;
-      }
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
   };
 
   useEffect(() => {
@@ -150,6 +148,7 @@ const GameNavbar = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
+      if (justOpenedRef.current) return;
       if (challengesRef.current && !challengesRef.current.contains(e.target)) {
         setChallengesOpen(false);
       }
@@ -159,13 +158,6 @@ const GameNavbar = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
   }, []);
 
   useEffect(() => {
@@ -219,11 +211,11 @@ const GameNavbar = () => {
               Weekly Test
             </NavLink>
             <NavLink
-              to="/student/sololobby"
+              to="/student/versusmodelobby"
               className={dropdownItemClass}
               onClick={closeMenus}
             >
-              <span className={styles.panelIcon}>{Icons.Duels}</span> 1v1 Duels
+              <span className={styles.panelIcon}>{Icons.Duels}</span> Versus Mode
             </NavLink>
             <NavLink
               to="/student/partymmr"
@@ -255,22 +247,20 @@ const GameNavbar = () => {
         Rankings
       </NavLink>
       <NavLink to="/student/crew" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && <span className={styles.panelIcon}>{Icons.Crew}</span>}{" "}
+        {isMobile && <span className={styles.panelIcon}>{Icons.Crew}</span>} {" "}
         Crew
+      </NavLink>
+      <NavLink to="/student/sketchfab" className={navLinkClass} onClick={closeMenus}>
+        {isMobile && <span className={styles.panelIcon}><FaChartBar /></span>} {" "}
+        3D Viewer
       </NavLink>
       <NavLink
         to="/student/profile"
         className={navLinkClass}
         onClick={closeMenus}
       >
-        {isMobile && <span className={styles.panelIcon}>{Icons.Profile}</span>}{" "}
+        {isMobile && <span className={styles.panelIcon}>{Icons.Profile}</span>} {" "}
         Profile
-      </NavLink>
-      <NavLink to="/student/pvp" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && (
-          <span className={styles.panelIcon}>{Icons.Reviewers}</span>
-        )}{" "}
-        Demo
       </NavLink>
       <button className={styles.navbarLink} onClick={handleLogout}>
         {isMobile && <span className={styles.panelIcon}>{Icons.Logout}</span>}{" "}
@@ -281,7 +271,7 @@ const GameNavbar = () => {
 
   return (
     <nav className={styles.navbar} ref={menuRef}>
-      <div className={styles.navbarBrand}>
+      <div className={styles.navbarBrand} style={{ marginRight: '20px' }}>
         <Link
           to="/student/dashboard"
           className={styles.navbarLogo}
@@ -291,7 +281,7 @@ const GameNavbar = () => {
         </Link>
       </div>
       {windowWidth >= BURGER_BREAKPOINT && (
-        <div className={styles.desktopNavLinks}>
+        <div className={styles.desktopNavLinks} style={{ marginLeft: 'auto' }}>
           <NavLinks isMobile={false} />
         </div>
       )}
@@ -299,31 +289,42 @@ const GameNavbar = () => {
         {isMobileMenuOpen ? Icons.MenuClose : Icons.MenuOpen}
       </button>
       {isMobileMenuOpen && windowWidth < BURGER_BREAKPOINT && (
-        <div className={`${styles.mobileNavLinks} ${styles.open}`} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10,5,25,0.98)', zIndex: 999, overflowY: 'auto', paddingTop: 70 }}>
+        <div
+          className={`${styles.mobileNavLinks} ${styles.open}`}
+          style={{
+            position: 'fixed',
+            top: '60px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 999,
+            background: 'linear-gradient(135deg, var(--color-bg), var(--color-bg-alt))',
+            borderRadius: '0 0 22px 22px',
+            boxShadow: '0 8px 32px var(--color-shadow)',
+            padding: '18px 0 18px 0',
+            maxHeight: '60vh',
+            maxWidth: '340px',
+            width: '90vw',
+            overflowY: 'auto',
+          }}
+        >
           <NavLinks isMobile={true} />
         </div>
       )}
       <div className={styles.volumeControls}>
-        <button className={styles.muteButton} onClick={toggleMute}>
+        <button className={styles.muteButton} onClick={toggleMute} style={{ marginRight: '10px' }}>
           {isMuted ? Icons.Unmute : Icons.Mute}
         </button>
-        {!isMuted && (
-          <div
-            className={styles.volumeBox}
-            ref={volumeBoxRef}
-            onClick={handleVolumeBoxClick}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseMove={handleVolumeBoxDrag}
-          >
-            <div
-              className={styles.volumeFill}
-              style={{ width: `${volume}%` }}
-            />
-            <div className={styles.volumePercentage}>{volume}%</div>
-          </div>
-        )}
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={isMuted ? 0 : volume}
+          onChange={handleVolumeChange}
+          className={styles.volumeSlider}
+          style={{ width: '100px', cursor: 'pointer' }}
+        />
       </div>
-      <audio ref={audioRef} autoPlay loop>
+      <audio ref={audioRef} autoPlay loop muted={isMuted}>
         <source src={currentTrack} type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>

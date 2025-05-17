@@ -1,428 +1,561 @@
 /* src/components/Ranking.module.css */
 
 /* --- Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+/* Assuming global import for Bangers, Roboto Condensed, Montserrat */
 
-/* --- Base Styles --- */
+/* --- Base Styles & Theme Variables (Standardized Blueprint Theme) --- */
 .rankingContainer {
-  /* --- Theme Variables Scoped to .rankingContainer --- */
-  --font-game: 'Press Start 2P', cursive;
-  --font-body: 'VT323', monospace;
-  --color-accent: #00ff9d;
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-bg-start: #0c051a;
-  --color-bg-mid: #1d1135;
-  --color-panel: rgba(15, 12, 41, 0.9);
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-panel-border-glow: rgba(0, 255, 157, 0.3);
-  --color-pixel-shadow: rgba(0,0,0, 0.7);
-  --color-input-bg: rgba(0, 0, 0, 0.4);
-  --color-input-border: rgba(0, 255, 157, 0.5);
-  --color-selected-border: #ffcc00;
-  --color-table-header-bg: rgba(0, 0, 0, 0.3);
-  --color-table-row-hover-bg: rgba(0, 255, 157, 0.05);
-  --color-table-current-user-bg: rgba(0, 255, 157, 0.1);
-  --color-avatar-bg: #4a1a5c; /* Example */
-  --color-you-tag-bg: var(--color-accent);
-  --color-you-tag-text: var(--color-bg-start);
-  --color-rank-bronze: #cd7f32;
-  --color-rank-silver: #c0c0c0;
-  --color-rank-gold: #ffd700;
-  --color-rank-platinum: #e5e4e2;
-  --color-rank-diamond: #b9f2ff;
-  --color-rank-master: #ff80ff;
-  --color-rank-grandmaster: #ff4f7a;
-  /* --- End of Scoped Variables --- */
+  --dbz-orange: #f39c12;
+  --dbz-blue: #3498db;
+  --dbz-red: #e74c3c;
+  --dbz-yellow: #f1c40f;
+  --dbz-dark-blue: #2c3e50;
+  --dbz-light-gray: #ecf0f1;
+  --dbz-dark-gray: #34495e;
+  --dbz-black: #1C1C1C;
+
+  --blueprint-bg: #0D131A;
+  --blueprint-grid-line: rgba(173, 216, 230, 0.35);
+  --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
+  --blueprint-text: #E0F2F7;
+  --blueprint-text-muted: #a0b0c0; 
+  --blueprint-text-rgb: 224, 242, 247;
+  --blueprint-panel-bg: rgba(30, 45, 60, 0.9);
+  --blueprint-panel-header-bg: rgba(35, 50, 65, 0.95); /* Slightly different for headers within panel */
+  --blueprint-panel-border: var(--blueprint-grid-line-strong);
+  --blueprint-accent: var(--dbz-yellow); /* Main accent Yellow */
+  --blueprint-accent-rgb: 241, 196, 15;
+  --blueprint-accent-secondary: #82DFFF; /* Secondary accent Blue */
+  --blueprint-accent-text-dark: var(--dbz-black);
+  --blueprint-shadow: rgba(0, 0, 0, 0.4);
+  --blueprint-button-bg: var(--blueprint-accent);
+  --blueprint-button-text: var(--blueprint-accent-text-dark);
+  --blueprint-button-hover-bg: var(--dbz-orange);
+  --blueprint-input-bg: rgba(13, 20, 26, 0.8);
+  --blueprint-input-border: var(--blueprint-grid-line);
+  --blueprint-input-text: var(--blueprint-text);
+  --blueprint-input-focus-border: var(--blueprint-accent);
+  --blueprint-danger: #FF6B6B;
+  --blueprint-warning: var(--dbz-orange); /* Orange for warning */
+  --blueprint-success: #6BFFB8; /* Mint green for success */
+
+  --font-primary: 'Montserrat', sans-serif;
+  --font-header: 'Bangers', cursive; /* Bangers for main titles */
+  --font-display: 'Bangers', cursive; /* Consistent with header */
+  --font-accent: 'Roboto Condensed', sans-serif; /* For labels, secondary text */
+
+  /* Rank Colors Aligned with Blueprint */
+  --color-rank-bronze: #CD7F32; /* Standard Bronze */
+  --color-rank-silver: #C0C0C0; /* Standard Silver */
+  --color-rank-gold: var(--dbz-yellow); /* Theme Gold */
+  --color-rank-platinum: #E5E4E2; /* Platinum - light grey/white */
+  --color-rank-diamond: var(--blueprint-accent-secondary); /* Theme Diamond Blue */
+  --color-rank-master: #C9A0DC; /* Lavender/Purple for Master */
+  --color-rank-grandmaster: var(--blueprint-danger); /* Theme Danger for Grandmaster */
 
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 40px 10px; /* Reduced horizontal padding */
-  font-family: var(--font-game); /* Base font */
-  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
-  color: var(--color-text-base); /* Base text color */
+  flex-direction: column; /* Align panel centrally */
+  align-items: center;
+  padding: 40px 20px;
+  font-family: var(--font-primary);
+  background-color: var(--blueprint-bg);
+  color: var(--blueprint-text);
+  line-height: 1.6;
+  animation: powerUpBg 0.7s ease-out forwards;
+  overflow-x: hidden;
 }
+
+/* Standardized Keyframes */
+@keyframes powerUpBg {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes panelFlyIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes titleSmash {
+  0% { opacity: 0; transform: scale(1.5) translateY(-20px); }
+  60% { opacity: 1; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes fadeInSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
 .rankingPanel {
   width: 100%;
-  max-width: 800px;
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
-  padding: 20px 15px; /* Reduced padding */
-  border-radius: 0;
-  animation: fadeIn 0.5s ease-out forwards;
+  max-width: 1100px;
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25);
+  padding: 30px 35px;
+  border-radius: 15px;
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  animation: panelFlyIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards; /* Delay after page bg */
+  display: flex;
+  flex-direction: column;
 }
 
+/* Layout Grid for two columns */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: 280px 1fr; /* Fixed left, flexible right */
+  gap: 30px;
+  width: 100%;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ranking Title (in Right Column) */
 .rankingTitle {
-  color: var(--color-accent);
-  font-size: 1.4rem; /* Slightly smaller base */
-  margin-bottom: 20px; /* Reduced margin */
-  text-align: center;
-  text-shadow: 2px 2px 0 var(--color-pixel-shadow), 0 0 5px var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  /* Font family inherited */
+  font-family: var(--font-header); /* Bangers */
+  color: var(--blueprint-accent); /* Yellow */
+  font-size: 3.5rem;
+  margin-bottom: 25px;
+  text-align: left; /* Align to start of column */
+  letter-spacing: 3px;
+  text-shadow:
+    3px 3px 0 var(--dbz-black),
+    -1px -1px 0 var(--blueprint-bg),
+    1px -1px 0 var(--blueprint-bg),
+    -1px 1px 0 var(--blueprint-bg),
+    1px 1px 0 var(--blueprint-bg);
+  line-height: 1.1;
+  opacity: 0;
+  animation: titleSmash 0.5s ease-out 0.5s forwards; /* Stagger after panel */
 }
 
-/* --- Filter Controls --- */
+/* --- Filter Controls (Left Column) --- */
 .filterSection {
-  margin-bottom: 20px; /* Reduced margin */
-  padding-bottom: 15px; /* Reduced padding */
-  border-bottom: 1px dashed var(--color-panel-border);
+  background: rgba(0,0,0,0.15); /* Subtle darker background for section */
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--blueprint-grid-line);
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.6s forwards; /* Stagger after title */
 }
 .filterHeader {
   display: flex;
   align-items: center;
-  font-size: 1.1rem; /* Smaller header */
-  font-weight: 600;
-  color: var(--color-accent);
+  font-family: var(--font-accent); /* Roboto Condensed */
+  font-size: 1.3rem; /* Smaller header for section */
+  color: var(--blueprint-text);
   margin-bottom: 15px;
-  /* Font family inherited */
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--blueprint-grid-line-strong);
 }
 .filterHeaderIcon {
-  margin-right: 8px;
-  font-size: 1.3rem; /* Smaller icon */
-  opacity: 0.9;
-  /* Icon font needs setup (e.g., Font Awesome) */
+  margin-right: 10px;
+  font-size: 1.4rem;
+  color: var(--blueprint-accent-secondary); /* Blue accent for icons here */
 }
 .filterControls {
-   display: grid;
-   grid-template-columns: 1fr; /* Default to 1 column */
-   gap: 15px;
+   display: flex; /* Changed to flex for stacking */
+   flex-direction: column;
+   gap: 18px;
 }
 .filterGroup {
    display: flex;
    flex-direction: column;
-   gap: 5px;
+   gap: 8px;
 }
 .filterLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--blueprint-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: left;
-  /* Font family inherited */
+  letter-spacing: 0.8px;
 }
 .filterInputContainer {
    position: relative;
+   display: flex;
+   align-items: center;
 }
 .filterInputIcon {
    position: absolute;
-   inset-inline-start: 0;
-   top: 50%;
-   transform: translateY(-50%);
-   padding-left: 10px;
-   pointer-events: none;
-   color: var(--color-text-muted);
+   left: 12px;
+   color: var(--blueprint-text-muted);
    font-size: 1rem;
-   opacity: 0.7;
-   /* Icon font needs setup (e.g., Font Awesome) */
+   pointer-events: none;
 }
 .filterSelect, .filterInput {
   width: 100%;
-  font-family: var(--font-body); /* Use body font */
-  font-size: 1.1rem;
-  padding: 8px 12px;
-  background-color: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  color: var(--color-text-base);
-  border-radius: 0;
-  cursor: pointer;
-  appearance: none;
-  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
+  font-family: var(--font-primary); /* Montserrat */
+  font-size: 0.95rem;
+  padding: 10px 15px;
+  background-color: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  color: var(--blueprint-input-text);
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
 }
 .filterSelect {
-  background-image: linear-gradient(45deg, transparent 50%, var(--color-accent) 50%), linear-gradient(135deg, var(--color-accent) 50%, transparent 50%);
-  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
-  background-size: 5px 5px, 5px 5px;
+  padding-left: 40px; /* Space for icon if used */
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23${encodeURIComponent(getComputedStyle(document.documentElement).getPropertyValue('--blueprint-text-muted').trim().substring(1))}'%3E%3Cpath d='M8 11L3 6h10L8 11z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  padding-right: 30px;
+  background-position: right 12px center;
+  background-size: 12px;
 }
 .filterInput {
-    padding-left: 35px; /* Space for icon */
-    cursor: text;
+    padding-left: 40px; /* Space for icon */
 }
 .filterSelect:focus, .filterInput:focus {
   outline: none;
-  border-color: var(--color-selected-border);
-  box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
+  border-color: var(--blueprint-input-focus-border);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 0 3px rgba(var(--blueprint-accent-rgb), 0.3);
 }
 .filterSelect option {
-    background-color: #111;
-    color: var(--color-text-base);
+    background-color: var(--blueprint-bg);
+    color: var(--blueprint-text);
 }
 .filterInput::placeholder {
-    color: var(--color-text-muted);
-    opacity: 0.8;
+    color: var(--blueprint-text-muted);
+    opacity: 0.7;
 }
 
-/* --- Ranking Table --- */
+/* Tiers Section (Left Column) */
+.tiersSection {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: var(--blueprint-panel-bg-semi-transparent); /* Match panel style */
+  border-radius: var(--panel-border-radius);
+  border: 1px solid var(--blueprint-panel-border);
+}
+.tiersTitle {
+  font-family: var(--font-header);
+  color: var(--blueprint-accent-secondary);
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--blueprint-grid-line-strong);
+  letter-spacing: 1px;
+}
+.pvpTiersTitle {
+  margin-top: 25px; /* Add space between the two tier lists */
+}
+.tiersGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Space between tier boxes */
+}
+.tierBox {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between icon and tierInfo */
+  padding: 10px 12px;
+  background-color: rgba(var(--blueprint-bg-rgb), 0.4); /* Slightly darker than panel, more subtle */
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 6px;
+  width: 100%;
+  transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
+}
+.tierBox:hover {
+  background-color: rgba(var(--blueprint-accent-rgb), 0.1);
+  border-color: var(--blueprint-accent);
+}
+.tierIcon {
+  font-size: 1.8em; /* Increased for better visibility */
+  flex-shrink: 0;
+  width: 30px; /* Ensure consistent width for alignment */
+  text-align: center;
+}
+.tierInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1; /* Allow text to take available space */
+}
+.tierName {
+  font-weight: 600;
+  font-size: 0.95em;
+  /* color is applied inline via style attribute */
+}
+.tierMmr {
+  font-size: 0.8em;
+  opacity: 0.85;
+  /* color is applied inline via style attribute */
+}
+
+
+/* --- Ranking Table (Right Column) --- */
 .tableContainer {
-  overflow-x: auto; /* Crucial for mobile table scroll */
-  width: 100%; /* Ensure it takes full width */
+  overflow-x: auto;
+  width: 100%;
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 10px;
+  margin-top: 10px; /* Space after title */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.8s forwards; /* Stagger */
 }
 .rankingTable {
   width: 100%;
-  min-width: 550px; /* Set a minimum width to force scroll if needed */
-  border-collapse: collapse;
-  font-size: 0.8rem; /* Smaller base table font */
-  /* Base font family inherited */
+  min-width: 650px;
+  border-collapse: separate; 
+  border-spacing: 0;
+  font-size: 0.9rem;
+  table-layout: fixed; /* Added for explicit column width control */
 }
 
 .rankingTable thead th {
-  background-color: var(--color-table-header-bg);
-  color: var(--color-accent);
-  padding: 8px 6px; /* Reduced padding */
-  text-align: left;
+  background-color: var(--blueprint-panel-header-bg);
+  color: var(--blueprint-accent-secondary); /* Blue for table headers */
+  padding: 14px 18px;
+  text-align: left; /* Default alignment for th */
+  font-family: var(--font-accent); /* Roboto Condensed */
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px; /* Reduced spacing */
-  font-size: 0.7rem; /* Smaller header */
-  border-bottom: 2px solid var(--color-panel-border);
-  font-weight: bold;
-  white-space: nowrap; /* Prevent header wrapping */
-  /* Font family inherited */
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  border-bottom: 2px solid var(--blueprint-panel-border);
+  white-space: nowrap;
+}
+.rankingTable thead th:first-child {
+  border-top-left-radius: 8px; 
+}
+.rankingTable thead th:last-child {
+  border-top-right-radius: 8px;
 }
 
-.rankHeader { text-align: center; width: 50px; padding-left: 0; padding-right: 0;} /* Narrower rank */
-.mmrHeader { text-align: right; }
-.rankTierHeader { text-align: right; }
+/* Specific header column widths and alignments */
+.rankHeader { text-align: center; width: 60px; } /* Adjusted width */
+.rankingTable thead th:nth-child(2) { /* Targeting Student TH */
+  width: 270px; 
+  text-align: left;
+}
+.mmrHeader { text-align: right; width: 100px; } /* Adjusted width */
+.rankTierHeader { text-align: right; width: 180px; } /* Adjusted width */
 
 .rankingTable tbody tr {
-  border-bottom: 1px solid rgba(0, 255, 157, 0.15); /* Subtle separator */
-  transition: background-color 0.1s ease-in-out;
+  border-bottom: 1px solid var(--blueprint-grid-line);
+  transition: background-color 0.2s ease-in-out;
 }
 .rankingTable tbody tr:last-child {
   border-bottom: none;
 }
 .rankingTable tbody tr:hover {
-   background-color: var(--color-table-row-hover-bg);
+   background-color: rgba(var(--blueprint-accent-rgb), 0.08); /* Yellowish hover */
 }
 
 .rankingTable tbody td {
-  padding: 8px 6px; /* Reduced padding */
+  padding: 10px 15px; /* Default padding for other cells */
   vertical-align: middle;
-  color: var(--color-text-muted); /* Default cell text color */
+  color: var(--blueprint-text-muted);
 }
 
-.rankNumber {
-  font-family: var(--font-body); /* Use body font */
-  font-size: 1.2rem; /* Smaller rank number */
-  text-align: center;
-  color: var(--color-accent);
-  min-width: 40px; /* Adjusted */
-  font-weight: bold;
+.rankNumber { /* This class applies to the TD for the rank number */
+  font-family: var(--font-header); /* Bangers */
+  font-size: 1.2rem;
+  text-align: right; /* Changed from center to right */
+  color: var(--blueprint-accent); /* Yellow */
+  font-weight: normal;
+  /* width: 100%; */ /* Removed as it's not strictly necessary for TD width control here */
+  padding-top: 10px; /* Match default TD vertical padding */
+  padding-bottom: 10px; /* Match default TD vertical padding */
+  padding-left: 10px; /* Keep some left padding if icon is far left */
+  padding-right: 8px; /* Reduced padding-right to bring content closer to next column */
 }
 .rankIcon {
-    font-size: 0.9rem; /* Smaller icon */
-    margin-right: 3px;
-    opacity: 0.8;
-    /* Color should be set by rank class */
-    /* Icon font needs setup (e.g., Font Awesome) */
+    font-size: 1rem;
+    margin-right: 4px; /* Reduced margin */
+    color: var(--blueprint-accent-secondary); /* Blue for trophy */
+    vertical-align: middle;
 }
 
 .studentCell {
   display: flex;
   align-items: center;
-  gap: 8px; /* Reduced gap */
+  gap: 10px; /* Reduced gap */
 }
 .avatar {
     flex-shrink: 0;
-    width: 32px; /* Smaller avatar */
-    height: 32px;
+    width: 36px; /* Reduced size */
+    height: 36px; /* Reduced size */
     border-radius: 50%;
-    background-color: var(--color-avatar-bg); /* Placeholder color */
+    background-color: var(--blueprint-input-bg);
+    color: var(--blueprint-accent);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem; /* Smaller initial */
-    font-weight: bold;
-    color: var(--color-text-base);
-    overflow: hidden; /* Hide overflow if using img */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+    font-family: var(--font-header);
+    font-size: 1rem; /* Reduced font size for initials */
+    font-weight: normal;
+    border: 2px solid var(--blueprint-grid-line-strong);
 }
-.avatar img {
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
+.avatar img { /* If you use images for avatars */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 .studentInfo {
   display: flex;
   flex-direction: column;
-  text-align: left;
+  flex-grow: 1; /* Added to fill available space */
 }
 .username {
-  font-size: 0.8rem; /* Smaller username */
   font-weight: 600;
-  color: var(--color-text-base); /* Base color for username */
-  /* Font family inherited */
+  font-size: 0.9rem; /* Reduced font size */
+  color: var(--blueprint-text);
 }
 .handle {
-    font-size: 0.7rem; /* Smaller handle */
-    font-family: var(--font-body); /* Use body font */
-    color: var(--color-text-muted); /* Muted color for handle */
+  font-size: 0.75rem; /* Reduced font size */
+  color: var(--blueprint-text-muted);
 }
 .youTag {
-    margin-left: 6px;
-    font-size: 0.6rem; /* Smaller tag */
-    padding: 1px 5px;
-    background-color: var(--color-you-tag-bg);
-    color: var(--color-you-tag-text);
-    border-radius: 2px;
-    text-transform: uppercase;
-    font-weight: bold;
-    /* Font family inherited */
+  margin-left: auto; /* Pushes tag to the right */
+  background-color: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  padding: 2px 6px; /* Reduced padding */
+  border-radius: 12px; /* Slightly smaller radius to match */
+  font-size: 0.65rem; /* Reduced font size */
+  font-weight: bold;
+  font-family: var(--font-accent);
+  text-transform: uppercase;
 }
 
 .mmrValue {
-  font-family: var(--font-body); /* Use body font */
-  font-size: 1.1rem; /* Smaller MMR */
-  text-align: right;
-  color: var(--color-text-base);
-  font-weight: 600;
+  font-family: var(--font-header);
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  text-align: center;
+  font-weight: normal;
 }
 
 .rankTierValue {
-    font-size: 0.8rem; /* Smaller rank text */
-    font-weight: 600;
-    text-align: right;
-    white-space: nowrap; /* Prevent rank wrapping */
-    /* Color set by rank classes */
-    /* Font family inherited */
+  font-family: var(--font-header);
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: normal;
+  /* Color is applied via specific rank class */
 }
-/* Rank color classes */
-.rankBronze { color: var(--color-rank-bronze); }
-.rankSilver { color: var(--color-rank-silver); }
-.rankGold { color: var(--color-rank-gold); }
-.rankPlatinum { color: var(--color-rank-platinum); }
-.rankDiamond { color: var(--color-rank-diamond); }
-.rankMaster { color: var(--color-rank-master); }
-.rankGrandmaster { color: var(--color-rank-grandmaster); }
-/* Add more as needed */
+
+/* Rank Color Classes */
+.rankBronze { color: var(--color-rank-bronze) !important; }
+.rankSilver { color: var(--color-rank-silver) !important; }
+.rankGold { color: var(--color-rank-gold) !important; }
+.rankPlatinum { color: var(--color-rank-platinum) !important; }
+.rankDiamond { color: var(--color-rank-diamond) !important; }
+.rankMaster { color: var(--color-rank-master) !important; }
+.rankGrandmaster { color: var(--color-rank-grandmaster) !important; }
 
 .currentUserRow {
-  background-color: var(--color-table-current-user-bg);
-  border-left: 3px solid var(--color-accent);
-  border-right: 3px solid var(--color-accent);
+  background-color: rgba(var(--blueprint-accent-rgb), 0.15); /* Highlight current user row with yellow */
+  border-left: 4px solid var(--blueprint-accent);
+  border-right: 4px solid var(--blueprint-accent);
 }
 .currentUserRow td {
-   /* Optionally make text slightly bolder or change color */
-   /* font-weight: bold; */
+  color: var(--blueprint-text); /* Slightly brighter text for current user */
+}
+.currentUserRow .username {
+  color: var(--blueprint-accent); /* Highlight username too */
 }
 
-/* --- Ranking Tiers --- */
-.tiersSection {
-  margin-top: 25px; /* Reduced margin */
-  padding-top: 15px; /* Reduced padding */
-  border-top: 1px dashed var(--color-panel-border);
-}
-.tiersTitle {
-  font-size: 1rem; /* Smaller title */
-  font-weight: 600;
-  color: var(--color-text-base);
-  margin-bottom: 15px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  /* Font family inherited */
-}
-.tiersGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Adjust minmax */
-  gap: 8px; /* Reduced gap */
+
+.noResultsMessage {
+  padding: 40px 20px;
   text-align: center;
-}
-.tierBox {
-  background-color: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 0;
-  padding: 8px; /* Reduced padding */
-  box-shadow: 2px 2px 0 var(--color-pixel-shadow);
-  /* Inherits rank color from tierName */
-}
-.tierName {
-  display: block;
-  font-size: 0.7rem; /* Smaller name */
-  font-weight: 500;
-  /* Color set dynamically via rank class */
-  text-transform: uppercase;
-  white-space: nowrap; /* Prevent wrapping */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 3px;
-  /* Font family inherited */
-}
-.tierMmr {
-  display: block;
-  font-size: 0.7rem; /* Smaller MMR */
-  font-family: var(--font-body); /* Use body font */
-  color: var(--color-text-muted);
+  font-family: var(--font-accent);
+  font-size: 1.2rem;
+  color: var(--blueprint-text-muted);
 }
 
-/* Keyframes */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Responsive Adjustments (Review and keep/modify as needed) */
+@media (max-width: 960px) {
+  .layoutGrid {
+    grid-template-columns: 1fr; /* Stack columns */
+    gap: 25px;
+  }
+  .leftColumn {
+    order: 2; /* Filters below table content on mobile */
+  }
+  .rightColumn {
+    order: 1;
+  }
+  .rankingTitle { 
+    text-align: center; 
+    font-size: 3rem;
+  }
+  .filterSection, .tiersSection {
+    animation-delay: 0.3s; /* Adjust delay as they appear later now */
+  }
+  .tableContainer {
+    animation-delay: 0.2s;
+  }
 }
 
-/* --- Media Query for Desktop (Overrides mobile-first styles) --- */
-@media (min-width: 768px) {
-  .rankingContainer {
-      padding: 40px 20px; /* Restore padding */
+@media (max-width: 480px) {
+  .rankingContainer { 
+    padding: 20px 15px;
   }
   .rankingPanel {
-      padding: 25px 35px; /* Restore padding */
+    padding: 20px;
   }
   .rankingTitle {
-      font-size: 1.6rem; /* Restore size */
-      margin-bottom: 30px; /* Restore margin */
+    font-size: 2.5rem;
   }
-  .filterSection {
-     margin-bottom: 30px;
-     padding-bottom: 20px;
+  .filterHeader, .tiersTitle {
+    font-size: 1.1rem;
   }
-  .filterHeader { font-size: 1.2rem; }
-  .filterHeaderIcon { font-size: 1.5rem; }
-  .filterControls {
-      grid-template-columns: repeat(2, 1fr); /* 2 columns on desktop */
-      gap: 15px;
+  .filterHeaderIcon { font-size: 1.2rem; }
+  .filterControls { gap: 15px; }
+  .filterLabel { font-size: 0.8rem; }
+  .filterSelect, .filterInput {
+    font-size: 0.9rem;
+    padding: 9px 12px;
   }
+  .filterInput, .filterSelect { padding-left: 35px; } /* Ensure icon space */
+  .filterInputIcon { left: 10px; }
+  
+  .tiersGrid { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+  .tierBox { padding: 8px; }
+  .tierName { font-size: 0.75rem; }
+  .tierMmr { font-size: 0.9rem; }
+
   .rankingTable {
-     font-size: 0.9rem; /* Restore table font size */
-     min-width: auto; /* Remove min-width on desktop */
+    font-size: 0.85rem;
   }
-  .rankingTable thead th {
-      padding: 12px 10px; /* Restore padding */
-      font-size: 0.75rem; /* Restore header size */
-  }
-   .rankHeader { width: 70px; } /* Restore width */
-
+  .rankingTable thead th,
   .rankingTable tbody td {
-      padding: 10px 10px; /* Restore padding */
+    padding: 10px 12px;
   }
-   .rankNumber { font-size: 1.4rem; min-width: 50px; } /* Restore size */
-   .rankIcon { font-size: 1rem; margin-right: 5px; } /* Restore size */
-   .studentCell { gap: 10px; } /* Restore gap */
-   .avatar { width: 36px; height: 36px; font-size: 0.9rem; } /* Restore size */
-   .username { font-size: 0.9rem; } /* Restore size */
-   .handle { font-size: 0.8rem; } /* Restore size */
-   .youTag { font-size: 0.65rem; padding: 1px 6px; margin-left: 8px; } /* Restore size */
-   .mmrValue { font-size: 1.2rem; } /* Restore size */
-   .rankTierValue { font-size: 0.9rem; } /* Restore size */
+   .rankingTable thead th { font-size: 0.75rem; }
 
-  .tiersSection {
-      margin-top: 30px;
-      padding-top: 20px;
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
   }
-  .tiersTitle { font-size: 1.1rem; } /* Restore size */
-  .tiersGrid {
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Restore grid */
-      gap: 10px;
+  .studentCell { gap: 10px; }
+  .username { font-size: 0.9rem; }
+  .handle { font-size: 0.75rem; }
+  .mmrValue { font-size: 1rem; }
+  .rankNumber { font-size: 1.2rem; }
+  .rankIcon { font-size: 1rem; }
+  .youTag { font-size: 0.65rem; padding: 2px 6px; }
+
+  .noResultsMessage {
+    font-size: 1rem;
+    padding: 30px 15px;
   }
-  .tierBox { padding: 10px; } /* Restore padding */
-  .tierName { font-size: 0.8rem; } /* Restore size */
-  .tierMmr { font-size: 0.75rem; } /* Restore size */
 }
+
+/* Remove old panelFlyIn if it exists from previous theme */
+/* @keyframes panelFlyIn { ... } */

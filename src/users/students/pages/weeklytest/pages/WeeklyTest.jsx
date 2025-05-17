@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styles from './WeeklyTest.module.css'; // Use CSS Modules
 import { useAuth } from '../../../../../contexts/AuthContext';
+import FilterPanel from '../components/FilterPanel';
+import QuestionDisplay from '../components/QuestionDisplay';
+import ResultModal from '../components/ResultModal';
+import Leaderboard from '../components/Leaderboard';
 
 // Constants for Filters
 const SUBJECTS = [
@@ -19,15 +23,16 @@ const SOUNDS = {
   complete: '/sounds/complete.mp3'
 };
 
-// New Rank System
+// New Rank System based on user request
 const RANKS = [
-  { min: 0, max: 99, name: 'Grass', emoji: '🌱', description: 'Still growing' },
-  { min: 100, max: 199, name: 'Wood', emoji: '🪵', description: 'Getting sturdy' },
-  { min: 200, max: 299, name: 'Rock', emoji: '🪨', description: 'Solid start' },
-  { min: 300, max: 399, name: 'Iron', emoji: '⚒️', description: 'Forged with effort' },
-  { min: 400, max: 499, name: 'Silver', emoji: '🥈', description: 'Shiny and polished' },
-  { min: 500, max: 599, name: 'Gold', emoji: '🥇', description: 'Shining like a star' },
-  { min: 600, max: 700, name: 'Diamond', emoji: '💎', description: "You're a gem" },
+  { min: 0, max: 149, name: 'Absent Legend', emoji: '🛌', description: 'Technically enrolled.' },
+  { min: 150, max: 299, name: 'The Crammer', emoji: '⏰', description: 'Studies best under extreme pressure—like 5 minutes before class.' },
+  { min: 300, max: 449, name: 'Seatwarmer', emoji: '📖', description: 'Physically present, mentally... buffering.' },
+  { min: 450, max: 599, name: 'Group Project Ghost', emoji: '📎', description: 'Appears only during final presentation day.' },
+  { min: 600, max: 749, name: 'Google Scholar (Unofficial)', emoji: '🔍', description: 'Master of Ctrl+F and "Quizlet."' },
+  { min: 750, max: 899, name: 'The Lowkey Genius', emoji: '📚', description: 'Never recites, still gets the highest score.' },
+  { min: 900, max: 1049, name: 'Almost Valedictorian', emoji: '🏅', description: 'Always 0.01 short—every time.' },
+  { min: 1050, max: Infinity, name: 'The Valedictornator', emoji: '🎤', description: 'Delivers speeches, aces tests, and might run the school.' }
 ];
 
 // Points calculation based on score percentage
@@ -55,8 +60,13 @@ const getRank = (totalPoints) => {
   return RANKS[0];
 };
 
+// Helper function to get localStorage key
+const getLocalStorageKey = (userId) => userId ? `weeklyTestState_${userId}` : null;
+
 const WeeklyTest = () => {
   const { user } = useAuth();
+  const justRestoredSessionRef = useRef(false); // Ref to signal post-restoration
+
   // --- State Variables ---
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedWeek, setSelectedWeek] = useState('');
@@ -79,7 +89,102 @@ const WeeklyTest = () => {
   const [pointsChange, setPointsChange] = useState(0);
   const [testResult, setTestResult] = useState(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [resultLoading, setResultLoading] = useState(false);
   const [filteredWeeks, setFilteredWeeks] = useState([]);
+  const [restoredSessionData, setRestoredSessionData] = useState(null); // New state
+
+  // Helper function to clear test data from localStorage
+  const clearLocalStorageTestData = () => {
+    const key = getLocalStorageKey(user?.id);
+    if (key) {
+      console.log('Clearing test state from localStorage.');
+      localStorage.removeItem(key);
+    }
+  };
+
+  // --- Effect to Load Test State from LocalStorage ---
+  useEffect(() => {
+    const key = getLocalStorageKey(user?.id);
+    if (!key) {
+      setRestoredSessionData(null); // Ensure no stale data
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('[DEBUG] Attempting to load test state from localStorage with key:', key);
+    // Set loading to true here; main effect will set it to false after processing or fetching.
+    setIsLoading(true); 
+    const savedStateRaw = localStorage.getItem(key);
+
+    if (savedStateRaw) {
+      console.log('[DEBUG] Found saved state in localStorage:', savedStateRaw);
+      try {
+        const savedState = JSON.parse(savedStateRaw);
+        console.log('[DEBUG] Parsed saved state:', savedState);
+
+        // Basic structural validation before passing it on
+        if (
+          savedState &&
+          savedState.selectedSubject && savedState.selectedSubject.id &&
+          savedState.selectedWeek && savedState.selectedWeek.number !== undefined && savedState.selectedWeek.year !== undefined &&
+          savedState.currentSchedule !== undefined && 
+          savedState.isTestStarted !== undefined &&
+          typeof savedState.currentQuestionIndex === 'number' &&
+          savedState.answers !== undefined
+        ) {
+          console.log('[DEBUG] localStorage: Filters and full savedState will be processed by main effect.');
+          // Set filters immediately for UI consistency and for main effect's direct dependencies
+          setSelectedSubject(savedState.selectedSubject);
+          setSelectedWeek(savedState.selectedWeek);
+          setRestoredSessionData(savedState); // Pass the whole object for the main effect to process
+          // setIsLoading(true) is already set. The main effect or fetch will set it to false.
+        } else {
+          console.warn('[DEBUG] localStorage: Invalid or incomplete saved test state found. Clearing localStorage. Problematic state:', savedState);
+          localStorage.removeItem(key);
+          setRestoredSessionData(null);
+          setIsLoading(false); // Failed to load valid structure, stop loading
+        }
+      } catch (e) {
+        console.error('[DEBUG] localStorage: Failed to parse saved test state. Clearing localStorage. Error:', e);
+        localStorage.removeItem(key);
+        setRestoredSessionData(null);
+        setIsLoading(false); // Error in parsing, stop loading
+      }
+    } else {
+      console.log('[DEBUG] localStorage: No saved state found for key:', key);
+      setRestoredSessionData(null);
+      setIsLoading(false); // No saved state, stop loading
+    }
+  }, [user?.id, setSelectedSubject, setSelectedWeek, setRestoredSessionData, setIsLoading]); // Added setters to deps
+
+  // --- Effect to Save Test State to LocalStorage ---
+  useEffect(() => {
+    const key = getLocalStorageKey(user?.id);
+    if (!key) return;
+
+    if (isTestStarted && currentSchedule && tests && tests.length > 0) {
+      const testStateToSave = {
+        selectedSubject,
+        selectedWeek,
+        currentSchedule,
+        isTestStarted,
+        currentQuestionIndex,
+        answers,
+      };
+      // console.log('Saving test state to localStorage:', testStateToSave);
+      localStorage.setItem(key, JSON.stringify(testStateToSave));
+    }
+    // Explicit removal is handled in complete/reset functions
+  }, [
+    selectedSubject,
+    selectedWeek,
+    currentSchedule,
+    isTestStarted,
+    currentQuestionIndex,
+    answers,
+    user?.id,
+    tests
+  ]);
 
   // Fetch subjects and weeks on component mount
   useEffect(() => {
@@ -160,80 +265,185 @@ const WeeklyTest = () => {
     }
   }, [selectedSubject, weeks]);
 
-  // --- Effect to Fetch Tests when Filters Change ---
-  useEffect(() => {
-    const fetchTests = async () => {
-      if (!selectedSubject || !selectedWeek) {
+  // --- Helper function to fetch and set new test data ---
+  const fetchAndSetNewTestData = React.useCallback(async () => {
+    if (!selectedSubject || !selectedSubject.id || !selectedWeek || selectedWeek.number === undefined || selectedWeek.year === undefined) {
+      console.log('[DEBUG] fetchAndSetNewTestData: Filters not selected. Aborting fetch.');
+      // Ensure states are reset if filters are incomplete, even if called directly
+      setIsLoading(false); // Stop loading if it was somehow true
+      setError(null);      // Clear any previous errors
+      // Do not clear testStarted here, let the main effect handle it based on context
+      return;
+    }
+
+    console.log(`[DEBUG] fetchAndSetNewTestData called for Subject: ${selectedSubject?.name}, Week: ${selectedWeek?.display}`);
+    setIsLoading(true);
+    setError(null);
+    // This is critical: fetching new data means it's a new test session or a reset.
+    setIsTestStarted(false);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setTests([]);
+    setCurrentSchedule(null);
+
+    try {
+      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(
+        `${backendurl}/api/weeks/active?subjectId=${encodeURIComponent(selectedSubject.id)}&weekNumber=${encodeURIComponent(selectedWeek.number)}&year=${encodeURIComponent(selectedWeek.year)}`,
+        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      const schedule = Array.isArray(data) ? data.find(s =>
+        s.subjectId?._id === selectedSubject.id &&
+        s.weekNumber === selectedWeek.number &&
+        s.year === selectedWeek.year &&
+        s.isActive
+      ) : null;
+
+      if (!schedule) {
+        setError('No active schedule found for this week and subject. Please contact your administrator.');
         setTests([]);
+        return;
+      }
+      setCurrentSchedule(schedule);
+      if (schedule.questionIds && schedule.questionIds.length > 0) {
+        setTests(schedule.questionIds);
+      } else {
+        setError('No questions assigned to this week schedule. Please contact your administrator.');
+        setTests([]);
+      }
+    } catch (err) {
+      setError(`Failed to load tests: ${err.message}. Please try again later.`);
+      setTests([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    selectedSubject, // Dependency: reads selectedSubject
+    selectedWeek,    // Dependency: reads selectedWeek
+    setIsLoading,    // Setter
+    setError,        // Setter
+    setIsTestStarted,// Setter
+    setCurrentQuestionIndex, // Setter
+    setAnswers,      // Setter
+    setTests,        // Setter
+    setCurrentSchedule // Setter
+    // user?.id is not directly used here but in the calling effect
+  ]);
+
+  // Main Test Logic Effect
+  useEffect(() => {
+    console.log(`[DEBUG] MAIN EFFECT RUN. User: ${user?.id}, SelSub: ${selectedSubject?.name}, SelWeek: ${selectedWeek?.display}, IsTestStarted_STATE: ${isTestStarted}, CQI_STATE: ${currentQuestionIndex}, HasRestoredData: ${!!restoredSessionData}, JustRestoredFlag: ${justRestoredSessionRef.current}`);
+
+    if (restoredSessionData) {
+      const dataToProcess = restoredSessionData;
+      setRestoredSessionData(null); // Consume the data immediately
+
+      console.log('[DEBUG] MAIN EFFECT: Processing restoredSessionData:', dataToProcess);
+
+      const {
+        selectedSubject: rSelectedSubject,
+        selectedWeek: rSelectedWeek,
+        currentSchedule: rCurrentSchedule,
+        isTestStarted: rIsTestStarted,
+        currentQuestionIndex: rCurrentQuestionIndex,
+        answers: rAnswers
+      } = dataToProcess;
+
+      if (
+        rIsTestStarted &&
+        rCurrentSchedule && rCurrentSchedule.questionIds && rCurrentSchedule.questionIds.length > 0 &&
+        rSelectedSubject && rSelectedSubject.id &&
+        rSelectedWeek && rSelectedWeek.number !== undefined && rSelectedWeek.year !== undefined &&
+        rCurrentSchedule.subjectId?._id === rSelectedSubject.id &&
+        rCurrentSchedule.weekNumber === rSelectedWeek.number &&
+        rCurrentSchedule.year === rSelectedWeek.year &&
+        rCurrentSchedule.questionIds.every(q => q && q._id) &&
+        rCurrentQuestionIndex < rCurrentSchedule.questionIds.length && rCurrentQuestionIndex >= 0
+      ) {
+        console.log('[DEBUG] MAIN EFFECT: Restored session from dataToProcess is VALID. Setting all states. CQI:', rCurrentQuestionIndex);
+        setSelectedSubject(rSelectedSubject);
+        setSelectedWeek(rSelectedWeek);
+        setCurrentSchedule(rCurrentSchedule);
+        setTests(rCurrentSchedule.questionIds);
+        setIsTestStarted(rIsTestStarted);
+        setCurrentQuestionIndex(rCurrentQuestionIndex);
+        setAnswers(rAnswers || {});
+        setError(null);
+        setIsLoading(false);
+        setShowAnimation(true); // Ensure question content is shown with animation
+        justRestoredSessionRef.current = true; // Signal for the next run
+        return; 
+      } else {
+        console.warn('[DEBUG] MAIN EFFECT: Restored session from dataToProcess FAILED validation or was not an active test. Details:', { rIsTestStarted, rCQI: rCurrentQuestionIndex, rScheduleID: rCurrentSchedule?._id });
+        // If validation fails, isLoading was true from localStorage effect.
+        // It will either proceed to fetch (if filters are valid) which handles isLoading,
+        // or it will hit a filter check / user check which sets isLoading(false).
+      }
+    }
+
+    // If this run is immediately after a successful restoration, skip further processing.
+    if (justRestoredSessionRef.current) {
+      justRestoredSessionRef.current = false; // Consume the flag
+      console.log('[DEBUG] MAIN EFFECT: Post-restoration run. No-op. isLoading should be false.');
+      // setIsLoading(false); // Should have been set by the restoration block
+      return;
+    }
+
+    if (!user?.id) {
+        console.log('[DEBUG] MAIN EFFECT: No user.id. Returning.');
+        setIsLoading(false);
+        return;
+    }
+
+    // If filters are not selected (and no session was successfully restored AND preserved above)
+    if (!selectedSubject || !selectedSubject.id || !selectedWeek || selectedWeek.number === undefined || selectedWeek.year === undefined) {
+      console.log(`[DEBUG] MAIN EFFECT: Filters not fully selected. SelSub: ${selectedSubject?.name}, SelWeek: ${selectedWeek?.display}.`);
+      // If a test was marked as started (e.g. from a failed restore attempt or previous state)
+      // but filters are now incomplete, we need to reset the test state.
+      if (isTestStarted) {
+        console.log('[DEBUG] MAIN EFFECT: Filters not selected BUT test was started. Resetting active test state.');
         setIsTestStarted(false);
         setCurrentQuestionIndex(0);
         setAnswers({});
-        setError(null);
-        setCurrentSchedule(null); // Reset schedule
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      setIsTestStarted(false);
-      setCurrentQuestionIndex(0);
-      setAnswers({});
-      setTests([]);
-      setCurrentSchedule(null); // Reset schedule
-
-      try {
-        const backendurl = import.meta.env.VITE_BACKEND_URL;
-        console.log('Fetching tests with params:', { selectedSubject, selectedWeek });
-
-        // First fetch the week schedule
-        const response = await fetch(
-          `${backendurl}/api/weeks/active?subjectId=${encodeURIComponent(selectedSubject.id)}&weekNumber=${encodeURIComponent(selectedWeek.number)}&year=${encodeURIComponent(selectedWeek.year)}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Received week schedule data:', data);
-
-        // Find the matching schedule
-        const schedule = Array.isArray(data) ?
-          data.find(s => s.subjectId._id === selectedSubject.id &&
-            s.weekNumber === selectedWeek.number &&
-            s.isActive) : null;
-
-        if (!schedule) {
-          setError('No active schedule found for this week and subject. Please contact your administrator.');
-          return;
-        }
-
-        // Store the schedule in state
-        setCurrentSchedule(schedule);
-
-        // The questions should already be populated in the schedule response
-        if (schedule.questionIds && schedule.questionIds.length > 0) {
-          console.log('Questions from schedule:', schedule.questionIds);
-          setTests(schedule.questionIds);
-        } else {
-          setError('No questions assigned to this week schedule. Please contact your administrator.');
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(`Failed to load tests: ${err.message}. Please try again later.`);
         setTests([]);
-      } finally {
-        setIsLoading(false);
+        setCurrentSchedule(null);
+        setError(null); // Clear any test-related errors
+      } else {
+        // Filters not selected, and no test was active. Minimal reset.
+        setError(null);
       }
-    };
+      setIsLoading(false);
+      return;
+    }
 
-    fetchTests();
-  }, [selectedSubject, selectedWeek]);
+    // If we reach here: user is loaded, filters ARE selected in component state.
+    // AND ( (no restoredSessionData was processed) OR 
+    //      (restoredSessionData was processed but FAILED validation) )
+    // So, fetch new data for the selectedSubject and selectedWeek from component state.
+    console.log(`[DEBUG] MAIN EFFECT: Proceeding to fetchAndSetNewTestData for Sub: ${selectedSubject.name} Week: ${selectedWeek.display}.`);
+    fetchAndSetNewTestData();
+
+  }, [
+    user?.id,
+    selectedSubject, // Depends on component state for filters
+    selectedWeek,
+    restoredSessionData, // Triggers processing of restored data
+    fetchAndSetNewTestData, // Memoized fetch function
+    // Setters are not needed in deps as per React guidelines if they are stable,
+    // and state updates within an effect for consumption (like setRestoredSessionData(null))
+    // will cause a re-run which is handled.
+    setRestoredSessionData, // because we call it
+    setIsLoading, // For the return paths
+    setError, // For the return paths
+    setIsTestStarted, setCurrentQuestionIndex, setAnswers, setTests, setCurrentSchedule, // for reset path if filters not selected
+    setSelectedSubject, setSelectedWeek, // for setting state from rSelectedSubject if validation passes
+    justRestoredSessionRef
+  ]);
 
   // --- Audio Effects ---
   const playSound = (type) => {
@@ -296,15 +506,14 @@ const WeeklyTest = () => {
       setError('No active schedule found. Please try again.');
       return;
     }
-
-    // Check if user exists and has student data
     if (!user || !user.id) {
       setError('Student data not found. Please log in again.');
       return;
     }
-
     setIsTestStarted(false);
     playSound('complete');
+    setResultLoading(true);
+    setShowResultModal(true);
 
     // Calculate score
     const finalScore = Object.entries(answers).reduce((acc, [questionId, answer]) => {
@@ -339,7 +548,8 @@ const WeeklyTest = () => {
       pointsGain: pointsGain
     };
 
-    console.log('Sending test result data:', requestData);
+    // console.log('WeeklyTest SUBMIT requestData:', requestData); // Existing log
+    console.log('[DEBUG 400_ERROR_CHECK] Full requestData for POST /api/weekly-test/results:', JSON.stringify(requestData, null, 2));
 
     try {
       const backendurl = import.meta.env.VITE_BACKEND_URL;
@@ -365,21 +575,31 @@ const WeeklyTest = () => {
                 }
               }
             );
-
             if (previousResultsResponse.ok) {
               const previousResults = await previousResultsResponse.json();
               setScore(previousResults.data.score);
               setPointsEarned(previousResults.data.pointsEarned);
               setCurrentRank(getRank(previousResults.data.totalPoints));
               setTestResult(previousResults.data);
-              setShowResultModal(true);
-              return;
+            } else {
+              // Failed to fetch previous results, but test IS already completed.
+              console.error('Test already completed, but failed to fetch previous results. Status:', previousResultsResponse.status);
+              setError('You have already completed this test. Failed to load your previous score.');
+              setTestResult(null); // Explicitly nullify testResult on fetch failure
             }
           } catch (fetchErr) {
-            console.error('Error fetching previous results:', fetchErr);
-            throw new Error('Failed to fetch previous test results');
+            console.error('Error fetching previous results after "already completed" notice:', fetchErr);
+            setError('You have already completed this test. Error fetching your previous score.');
+            setTestResult(null); // Explicitly nullify testResult on fetch failure
+          } finally {
+            // Whether fetching previous results succeeded or failed, the original test submission was for an already completed test.
+            // Clear localStorage to prevent re-submission attempts on refresh.
+            clearLocalStorageTestData();
+            setResultLoading(false); // Ensure loading is stopped.
+            return; // Exit handleTestComplete as the main action (submit) is resolved as "already completed".
           }
         }
+        // If it wasn't an "already completed" error, or if some other !response.ok issue occurred with the POST
         throw new Error(data.message || `Failed to save test result: ${response.status} ${response.statusText}`);
       }
 
@@ -398,10 +618,13 @@ const WeeklyTest = () => {
         score: data.data.testResult.score,
         totalQuestions: data.data.testResult.totalQuestions
       });
-      setShowResultModal(true);
+      setResultLoading(false);
+      clearLocalStorageTestData(); // Clear after successful save
     } catch (err) {
       console.error('Error saving test result:', err);
       setError(`Failed to save test result: ${err.message}. Please try again later.`);
+      setResultLoading(false);
+      // Decide if to clear on error: for now, only on success/already completed.
     }
   };
 
@@ -445,7 +668,14 @@ const WeeklyTest = () => {
   const handleResetFilters = () => {
     setSelectedSubject('');
     setSelectedWeek('');
-    // Other state resets happen via useEffect triggered by filter change
+    setIsTestStarted(false);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setTests([]);
+    setCurrentSchedule(null);
+    setError(null);
+    setShowResultModal(false); // Hide modal on reset
+    clearLocalStorageTestData(); // Clear on filter reset
   };
 
   // Handle test submission
@@ -500,76 +730,28 @@ const WeeklyTest = () => {
   // --- Render Logic ---
   return (
     <div className={styles.testListContainer}>
+      {/* <div className={styles.floatingShapes}>
+        <div className={styles.floatingShape1}></div>
+        <div className={styles.floatingShape2}></div>
+        <div className={styles.floatingShape3}></div>
+      </div> */}
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Weekly Tests</h1>
-        <p className={styles.pageSubtitle}>Take tests to improve your skills and earn MMR points</p>
+        <p className={styles.pageSubtitle}>Take tests to improve your skills and earn SPR points</p>
       </div>
 
       {/* Filter Panel */}
-      <div className={styles.filterPanel}>
-        <h2 className={styles.panelHeader}>🔧 Filters</h2>
-        <div className={styles.filterControls}>
-          {/* Subject Filter */}
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Subject</label>
-            <select
-              value={selectedSubject ? selectedSubject.id : ''}
-              onChange={(e) => {
-                const subject = subjects.find(s => s.id === e.target.value);
-                setSelectedSubject(subject || '');
-              }}
-              className={styles.filterSelect}
-              disabled={isLoading || isTestStarted}
-            >
-              <option key="default-subject" value="">Select Subject</option>
-              {Array.isArray(subjects) && subjects.length > 0 ? (
-                subjects.map((subject, index) => (
-                  <option key={`subject-${subject.id}-${index}`} value={subject.id}>
-                    {subject.name}
-                  </option>
-                ))
-              ) : (
-                <option value="" disabled>No subjects available</option>
-              )}
-            </select>
-          </div>
-          {/* Week Filter */}
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Week</label>
-            <select
-              value={selectedWeek ? selectedWeek.number : ''}
-              onChange={(e) => {
-                const week = filteredWeeks.find(w => w.number === parseInt(e.target.value));
-                setSelectedWeek(week || '');
-              }}
-              className={styles.filterSelect}
-              disabled={isLoading || isTestStarted}
-            >
-              <option key="default-week" value="">Select Week</option>
-              {Array.isArray(filteredWeeks) && filteredWeeks.length > 0 ? (
-                filteredWeeks.map((week, index) => (
-                  <option key={`week-${week.number}-${week.year}-${index}`} value={week.number}>
-                    {week.display}
-                  </option>
-                ))
-              ) : (
-                <option value="" disabled>No weeks available</option>
-              )}
-            </select>
-          </div>
-          {/* Reset Button */}
-          <div className={styles.filterGroup}>
-            <button
-              onClick={handleResetFilters}
-              className={styles.filterButton}
-              disabled={isLoading || isTestStarted}
-            >
-              Reset Filters
-            </button>
-          </div>
-        </div>
-      </div>
+      <FilterPanel
+        selectedSubject={selectedSubject}
+        setSelectedSubject={setSelectedSubject}
+        selectedWeek={selectedWeek}
+        setSelectedWeek={setSelectedWeek}
+        subjects={subjects}
+        weeks={weeks}
+        filteredWeeks={filteredWeeks}
+        handleResetFilters={handleResetFilters}
+      />
 
       {/* Content Panel: Displays loading, error, start screen, or quiz */}
       <div className={styles.contentPanel}>
@@ -601,79 +783,18 @@ const WeeklyTest = () => {
           </div>
         ) : isTestStarted && currentQuestion ? (
           // Quiz View (Test started, current question available)
-          <div className={styles.quizArea}>
-            {/* Progress Indicator */}
-            <div className={styles.progressIndicator}>
-              Question {currentQuestionIndex + 1} of {tests.length}
-            </div>
-
-            {/* Animated Question Container */}
-            <div
-              key={currentQuestionIndex}
-              className={`${styles.questionContainer} ${showAnimation ? styles.questionVisible : styles.questionHidden}`}
-            >
-              {/* Bloom's Taxonomy Level */}
-              {currentQuestion.bloomsLevel && (
-                <div style={{ fontSize: '0.95rem', color: '#80ffce', marginBottom: 4, fontFamily: 'var(--font-body)' }}>
-                  Bloom's Taxonomy Level: <b>{currentQuestion.bloomsLevel}</b>
-                </div>
-              )}
-              {/* Question Text */}
-              <h4>{`Q${currentQuestionIndex + 1}: ${currentQuestion.questionText}`}</h4>
-
-              {/* Choices List */}
-              {currentQuestion.choices && currentQuestion.choices.length > 0 ? (
-                <div className={styles.choicesList}>
-                  {currentQuestion.choices.map((choice, idx) => {
-                    const inputId = `q${currentQuestionIndex}-choice${idx}`;
-                    const isSelected = answers[currentQuestion._id] === choice;
-                    return (
-                      <label key={idx} htmlFor={inputId} className={`${styles.choiceItem} ${isSelected ? styles.choiceSelected : ''}`}> 
-                        <input
-                          id={inputId}
-                          type="radio"
-                          className={styles.radioInput}
-                          value={choice}
-                          checked={isSelected}
-                          onChange={() => handleAnswerSelect(currentQuestion._id, choice)}
-                        />
-                        <span className={styles.radioLabel}>{choice}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className={styles.infoMessage}>No choices available for this question.</p>
-              )}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className={styles.navigationButtons}>
-              <button
-                onClick={handlePreviousQuestion}
-                disabled={currentQuestionIndex === 0}
-                className={styles.navButton}
-              >
-                Previous
-              </button>
-
-              {currentQuestionIndex < tests.length - 1 ? (
-                <button
-                  onClick={handleNextQuestion}
-                  className={styles.navButton}
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  onClick={handleSubmit}
-                  className={styles.submitButton}
-                >
-                  Submit Test
-                </button>
-              )}
-            </div>
-          </div>
+          <QuestionDisplay
+            currentQuestion={currentQuestion}
+            currentQuestionIndex={currentQuestionIndex}
+            tests={tests}
+            answers={answers}
+            handleAnswerSelect={handleAnswerSelect}
+            handleNextQuestion={handleNextQuestion}
+            handlePreviousQuestion={handlePreviousQuestion}
+            handleSubmit={handleSubmit}
+            isTestStarted={isTestStarted}
+            showAnimation={showAnimation}
+          />
         ) : showResults ? (
           // Results Screen
           <div className={styles.resultsContainer}>
@@ -699,58 +820,14 @@ const WeeklyTest = () => {
             </div>
           </div>
         ) : testResult ? (
-          <div className={styles.resultSection}>
-            <h2 className={styles.resultTitle}>Test Results</h2>
-
-            <div className={styles.scoreSection}>
-              <div className={styles.scoreDisplay}>
-                <span className={`${styles.score} ${getScoreColor(testResult.score, testResult.totalQuestions)}`}>
-                  {testResult.score}/{testResult.totalQuestions}
-                </span>
-                <span className={styles.scorePercentage}>
-                  {testResult.score && testResult.totalQuestions ? 
-                    Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.pointsSection}>
-              <div className={styles.pointsDisplay}>
-                <span className={styles.pointsLabel}>PR Points</span>
-                <span className={`${styles.pointsValue} ${getPointsColor(pointsEarned)}`}>
-                  {pointsEarned > 0 ? '+' : ''}{pointsEarned}
-                </span>
-              </div>
-              <div className={styles.totalPoints}>
-                <span className={styles.totalPointsLabel}>Total PR Points</span>
-                <span className={styles.totalPointsValue}>{pointsEarned}</span>
-              </div>
-            </div>
-
-            <div className={styles.rankSection}>
-              <span className={styles.rankLabel}>Current Rank</span>
-              <span className={`${styles.rankValue} ${styles[`rank${currentRank?.name || 'Apprentice'}`]}`}>
-                {currentRank?.emoji} {currentRank?.name}
-              </span>
-            </div>
-
-            {currentRank?.description && (
-              <div style={{ fontSize: 14, color: '#80ffce', marginBottom: 10, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
-                {currentRank.description}
-              </div>
-            )}
-
-            <button
-              className={styles.retakeButton}
-              onClick={() => {
-                setTestResult(null);
-                setCurrentQuestionIndex(0);
-                setAnswers({});
-              }}
-            >
-              Retake Test
-            </button>
-          </div>
+          <ResultModal
+            testResult={testResult}
+            currentRank={currentRank}
+            pointsEarned={pointsEarned}
+            handleResetFilters={handleResetFilters}
+            loading={resultLoading}
+            error={error}
+          />
         ) : (
           // Fallback State
           <div className={styles.messageContainer}>
@@ -761,87 +838,27 @@ const WeeklyTest = () => {
 
       {/* Leaderboard Modal */}
       {showLeaderboard && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h3>Leaderboard</h3>
-            <div className={styles.leaderboardList}>
-              {leaderboard.length > 0 ? (
-                leaderboard.map((result, index) => (
-                  <div key={result._id} className={styles.leaderboardItem}>
-                    <span className={styles.rank}>#{index + 1}</span>
-                    <span className={styles.name}>{result.studentId.firstName} {result.studentId.lastName}</span>
-                    <span className={styles.score}>{result.score}/{result.totalQuestions}</span>
-                    <span className={styles.points}>{result.pointsEarned} points</span>
-                  </div>
-                ))
-              ) : (
-                <p className={styles.infoMessage}>No results available for this week.</p>
-              )}
-            </div>
-            <button onClick={() => setShowLeaderboard(false)} className={styles.closeButton}>
-              Close
-            </button>
-          </div>
-        </div>
+        <Leaderboard
+          leaderboard={leaderboard}
+          handleViewLeaderboard={handleViewLeaderboard}
+          handleResetFilters={handleResetFilters}
+        />
       )}
 
       {/* Test Results Modal */}
-      {showResultModal && testResult && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent} style={{ maxWidth: 420, borderRadius: 12, background: 'linear-gradient(135deg, #1a1a2e 60%, #00ff9d22 100%)', boxShadow: '0 8px 32px 0 rgba(0,255,157,0.15), 0 1.5px 8px 0 #00ff9d44' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 48, marginBottom: 8, color: '#00ff9d', textShadow: '0 0 12px #00ff9d88' }}>🏆</div>
-              <h2 className={styles.resultTitle} style={{ color: '#00ff9d', fontSize: '1.5rem', marginBottom: 8, textShadow: '0 0 8px #00ff9d88' }}>Test Complete!</h2>
-              <div style={{ fontSize: 18, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
-                {testResult.score && testResult.totalQuestions ? (
-                  <>
-                    <span style={{ fontWeight: 700, fontSize: 32, color: '#80ffce', textShadow: '0 0 8px #00ff9d44' }}>{testResult.score}</span>
-                    <span style={{ fontWeight: 400, fontSize: 22, color: '#fff' }}> / {testResult.totalQuestions}</span>
-                  </>
-                ) : null}
-                <span style={{ display: 'block', fontSize: 16, color: '#80ffce', marginTop: 2 }}>
-                  ({testResult.score && testResult.totalQuestions ? Math.round((testResult.score / testResult.totalQuestions) * 100) : 0}%)
-                </span>
-              </div>
-              <div style={{ fontSize: 20, color: '#fff', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 28, color: testResult.pointsEarned > 0 ? '#00ff9d' : testResult.pointsEarned < 0 ? '#ff4d4f' : '#fff', textShadow: '0 0 8px #00ff9d44' }}>💎</span>
-                <span style={{ fontWeight: 700, fontSize: 24, color: testResult.pointsEarned > 0 ? '#00ff9d' : testResult.pointsEarned < 0 ? '#ff4d4f' : '#fff' }}>{testResult.pointsEarned > 0 ? '+' : ''}{testResult.pointsEarned} PR Points</span>
-              </div>
-              <div style={{ fontSize: 16, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
-                <span>Total PR Points: </span>
-                <span style={{ fontWeight: 700, color: '#80ffce' }}>{testResult.totalPoints}</span>
-              </div>
-              <div style={{ fontSize: 16, color: '#fff', marginBottom: 18, fontFamily: 'var(--font-body)' }}>
-                <span>Current Rank: </span>
-                <span style={{ fontWeight: 700, color: '#00ff9d' }}>{currentRank?.emoji} {currentRank?.name}</span>
-              </div>
-              {currentRank?.description && (
-                <div style={{ fontSize: 14, color: '#80ffce', marginBottom: 10, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
-                  {currentRank.description}
-                </div>
-              )}
-              <div style={{ fontSize: 15, color: '#80ffce', marginBottom: 18, fontFamily: 'var(--font-body)', textAlign: 'center' }}>
-                {testResult.pointsEarned > 0
-                  ? 'Great job! Keep up the good work!'
-                  : testResult.pointsEarned < 0
-                  ? "Don't give up! Review and try again!"
-                  : 'Keep practicing to improve your score!'}
-              </div>
-              <div className={styles.modalActions} style={{ marginTop: 18 }}>
-                <button
-                  className={styles.closeButton}
-                  onClick={() => {
-                    setShowResultModal(false);
-                    handleResetFilters();
-                  }}
-                  style={{ fontWeight: 700, fontSize: 18, padding: '10px 32px', background: '#00ff9d', color: '#19122e', border: 'none', borderRadius: 8, boxShadow: '0 2px 8px #00ff9d44', cursor: 'pointer', transition: 'all 0.2s' }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {showResultModal && (
+        <ResultModal
+          showResultModal={showResultModal}
+          setShowResultModal={setShowResultModal}
+          testResult={testResult}
+          score={score}
+          pointsEarned={pointsEarned}
+          currentRank={currentRank}
+          getScoreColor={getScoreColor}
+          getPointsColor={getPointsColor}
+          loading={resultLoading}
+          error={error}
+        />
       )}
     </div>
   );

@@ -1,320 +1,407 @@
 /* src/components/Crew.module.css */
 
-/* Import Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+/* Import Fonts - Blueprint Theme Aligned */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap');
 
-/* --- Removed global variable definition block --- */
+/* --- Blueprint Capsule Corp Theme Variables --- */
+:root {
+  --blueprint-bg: #0D131A;
+  --blueprint-text: #E0F2F7;
+  --blueprint-text-muted: #A7C0C9;
+  --blueprint-text-rgb: 224, 242, 247;
+  --blueprint-accent: #82DFFF;
+  --blueprint-accent-rgb: 130, 223, 255;
+  --blueprint-accent-secondary: #FFDE59;
+  --blueprint-panel-bg: rgba(20, 30, 40, 0.85);
+  --blueprint-panel-bg-opaque: rgb(20, 30, 40);
+  --blueprint-panel-header-bg: rgba(25, 37, 50, 0.9);
+  --blueprint-panel-border: rgba(130, 223, 255, 0.5);
+  --blueprint-panel-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  --blueprint-button-bg: var(--blueprint-accent);
+  --blueprint-button-text: var(--blueprint-bg);
+  --blueprint-button-hover-bg: #A2E9FF;
+  --blueprint-input-bg: rgba(13, 20, 26, 0.8);
+  --blueprint-input-border: rgba(130, 223, 255, 0.4);
+  --blueprint-input-text: var(--blueprint-text);
+  --blueprint-input-focus-border: var(--blueprint-accent);
+  --blueprint-danger: #FF6B6B;
+  --blueprint-warning: #FFD700;
+  --blueprint-success: #6BFFB8;
 
-.crewContainer {
-  /* --- Theme Variables Scoped to .crewContainer --- */
-  --font-game: 'Press Start 2P', cursive;
-  --font-body: 'VT323', monospace;
-  --color-accent: #00ff9d;
-  --color-accent-hover: #80ffce;
-  --color-text-base: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-bg-start: #0c051a;
-  --color-bg-mid: #1d1135;
-  --color-panel: rgba(15, 12, 41, 0.9);
-  --color-panel-border: rgba(0, 255, 157, 0.6);
-  --color-panel-border-glow: rgba(0, 255, 157, 0.3); /* Keep if used elsewhere */
-  --color-pixel-shadow: rgba(0,0,0, 0.7);
-  --color-input-bg: rgba(0, 0, 0, 0.4);
-  --color-input-border: rgba(0, 255, 157, 0.5);
-  --color-selected-border: #ffcc00;
-  --color-tab-active-bg: rgba(0, 255, 157, 0.15);
-  --color-tab-inactive-bg: rgba(0, 0, 0, 0.3);
-  --color-tab-inactive-border: rgba(0, 255, 157, 0.3);
-  /* --- End of Scoped Variables --- */
-
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column; /* Stack title and content */
-  align-items: center;
-  padding: 40px 20px 60px 20px; /* Add bottom padding */
-  font-family: var(--font-game); /* Base font */
-  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid));
-  color: var(--color-text-base); /* Base text color */
+  /* Fonts */
+  --font-primary: 'Montserrat', sans-serif;
+  --font-header: 'Roboto Condensed', sans-serif;
+  --font-display: 'Bangers', cursive;
 }
 
-.pageHeader {
-    width: 100%;
-    max-width: 900px; /* Match panel width or adjust */
-    margin-bottom: 25px;
-    text-align: left;
+/* --- Standard Blueprint Keyframes --- */
+@keyframes powerUpBg {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
-.pageTitle {
-    font-size: 1.8rem;
-    color: var(--color-accent);
-    margin-bottom: 5px;
-    text-shadow: 2px 2px 0 var(--color-pixel-shadow);
-    /* Font family inherited */
+@keyframes titleSmash {
+  0% { opacity: 0; transform: scale(1.5) translateY(-20px); }
+  60% { opacity: 1; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-.pageSubtitle {
-    font-family: var(--font-body); /* Use body font */
-    font-size: 1.1rem;
-    color: var(--color-text-muted);
+@keyframes panelFlyIn { /* Ensure this matches standard if modified previously */
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-.crewPanel {
-  width: 100%;
-  max-width: 900px; /* Adjust as needed */
-  background-color: var(--color-panel);
-  border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-pixel-shadow), 0 0 15px var(--color-panel-border-glow), inset 0 0 10px rgba(0,0,0,0.6);
-  padding: 25px 30px;
-  border-radius: 0;
-  animation: fadeIn 0.5s ease-out forwards;
-  margin-bottom: 30px; /* Space between panels */
-}
-
-.panelHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--color-accent);
-  font-size: 1.1rem;
-  font-weight: normal; /* Explicitly normal */
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed var(--color-panel-border);
-  /* Font family inherited */
-}
-.panelIcon {
-    font-size: 1.3rem; /* Adjust icon size */
-    opacity: 0.9;
-    /* Icon font needs setup (e.g., Font Awesome) */
-}
-
-/* Add Friend Section */
-.addFriendForm {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.addFriendInput {
-    flex-grow: 1; /* Take available space */
-    font-family: var(--font-body); /* Use body font */
-    font-size: 1.1rem;
-    padding: 10px 12px;
-    background-color: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-base);
-    border-radius: 0;
-    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
-}
-.addFriendInput::placeholder {
-    color: var(--color-text-muted);
-    opacity: 0.8;
-}
-.addFriendInput:focus {
-    outline: none;
-    border-color: var(--color-selected-border);
-    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
-}
-
-/* Generic Button Style (reuse/import if global) */
-.gameButton {
-  font-family: var(--font-game); /* Use game font */
-  padding: 10px 18px; /* Adjusted padding */
-  border: 2px solid var(--color-accent);
-  color: var(--color-accent);
-  background-color: rgba(0, 0, 0, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  /* Use accent color implicitly via RGBA */
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4); /* Accent */
-  border-radius: 0;
-  user-select: none;
-  white-space: nowrap;
-}
-.gameButton:hover:not(:disabled) {
-  background-color: var(--color-accent);
-  color: var(--color-bg-start); /* Use bg color for contrast */
-  box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), 0 0 10px var(--color-accent-hover); /* Use hover color */
-  transform: translate(-1px, -1px);
-}
-.gameButton:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
-  /* Use hover colors for active */
-  background-color: var(--color-accent-hover);
-  color: var(--color-bg-start);
-}
-.gameButton:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    filter: grayscale(50%);
-    /* Ensure disabled state retains base styles */
-    background-color: rgba(0, 0, 0, 0.6);
-    color: var(--color-accent);
-    border-color: var(--color-accent);
-    box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
-    transform: none;
-}
-.gameButton:disabled:hover { /* Prevent hover effect when disabled */
-   transform: none;
-   background-color: rgba(0, 0, 0, 0.6);
-   color: var(--color-accent);
-   box-shadow: 3px 3px 0 0 var(--color-pixel-shadow), inset 0 0 4px rgba(0, 255, 157, 0.4);
-}
-
-.sendRequestButton {
-    composes: gameButton; /* Inherit base styles */
-    /* Specific variant if needed */
-    background-color: var(--color-accent); /* Make it stand out */
-    color: var(--color-bg-start);
-    flex-shrink: 0; /* Prevent shrinking */
-}
-.sendRequestButton:hover:not(:disabled) {
-    background-color: var(--color-accent-hover);
-    color: var(--color-bg-start); /* Ensure text color remains correct */
-}
-
-
-/* Friend List Section */
-.friendListHeader {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrap on small screens */
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px; /* Space between tabs and search */
-    margin-bottom: 20px;
-}
-.tabContainer {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap; /* Allow tabs to wrap */
-}
-.tabButton {
-    font-family: var(--font-game); /* Use game font */
-    font-size: 0.7rem;
-    padding: 6px 10px 5px 10px; /* Fine-tune padding */
-    border: 1px solid var(--color-tab-inactive-border);
-    background-color: var(--color-tab-inactive-bg);
-    color: var(--color-text-muted);
-    border-radius: 0;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: flex; /* Align icon and text */
-    align-items: center;
-    gap: 5px;
-}
-.tabButton:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-}
-.tabButton.activeTab { /* Dynamic class */
-    background-color: var(--color-tab-active-bg);
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    box-shadow: inset 0 0 5px rgba(0, 255, 157, 0.3);
-}
-.tabIcon {
-    font-size: 0.8rem; /* Adjust icon size */
-    opacity: 0.8;
-    /* Icon font needs setup (e.g., Font Awesome) */
-}
-.tabCount {
-    font-family: var(--font-body); /* Use body font */
-    font-size: 0.9rem;
-    margin-left: 3px;
-}
-
-/* Wrap search input and icon together */
-.searchContainer {
-    position: relative; /* For icon positioning */
-    min-width: 200px; /* Prevent being too small */
-}
-.searchFriendsInput {
-    font-family: var(--font-body); /* Use body font */
-    font-size: 1rem;
-    padding: 6px 10px 6px 30px; /* Padding for icon */
-    background-color: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-base);
-    border-radius: 0;
-    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4);
-    width: 100%; /* Make input fill container */
-}
-.searchFriendsInput::placeholder {
-    color: var(--color-text-muted);
-    opacity: 0.8;
-}
-.searchFriendsInput:focus {
-    outline: none;
-    border-color: var(--color-selected-border);
-    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.4), 0 0 5px var(--color-selected-border);
-}
-.searchIconContainer { /* Wrapper for search icon inside input area */
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    pointer-events: none; /* Click through icon */
-    font-size: 1rem; /* Adjust icon size */
-    /* Icon font needs setup (e.g., Font Awesome) */
-}
-
-
-/* Friend List Area */
-.friendListArea {
-    margin-top: 0; /* Removed default margin, header has margin-bottom */
-    min-height: 150px; /* Give some space for the message */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Center "No Friends" message */
-}
-.noFriendsMessage {
-    text-align: center;
-    color: var(--color-text-muted);
-    /* Font family inherited */
-}
-.noFriendsIcon {
-    font-size: 3.5rem; /* Large icon */
-    margin-bottom: 15px;
-    opacity: 0.5;
-    /* Icon font needs setup (e.g., Font Awesome) */
-}
-.noFriendsTitle {
-    font-size: 1.2rem;
-    color: var(--color-text-base);
-    margin-bottom: 5px;
-    /* Font family inherited */
-}
-.noFriendsSubtitle {
-    font-family: var(--font-body); /* Use body font */
-    font-size: 1rem;
-}
-
-/* Add .friendItem styles later when displaying the list */
-/* .friendItem { ... } */
-/* .friendItemPending { ... } */
-/* .friendItemOnline { ... } */
-/* .friendItemOffline { ... } */
-/* .friendActions { ... } */
-/* .acceptButton { ... } */
-/* .declineButton { ... } */
-/* .removeButton { ... } */
-
-
-/* Keyframes */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
+@keyframes fadeInSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-    .pageHeader { text-align: center; }
-    .addFriendForm { flex-direction: column; align-items: stretch; }
-    .sendRequestButton { width: 100%; } /* Make button full width */
-    .friendListHeader { justify-content: center; } /* Center tabs/search */
-    .searchContainer { width: 100%; } /* Allow search to take full width */
+/* Base Container */
+.crewContainer {
+  min-height: 100vh;
+  padding: 20px;
+  font-family: var(--font-primary);
+  background-color: var(--blueprint-bg);
+  color: var(--blueprint-text);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center panels horizontally */
+  gap: 30px; /* Space between header, add panel, and friends panel */
+  animation: powerUpBg 0.7s ease-out forwards;
+}
+
+/* Page Header */
+.pageHeader {
+  width: 100%;
+  max-width: 800px; /* Consistent max width */
+  text-align: center; /* Center header text */
+  margin-bottom: 10px; /* Reduced margin as container has gap */
+  /* Children will be animated */
+}
+
+.pageTitle {
+  font-family: var(--font-display);
+  color: var(--blueprint-accent);
+  font-size: 3rem;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: titleSmash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+}
+
+.pageSubtitle {
+  font-size: 1.1rem;
+  color: var(--blueprint-text-muted);
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.6s forwards;
+}
+
+/* General Panel Styling */
+.crewPanel {
+  width: 100%;
+  max-width: 800px; /* Consistent max width */
+  background-color: var(--blueprint-panel-bg);
+  border: 1px solid var(--blueprint-panel-border);
+  border-radius: 12px;
+  padding: 25px 30px;
+  box-shadow: var(--blueprint-panel-shadow);
+  opacity: 0; /* Start hidden, animation delay will be set in JSX */
+  animation: panelFlyIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.panelHeader {
+  font-family: var(--font-header);
+  color: var(--blueprint-text);
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--blueprint-panel-border);
+  padding-bottom: 10px;
+}
+
+.panelIcon {
+  color: var(--blueprint-accent-secondary); /* Gold for icons in headers */
+  font-size: 1.5rem;
+  line-height: 1; /* Ensure icon aligns well */
+}
+
+/* Add Friend Form */
+.addFriendForm {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.3s forwards; /* Delay relative to parent panel */
+}
+
+.addFriendInput {
+  flex-grow: 1;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  padding: 12px 15px;
+  background-color: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  color: var(--blueprint-input-text);
+  border-radius: 6px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.addFriendInput::placeholder {
+  color: var(--blueprint-text-muted);
+  opacity: 0.7;
+}
+
+.addFriendInput:focus {
+  outline: none;
+  border-color: var(--blueprint-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(var(--blueprint-accent-rgb), 0.3);
+}
+
+.sendRequestButton {
+  background-color: var(--blueprint-button-bg);
+  color: var(--blueprint-button-text);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sendRequestButton:hover {
+  background-color: var(--blueprint-button-hover-bg);
+  transform: translateY(-1px);
+}
+
+/* Friends List Header (Tabs & Search) */
+.friendListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Allow wrapping */
+  gap: 15px;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.3s forwards; /* Delay relative to parent panel */
+}
+
+.tabContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tabButton {
+  padding: 10px 18px;
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: 1px solid var(--blueprint-input-border);
+  background-color: var(--blueprint-input-bg);
+  color: var(--blueprint-text-muted);
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabButton:hover {
+  background-color: rgba(var(--blueprint-accent-rgb), 0.1);
+  color: var(--blueprint-accent);
+  border-color: var(--blueprint-accent);
+}
+
+.activeTab {
+  background-color: var(--blueprint-accent);
+  color: var(--blueprint-button-text) !important; /* Ensure text color contrasts */
+  border-color: var(--blueprint-accent);
+}
+
+.activeTab .tabIcon, .activeTab .tabCount {
+  color: var(--blueprint-button-text) !important;
+}
+
+.tabIcon {
+  font-size: 1.1rem;
+  /* Color inherited or overridden by .activeTab */
+}
+
+.tabCount {
+  background-color: rgba(0,0,0,0.2);
+  color: var(--blueprint-text);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Search Input in Friend List Header */
+.filterInputContainer { /* Renamed from JSX, used for search */
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 280px; /* Limit width of search */
+  flex-grow: 1; /* Allow it to take space if tabs wrap */
+}
+
+.searchIconContainer {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--blueprint-text-muted);
+  pointer-events: none; /* So it doesn't block input focus */
+}
+.searchIconContainer .panelIcon { /* Specific for search icon */
+    color: var(--blueprint-text-muted);
+    font-size: 1.1rem;
+}
+
+.searchFriendsInput {
+  width: 100%;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  padding: 10px 15px 10px 40px; /* Left padding for icon */
+  background-color: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  color: var(--blueprint-input-text);
+  border-radius: 6px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.searchFriendsInput::placeholder {
+  color: var(--blueprint-text-muted);
+  opacity: 0.7;
+}
+
+.searchFriendsInput:focus {
+  outline: none;
+  border-color: var(--blueprint-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(var(--blueprint-accent-rgb), 0.3);
+}
+
+/* Friend List Area */
+.friendListArea {
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.5s forwards; /* Delay relative to parent panel, after header */
+  min-height: 150px; /* Give some space for the "No friends" message to animate in */
+  display: flex; /* To help center noFriendsMessage if needed */
+  justify-content: center; /* To help center noFriendsMessage if needed */
+  align-items: center; /* To help center noFriendsMessage if needed */
+}
+
+.noFriendsMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--blueprint-text-muted);
+}
+
+.noFriendsIcon {
+  font-size: 3rem;
+  color: var(--blueprint-accent);
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.noFriendsTitle {
+  font-family: var(--font-header);
+  color: var(--blueprint-text);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.noFriendsSubtitle {
+  font-size: 1rem;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .crewContainer {
+    padding: 15px;
+    gap: 20px;
+  }
+  .crewPanel {
+    padding: 20px;
+  }
+  .pageTitle {
+    font-size: 2.5rem;
+  }
+  .panelHeader {
+    font-size: 1.4rem;
+  }
+  .addFriendForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sendRequestButton {
+    width: 100%;
+  }
+  .friendListHeader {
+    flex-direction: column;
+    align-items: stretch; /* Stretch tabs and search */
+  }
+  .tabContainer {
+    justify-content: center; /* Center tabs when stacked */
+  }
+  .filterInputContainer {
+    max-width: none; /* Allow search to be full width */
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    margin-bottom: 0;
+  }
+  .pageTitle {
+    font-size: 2rem;
+  }
+  .pageSubtitle {
+    font-size: 1rem;
+  }
+  .crewPanel {
+    padding: 15px;
+  }
+  .panelHeader {
+    font-size: 1.3rem;
+    gap: 8px;
+  }
+  .panelIcon {
+    font-size: 1.3rem;
+  }
+  .addFriendInput,
+  .sendRequestButton {
+    font-size: 0.95rem;
+    padding: 10px 15px;
+  }
+  .tabButton {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .tabIcon {
+    font-size: 1rem;
+  }
+  .searchFriendsInput {
+    font-size: 0.9rem;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .noFriendsTitle {
+    font-size: 1.3rem;
+  }
+  .noFriendsSubtitle {
+    font-size: 0.95rem;
+  }
 }

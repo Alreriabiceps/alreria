@@ -21,9 +21,8 @@ import Ranking from "./users/students/pages/ranking/pages/Ranking.jsx";
 import Profile from "./users/students/pages/profile/pages/Profile.jsx";
 import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
-import Sololobby from "./users/students/pages/sololobby/pages/sololobby.jsx";
-import Pvp from "./users/students/pages/pvp/pages/Pvp.jsx";
-
+import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/versusmodelobby.jsx";
+import SketchfabViewer from "./users/students/pages/dashboard/pages/SketchfabViewer.jsx";
 
 // Admin routes
 import AdminLayout from "./layout/adminlayout.jsx";
@@ -72,8 +71,8 @@ const App = () => {
               <Route path="profile" element={<Profile />} />
               <Route path="crew" element={<Crew />} />
               <Route path="partymmr" element={<Partymmr />} />
-              <Route path="sololobby" element={<Sololobby />} />
-              <Route path="pvp" element={<Pvp />} />
+              <Route path="versusmodelobby" element={<VersusModeLobby />} />
+              <Route path="sketchfab" element={<SketchfabViewer />} />
             </Route>
 
             {/* Admin routes */}

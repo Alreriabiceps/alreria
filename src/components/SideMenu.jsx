@@ -15,7 +15,6 @@ import {
   MdDarkMode,
   MdLightMode,
 } from "react-icons/md";
-import gleasLogo from '/gleas2.png';
 
 const SideMenu = () => {
   const navigate = useNavigate();
@@ -100,7 +99,6 @@ const SideMenu = () => {
   const studentMenuItems = [
     { title: "Dashboard", path: "/student/dashboard", icon: <MdDashboard /> },
     { title: "Weekly Tests", path: "/student/weeklytest", icon: <MdQuiz /> },
-    { title: "PvP Challenge", path: "/student/pvp", icon: <MdSportsEsports /> },
     {
       title: "Leaderboard",
       path: "/student/leaderboard",
