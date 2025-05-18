@@ -278,16 +278,32 @@ const Start = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate-simple-security-question`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
       });
+      
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
+      }
+      
       const data = await res.json();
+      
+      if (!data || !data.questionText || !Array.isArray(data.choices) || !data.correctAnswer) {
+        throw new Error('Invalid response format from API');
+      }
+      
       setSecurityQuestion(data.questionText);
       setSecurityChoices(data.choices);
       setSecurityAnswer(data.correctAnswer);
     } catch (err) {
-      setSecurityQuestion("2 + 2 = ?");
+      console.error('Error fetching security question:', err);
+      // Fallback to a simple question if API fails
+      setSecurityQuestion("What is 2 + 2?");
       setSecurityChoices(["3", "4", "5"]);
       setSecurityAnswer("4");
+      setFeedbackMessage("Using fallback question due to API error");
     } finally {
       setLoadingQuestion(false);
     }
@@ -394,7 +410,7 @@ const Start = () => {
               <>
                 <p className={styles.securityQuestion}>{securityQuestion}</p>
                 <div className={styles.answersContainer}>
-                  {securityChoices.map((choice, idx) => (
+                  {securityChoices && securityChoices.map((choice, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleAnswer(choice)}
