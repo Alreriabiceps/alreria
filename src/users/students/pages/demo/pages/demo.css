@@ -1,0 +1,830 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap');
+
+.exploding-kittens-game {
+  --dbz-orange: #f39c12;
+  --dbz-blue: #3498db;
+  --dbz-red: #e74c3c;
+  --dbz-yellow: #f1c40f;
+  --dbz-dark-blue: #2c3e50;
+  --dbz-light-gray: #ecf0f1;
+  --dbz-dark-gray: #34495e;
+  --dbz-black: #1C1C1C;
+
+  /* Blueprint Capsule Corp Theme from Dashboard */
+  --blueprint-bg: #0D131A; /* Very dark blue, near black */
+  --blueprint-grid-line: rgba(173, 216, 230, 0.35);
+  --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
+  --blueprint-text: #E0F2F7;
+  --blueprint-panel-bg: rgba(30, 45, 60, 0.85);
+  --blueprint-panel-border: var(--blueprint-grid-line-strong);
+  --blueprint-accent: var(--dbz-yellow);
+  --blueprint-accent-text-dark: var(--dbz-black);
+  --blueprint-shadow: rgba(0, 0, 0, 0.4);
+
+  --font-header: 'Bangers', cursive;
+  --font-body: 'Montserrat', sans-serif;
+  --font-accent: 'Roboto Condensed', sans-serif;
+
+  background-color: var(--blueprint-bg);
+  padding: 25px 15px 50px 15px; /* Adjusted padding to match dashboard L/R spacing */
+  border-radius: 15px; /* Consistent with dashboard panels */
+  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25); /* Dashboard panel shadow */
+  width: 95%;
+  max-width: 1100px; /* Increased max-width for a wider layout */
+  margin: 0 auto; /* Center the game container itself */
+  text-align: center;
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center flex items (panels, etc.) */
+  gap: 25px; /* Consistent spacing with dashboard */
+  color: var(--blueprint-text);
+  border: 1.5px solid var(--blueprint-panel-border);
+  min-height: 100vh; /* Ensure it takes full viewport height */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.exploding-kittens-game h2,
+.exploding-kittens-game h3 {
+  font-family: var(--font-header);
+  color: var(--blueprint-accent); /* Yellow title like dashboard */
+  text-shadow:
+    2px 2px 0 var(--dbz-black), /* Dashboard title shadow */
+    -1px -1px 0 var(--blueprint-bg),
+    1px -1px 0 var(--blueprint-bg),
+    -1px 1px 0 var(--blueprint-bg),
+    1px 1px 0 var(--blueprint-bg);
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+}
+
+.exploding-kittens-game h2 { font-size: 2.5rem; } /* Larger, more impactful */
+.exploding-kittens-game h3 { font-size: 1.8rem; } /* Consistent with panel headers */
+
+/* Shared panel style for different areas - like Dashboard panel */
+.ek-panel {
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 15px;
+  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25);
+  padding: 20px 25px;
+  backdrop-filter: blur(3px); /* Subtle blur for panel */
+  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+.ek-panel:hover {
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 8px 25px var(--blueprint-shadow), 0 0 15px var(--blueprint-accent);
+}
+
+.exploding-kittens-game .opponent-hand-area {
+  order: 1; /* Opponent's hand at the top */
+  padding: 20px;
+}
+
+.exploding-kittens-game .opponent-hand-area h3,
+.exploding-kittens-game .current-player-hand-area h3 {
+   border-bottom: 2px dashed var(--blueprint-grid-line-strong);
+   padding-bottom: 10px;
+   margin-bottom: 18px; /* Match panelHeader style */
+}
+
+.exploding-kittens-game .center-console {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Adjusted gap */
+}
+
+.exploding-kittens-game .game-info {
+  text-align: left;
+}
+
+.exploding-kittens-game .game-info p {
+  margin: 8px 0;
+  font-size: 1rem;
+  font-family: var(--font-accent);
+  color: var(--blueprint-text);
+  opacity: 0.9;
+}
+
+.exploding-kittens-game .game-message {
+  font-weight: 700;
+  font-family: var(--font-accent);
+  color: var(--blueprint-accent);
+  min-height: 25px;
+  font-size: 1.1em;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.15); /* Subtle yellow BG */
+  border: 1px solid var(--blueprint-accent);
+  text-shadow: 1px 1px 1px var(--dbz-black);
+}
+
+.exploding-kittens-game.game-over .game-message {
+  color: var(--dbz-red);
+  background-color: rgba(231, 76, 60, 0.15); /* Subtle red BG */
+  border-color: var(--dbz-red);
+  font-size: 1.2em;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px var(--dbz-black);
+}
+
+.exploding-kittens-game .play-area {
+  background-color: rgba(0,0,0, 0.2); /* Darker, transparent like dashboard tierBox */
+  border: 2px dashed var(--blueprint-grid-line);
+  border-radius: 12px; /* More rounded */
+  padding: 30px;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  font-size: 1.1em;
+  font-family: var(--font-accent);
+  font-weight: 700;
+  transition: all 0.2s ease-in-out;
+}
+
+.exploding-kittens-game .play-area.drag-over {
+  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.2);
+  border-color: var(--blueprint-accent);
+  color: var(--blueprint-accent);
+  opacity: 1;
+}
+
+.exploding-kittens-game .current-player-hand-area {
+  order: 3; /* Player's hand at the bottom (before actions) */
+  padding: 20px;
+}
+
+.exploding-kittens-game .current-player-hand-area.current-player-active {
+  border-color: var(--dbz-orange); /* Use a DBZ accent for active player */
+  box-shadow: 0 0 15px var(--dbz-orange), 0 8px 25px var(--blueprint-shadow);
+}
+
+/* Apply .ek-panel style to hand areas and game info */
+.exploding-kittens-game .opponent-hand-area,
+.exploding-kittens-game .game-info,
+.exploding-kittens-game .current-player-hand-area {
+  composes: ek-panel;
+  /* Manually copying properties for this context: */
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 15px;
+  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25);
+  padding: 20px 25px;
+  backdrop-filter: blur(3px);
+}
+
+.exploding-kittens-game .cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px; /* Increased gap */
+  min-height: 120px; /* Adjusted min-height */
+}
+
+.exploding-kittens-game .card.ek-card {
+  width: 85px; /* Slightly larger cards */
+  height: 120px;
+  background-color: var(--dbz-light-gray); /* Lighter card BG */
+  border: 2px solid var(--dbz-dark-gray); /* Stronger border */
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around; /* Better content distribution */
+  align-items: center;
+  padding: 8px;
+  cursor: grab;
+  text-align: center;
+  font-family: var(--font-accent);
+  font-size: 0.8em; /* Adjusted for new font */
+  font-weight: 700;
+  color: var(--dbz-black); /* Dark text on light card */
+  box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+}
+
+.exploding-kittens-game .card.ek-card:hover {
+  transform: translateY(-6px) scale(1.05); /* More pronounced hover */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 10px var(--dbz-yellow);
+  border-color: var(--dbz-yellow);
+}
+
+.exploding-kittens-game .card.ek-card.dragging {
+  opacity: 0.6;
+  transform: scale(0.95) rotate(3deg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  cursor: grabbing;
+}
+
+.exploding-kittens-game .card.ek-card.card-back {
+  background-color: var(--dbz-dark-blue);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--dbz-black) 0px, var(--dbz-black) 10px,
+    var(--dbz-dark-gray) 10px, var(--dbz-dark-gray) 20px
+  ); /* More dynamic back */
+  color: var(--blueprint-text);
+  font-family: var(--font-header);
+  font-size: 1.3em; /* Larger text for card back */
+  border: 2px solid var(--blueprint-accent);
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+.exploding-kittens-game .card.ek-card.card-back::after {
+  content: "EK"; /* Or some other gamified text/symbol */
+}
+
+.exploding-kittens-game .actions-area {
+  order: 4;
+  margin-top: 15px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--blueprint-panel-border);
+}
+
+/* Style buttons like dashboard browseButton */
+.exploding-kittens-game .ek-button {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  letter-spacing: 1.5px;
+  color: var(--blueprint-accent-text-dark);
+  background: var(--blueprint-accent);
+  padding: 10px 25px;
+  border-radius: 25px;
+  border: 2px solid var(--dbz-black);
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 3px 3px 0 var(--dbz-black);
+  transition: transform 0.15s ease-out, background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  margin: 5px; /* Add some margin between buttons */
+}
+
+.exploding-kittens-game .ek-button:hover {
+  background: var(--dbz-orange);
+  color: var(--blueprint-text);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
+}
+
+.exploding-kittens-game .ek-button:active {
+  transform: translateY(-1px) scale(1.01); /* Smoother active state */
+  box-shadow: 2px 2px 0 var(--dbz-black), 0 0 10px var(--dbz-orange);
+}
+
+.exploding-kittens-game .ek-button:disabled {
+  background-color: var(--dbz-dark-gray);
+  color: var(--blueprint-text);
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: 1px 1px 0 var(--dbz-black);
+  transform: translateY(0px);
+  border-color: var(--dbz-dark-gray);
+}
+
+.exploding-kittens-game .ek-button.draw-button {
+  background-color: var(--dbz-blue); /* Different color for draw */
+  color: var(--blueprint-text);
+}
+.exploding-kittens-game .ek-button.draw-button:hover {
+  background-color: var(--dbz-red); /* Exciting hover for draw */
+  color: var(--blueprint-text);
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-red);
+}
+
+/* Add some animations for a more "live" feel */
+@keyframes cardPopInEK {
+  from { opacity: 0; transform: scale(0.8) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.exploding-kittens-game .card.ek-card {
+  animation: cardPopInEK 0.3s ease-out backwards;
+}
+/* Stagger card animations if they are added dynamically */
+/* Example: .card:nth-child(1) { animation-delay: 0.1s; } etc. */
+
+/* Challenge Modal Styles */
+.exploding-kittens-game .question-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.exploding-kittens-game .question-content {
+  background: var(--blueprint-panel-bg);
+  border: 2px solid var(--blueprint-accent);
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 0 20px var(--blueprint-accent);
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+}
+
+.exploding-kittens-game .question-content h3 {
+  color: var(--blueprint-accent);
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.exploding-kittens-game .question-text {
+  font-size: 1.2rem;
+  color: var(--blueprint-text);
+  margin-bottom: 25px;
+  line-height: 1.5;
+  text-align: center;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid var(--blueprint-grid-line);
+}
+
+.exploding-kittens-game .choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.exploding-kittens-game .choice-button {
+  background: var(--blueprint-panel-bg);
+  border: 2px solid var(--blueprint-grid-line);
+  border-radius: 8px;
+  padding: 15px;
+  color: var(--blueprint-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.exploding-kittens-game .choice-button:hover:not(:disabled) {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  border-color: var(--blueprint-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.exploding-kittens-game .choice-button.correct {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: var(--blueprint-text);
+  cursor: default;
+  animation: correctAnswer 0.5s ease-out;
+}
+
+.exploding-kittens-game .choice-button.incorrect {
+  background: var(--dbz-red);
+  border-color: var(--dbz-red);
+  color: var(--blueprint-text);
+  cursor: default;
+  animation: incorrectAnswer 0.5s ease-out;
+}
+
+.exploding-kittens-game .choice-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+@keyframes correctAnswer {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes incorrectAnswer {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+/* Challenge Animation */
+@keyframes challengePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.exploding-kittens-game .card.ek-card.question-card.challenging {
+  animation: challengePulse 1s infinite;
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 0 15px var(--blueprint-accent);
+}
+
+/* Side Panel Styles */
+.exploding-kittens-game .side-panel {
+  position: fixed;
+  top: 80px; /* Adjust this value based on your navigation bar height */
+  left: 0;
+  width: 400px;
+  height: calc(100vh - 80px); /* Subtract navigation bar height */
+  background: var(--blueprint-panel-bg);
+  border-right: 2px solid var(--blueprint-accent);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: slideInLeft 0.3s ease-out;
+  overflow-y: auto;
+}
+
+.exploding-kittens-game .close-panel-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--blueprint-accent);
+  font-size: 24px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.exploding-kittens-game .close-panel-button:hover {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+}
+
+.exploding-kittens-game .side-panel-content {
+  padding: 30px;
+}
+
+.exploding-kittens-game .side-panel-content h3 {
+  color: var(--blueprint-accent);
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.exploding-kittens-game .question-details {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.exploding-kittens-game .question-details .question-text {
+  font-size: 1.2rem;
+  color: var(--blueprint-text);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.exploding-kittens-game .question-details .choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exploding-kittens-game .question-details .choice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.exploding-kittens-game .question-details .choice-item:hover {
+  background: rgba(var(--blueprint-accent-rgb, 241, 196, 15), 0.2);
+}
+
+.exploding-kittens-game .question-details .choice-letter {
+  color: var(--blueprint-accent);
+  font-weight: bold;
+  min-width: 20px;
+}
+
+.exploding-kittens-game .question-details .choice-text {
+  color: var(--blueprint-text);
+  flex: 1;
+}
+
+.exploding-kittens-game .question-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.exploding-kittens-game .play-question-button {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  padding: 12px 25px;
+  font-size: 1.1rem;
+  border-radius: 25px;
+  border: 2px solid var(--dbz-black);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exploding-kittens-game .play-question-button:hover {
+  background: var(--dbz-orange);
+  color: var(--blueprint-text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Update card styles to show clickable cursor */
+.exploding-kittens-game .card.ek-card.question-card {
+  cursor: pointer;
+}
+
+.exploding-kittens-game .card.ek-card.question-card:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 15px var(--blueprint-accent);
+  border-color: var(--blueprint-accent);
+}
+
+/* Player Info and HP Bar Styles */
+.exploding-kittens-game .player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.exploding-kittens-game .player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.exploding-kittens-game .player-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--blueprint-accent);
+  text-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.exploding-kittens-game .surrender-button {
+  background: var(--dbz-red);
+  color: var(--blueprint-text);
+  border: 2px solid var(--dbz-black);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.exploding-kittens-game .surrender-button:hover:not(:disabled) {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 3px 3px 0 var(--dbz-black);
+}
+
+.exploding-kittens-game .surrender-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.exploding-kittens-game .surrender-button:disabled {
+  background: var(--dbz-dark-gray);
+  color: var(--blueprint-text);
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.exploding-kittens-game .hp-bar-container {
+  width: 100%;
+  height: 25px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--blueprint-accent);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.exploding-kittens-game .hp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    var(--dbz-red) 0%,
+    var(--dbz-orange) 50%,
+    var(--dbz-yellow) 100%
+  );
+  transition: width 0.3s ease-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exploding-kittens-game .hp-text {
+  color: var(--blueprint-text);
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
+/* Add a shine effect to the HP bar */
+.exploding-kittens-game .hp-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/* Question Card Styles */
+.exploding-kittens-game .card.ek-card.question-card {
+  background: linear-gradient(135deg, var(--blueprint-panel-bg) 0%, var(--dbz-dark-blue) 100%);
+  border-color: var(--blueprint-accent);
+  color: var(--blueprint-text);
+  padding: 10px;
+  overflow: hidden;
+}
+
+.exploding-kittens-game .question-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: 8px;
+}
+
+.exploding-kittens-game .question-card-icon {
+  font-family: var(--font-header);
+  font-size: 1.8em;
+  color: var(--blueprint-accent);
+  text-shadow: 2px 2px 0 var(--dbz-black);
+  background: var(--dbz-dark-blue);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--blueprint-accent);
+  box-shadow: 0 0 10px var(--blueprint-accent);
+}
+
+.exploding-kittens-game .question-card-text {
+  font-size: 0.7em;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  color: var(--blueprint-text);
+  text-shadow: 1px 1px 1px var(--dbz-black);
+}
+
+.exploding-kittens-game .card.ek-card.question-card:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 15px var(--blueprint-accent);
+  border-color: var(--blueprint-accent);
+}
+
+/* Game Options Styles */
+.exploding-kittens-game .game-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  background: var(--blueprint-panel-bg);
+  border-radius: 15px;
+  border: 2px solid var(--blueprint-accent);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.exploding-kittens-game .join-game {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.exploding-kittens-game .game-id-input {
+  padding: 12px;
+  border: 2px solid var(--blueprint-grid-line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--blueprint-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.exploding-kittens-game .game-id-input:focus {
+  border-color: var(--blueprint-accent);
+  outline: none;
+  box-shadow: 0 0 10px var(--blueprint-accent);
+}
+
+/* Waiting Room Styles */
+.exploding-kittens-game .players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--blueprint-panel-bg);
+  border-radius: 15px;
+  border: 2px solid var(--blueprint-accent);
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.exploding-kittens-game .player-item {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid var(--blueprint-grid-line);
+  color: var(--blueprint-text);
+  font-family: var(--font-accent);
+  font-size: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exploding-kittens-game .player-item::after {
+  content: '●';
+  color: var(--blueprint-accent);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* Game ID Display */
+.exploding-kittens-game p {
+  font-family: var(--font-accent);
+  color: var(--blueprint-text);
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.exploding-kittens-game p:first-of-type {
+  color: var(--blueprint-accent);
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+} 

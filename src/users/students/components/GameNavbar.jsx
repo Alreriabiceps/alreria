@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./GameNavbar.module.css";
 import { FaChartBar, FaCalendarAlt, FaUserFriends, FaTrophy, FaUsers, FaUser, FaSignOutAlt, FaBars, FaTimes, FaVolumeUp, FaVolumeMute, FaBookOpen, FaUserNinja } from 'react-icons/fa';
-import { GiCrossedSwords } from 'react-icons/gi';
+import { GiCrossedSwords, GiPerspectiveDiceSixFacesRandom } from 'react-icons/gi';
 
 const Icons = {
   Dashboard: <FaChartBar />,
@@ -19,6 +19,7 @@ const Icons = {
   MenuClose: <FaTimes />,
   Mute: <FaVolumeUp />,
   Unmute: <FaVolumeMute />,
+  MtgDemo: <GiPerspectiveDiceSixFacesRandom />,
 };
 
 const MUSIC_MAP = {
@@ -253,6 +254,14 @@ const GameNavbar = () => {
       <NavLink to="/student/chats" className={navLinkClass} onClick={closeMenus}>
         {isMobile && <span className={styles.panelIcon}>{Icons.PartyQueue}</span>} {" "}
         Messenger
+      </NavLink>
+      <NavLink
+        to="/student/mtg-demo"
+        className={navLinkClass}
+        onClick={closeMenus}
+      >
+        {isMobile && <span className={styles.panelIcon}>{Icons.MtgDemo}</span>}{" "}
+        MTG Demo
       </NavLink>
       <NavLink to="/student/sketchfab" className={navLinkClass} onClick={closeMenus}>
         {isMobile && <span className={styles.panelIcon}><FaChartBar /></span>} {" "}

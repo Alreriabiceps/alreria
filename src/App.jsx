@@ -24,6 +24,8 @@ import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
 import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
 import SketchfabViewer from "./users/students/pages/dashboard/pages/SketchfabViewer.jsx";
 import AllChats from "./users/students/pages/chat/AllChats.jsx";
+import MtgQuiz from "./users/students/pages/demo/pages/demo.jsx";
+import ExplodingKittensGame from './users/students/pages/demo/pages/demo';
 import useSocket from './hooks/useSocket';
 
 // Admin routes
@@ -78,6 +80,8 @@ const App = () => {
               <Route path="versusmodelobby" element={<VersusModeLobby />} />
               <Route path="sketchfab" element={<SketchfabViewer />} />
               <Route path="chats" element={<AllChats currentUser={currentUser} socketRef={socketRef} />} />
+              <Route path="mtg-demo" element={<MtgQuiz />} />
+              <Route path="game" element={<ExplodingKittensGame />} />
             </Route>
 
             {/* Admin routes */}

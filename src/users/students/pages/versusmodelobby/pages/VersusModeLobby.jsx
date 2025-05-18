@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from 'react-router-dom';
 import styles from "./VersusModeLobby.module.css"; // Import the CSS module
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { io } from 'socket.io-client';
@@ -46,6 +47,7 @@ const VersusModeLobby = () => {
   const socketRef = useRef(null);
   const [wsConnected, setWsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
+  const navigate = useNavigate();
 
   // Add this helper function at the top level
   const getUniqueLobbyKey = (lobby) => {
@@ -113,7 +115,14 @@ const VersusModeLobby = () => {
 
       socketRef.current.on('game:start', (data) => {
         if (data.players.some(player => player._id === user.id)) {
-          // Placeholder for game start
+          // Navigate to the game with the game data
+          navigate('/student/game', { 
+            state: { 
+              gameId: data.gameId,
+              players: data.players,
+              currentPlayer: user.id
+            }
+          });
         }
       });
 
@@ -145,7 +154,7 @@ const VersusModeLobby = () => {
       console.error('Error creating Socket.IO connection:', error);
       setWsConnected(false);
     }
-  }, [token, user]);
+  }, [token, user, navigate]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -169,7 +178,7 @@ const VersusModeLobby = () => {
         socketRef.current = null;
       }
     };
-  }, [connectWebSocket, token]);
+  }, [connectWebSocket, token, navigate]);
 
   // Define fetchLobbies function
   const fetchLobbies = useCallback(async () => {
@@ -452,14 +461,8 @@ const VersusModeLobby = () => {
       }
 
       setShowJoinLobbyModal(false);
-      
-      // If lobby is now full (status is in-progress), navigate to game
-      if (data.data.status === 'in-progress') {
-        // Placeholder for game start
-      } else {
-        // Otherwise just refresh the lobby list
-        await fetchLobbies();
-      }
+      // Do NOT navigate here. Wait for 'game:start' event from socket.
+      await fetchLobbies();
       
     } catch (err) {
       console.error('Error joining lobby:', err);
