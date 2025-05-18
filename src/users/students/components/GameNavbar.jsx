@@ -250,6 +250,10 @@ const GameNavbar = () => {
         {isMobile && <span className={styles.panelIcon}>{Icons.Crew}</span>} {" "}
         Crew
       </NavLink>
+      <NavLink to="/student/chats" className={navLinkClass} onClick={closeMenus}>
+        {isMobile && <span className={styles.panelIcon}>{Icons.PartyQueue}</span>} {" "}
+        Messenger
+      </NavLink>
       <NavLink to="/student/sketchfab" className={navLinkClass} onClick={closeMenus}>
         {isMobile && <span className={styles.panelIcon}><FaChartBar /></span>} {" "}
         3D Viewer

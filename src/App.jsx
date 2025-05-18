@@ -23,6 +23,8 @@ import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
 import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
 import SketchfabViewer from "./users/students/pages/dashboard/pages/SketchfabViewer.jsx";
+import AllChats from "./users/students/pages/chat/AllChats.jsx";
+import useSocket from './hooks/useSocket';
 
 // Admin routes
 import AdminLayout from "./layout/adminlayout.jsx";
@@ -38,6 +40,8 @@ import WeekSchedule from "./users/admin/pages/weeks/WeekSchedule.jsx";
 import CurrentSchedules from "./users/admin/pages/weeks/CurrentSchedules";
 
 const App = () => {
+  const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+  const socketRef = useSocket();
   return (
     <AuthProvider>
       <GuideModeProvider>
@@ -73,6 +77,7 @@ const App = () => {
               <Route path="partymmr" element={<Partymmr />} />
               <Route path="versusmodelobby" element={<VersusModeLobby />} />
               <Route path="sketchfab" element={<SketchfabViewer />} />
+              <Route path="chats" element={<AllChats currentUser={currentUser} socketRef={socketRef} />} />
             </Route>
 
             {/* Admin routes */}

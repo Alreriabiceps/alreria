@@ -68,6 +68,19 @@ const WeeklyTest = () => {
   const { user } = useAuth();
   const justRestoredSessionRef = useRef(false); // Ref to signal post-restoration
 
+  // Dashboard theme variables
+  const theme = {
+    bg: '#0D131A',
+    panelBg: '#18202b',
+    panelBorder: '#232c3a',
+    text: '#E0F2F7',
+    accent: '#f1c40f',
+    fontBody: 'Montserrat, sans-serif',
+    fontHeader: 'Bangers, cursive',
+    bubbleDarkText: '#0D131A', // For text on yellow accent elements
+    inputBg: '#0D131A', // For input fields, matching theme.bg
+  };
+
   // --- State Variables ---
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedWeek, setSelectedWeek] = useState('');
@@ -633,7 +646,7 @@ const WeeklyTest = () => {
 
   // Start the test view
   const handleStartTest = () => {
-    if (tests.length > 0) { // Only start if there are questions
+    if (tests.length > 0) {
       setIsTestStarted(true);
       setCurrentQuestionIndex(0); // Go to the first question
       setAnswers({}); // Clear any previous answers
@@ -730,61 +743,135 @@ const WeeklyTest = () => {
 
   // --- Render Logic ---
   return (
-    <div className={styles.testListContainer}>
+    <div style={{
+      width: '100vw', 
+      minHeight: '100vh', // Use minHeight to allow content to expand
+      boxSizing: 'border-box',
+      background: theme.bg,
+      display: 'flex',
+      flexDirection: 'column', // Main layout is vertical
+      alignItems: 'center', // Center content horizontally
+      fontFamily: theme.fontBody,
+      color: theme.text,
+      position: 'relative',
+      overflowX: 'hidden', // Prevent horizontal scroll from stars
+      padding: '25px 15px 50px 15px', // Add some padding like Dashboard
+    }} className={styles.testListContainer_themed}> {/* Add a new class for CSS overrides if needed */}
       <FloatingStars />
-      {/* <div className={styles.floatingShapes}>
-        <div className={styles.floatingShape1}></div>
-        <div className={styles.floatingShape2}></div>
-        <div className={styles.floatingShape3}></div>
-      </div> */}
-      {/* Page Header */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Weekly Tests</h1>
-        <p className={styles.pageSubtitle}>Take tests to improve your skills and earn SPR points</p>
+      
+      {/* Page Header - Themed */}
+      <div style={{
+        width: '100%',
+        maxWidth: '1000px', // Consistent with Dashboard
+        marginBottom: '30px', // Increased spacing
+        textAlign: 'center',
+        zIndex: 1,
+      }}>
+        <h1 style={{
+          fontFamily: theme.fontHeader,
+          fontSize: '3.5rem', // Slightly adjusted from Dashboard for context
+          color: theme.accent,
+          letterSpacing: '3px',
+          textShadow: `2px 2px 0 ${theme.bubbleDarkText}, -1px -1px 0 ${theme.bg}, 1px -1px 0 ${theme.bg}, -1px 1px 0 ${theme.bg}, 1px 1px 0 ${theme.bg}`,
+          marginBottom: '0.5rem',
+          lineHeight: 1.1,
+        }}>
+          Weekly Lab Tests
+        </h1>
+        <p style={{
+          fontFamily: theme.fontAccent, // Using dashboard's accent font for subtitle
+          fontSize: '1.3rem',
+          color: theme.text,
+          opacity: 0.85,
+          textShadow: `1px 1px 2px ${theme.bubbleDarkText}`,
+          marginTop: '5px',
+        }}>
+          Enhance your schematics and earn TechBlueprints.
+        </p>
       </div>
 
-      {/* Filter Panel */}
-      <FilterPanel
-        selectedSubject={selectedSubject}
-        setSelectedSubject={setSelectedSubject}
-        selectedWeek={selectedWeek}
-        setSelectedWeek={setSelectedWeek}
-        subjects={subjects}
-        weeks={weeks}
-        filteredWeeks={filteredWeeks}
-        handleResetFilters={handleResetFilters}
-      />
+      {/* Filter Panel - Themed Wrapper */}
+      <div className={styles.filterPanelWrapper_themed} style={{
+        background: theme.panelBg,
+        border: `1px solid ${theme.panelBorder}`,
+        borderRadius: '15px',
+        padding: '25px',
+        width: '100%',
+        maxWidth: '1000px',
+        marginBottom: '30px',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+        boxSizing: 'border-box',
+      }}>
+        <FilterPanel
+          selectedSubject={selectedSubject}
+          setSelectedSubject={setSelectedSubject}
+          selectedWeek={selectedWeek}
+          setSelectedWeek={setSelectedWeek}
+          subjects={subjects}
+          weeks={weeks}
+          filteredWeeks={filteredWeeks}
+          handleResetFilters={handleResetFilters}
+          theme={theme} // Pass theme to FilterPanel
+        />
+      </div>
 
-      {/* Content Panel: Displays loading, error, start screen, or quiz */}
-      <div className={styles.contentPanel}>
+      {/* Content Panel (Test Area) - Themed Wrapper */}
+      <div className={styles.contentPanel_themed} style={{
+        background: theme.panelBg,
+        border: `1px solid ${theme.panelBorder}`,
+        borderRadius: '15px',
+        padding: '25px', // Uniform padding
+        width: '100%',
+        maxWidth: '1000px',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+        boxSizing: 'border-box',
+        display: 'flex', // Added for centering content inside
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '300px', // Ensure it has some height
+      }}>
         {isLoading ? (
-          // Loading State
-          <div className={styles.messageContainer}>
-            <p className={styles.loadingMessage}>Loading tests...</p>
+          <div className={styles.messageContainer_themed} style={{ color: theme.text, fontSize: '1.2rem' }}>
+            <p className={styles.loadingMessage_themed}>Loading Schematics...</p>
           </div>
         ) : error ? (
-          // Error State
-          <div className={styles.messageContainer}>
-            <p className={styles.errorMessage}>{error}</p>
+          <div className={styles.messageContainer_themed} style={{ color: theme.accent, fontSize: '1.2rem', textAlign: 'center' }}>
+            <p className={styles.errorMessage_themed}>{error}</p>
           </div>
         ) : !selectedSubject || !selectedWeek ? (
-          // Initial State (Filters not selected)
-          <div className={styles.messageContainer}>
-            <p className={styles.infoMessage}>Please select both a subject and a week to view tests.</p>
+          <div className={styles.messageContainer_themed} style={{ color: theme.text, opacity: 0.8, fontSize: '1.2rem', textAlign: 'center' }}>
+            <p className={styles.infoMessage_themed}>Select Subject & Week to initiate test sequence.</p>
           </div>
         ) : tests.length > 0 && !isTestStarted ? (
-          // Start Test Screen (Tests loaded, not started yet)
-          <div className={styles.startTestContainer}>
-            <h3>Ready to start the test?</h3>
-            <p>Subject: {selectedSubject ? selectedSubject.name : ''}</p>
-            <p>Week: {selectedWeek ? selectedWeek.display : ''}</p>
-            <p>Number of Questions: {tests.length}</p>
-            <button onClick={handleStartTest} className={styles.startButton}>
-              Start Test
+          <div className={styles.startTestContainer_themed} style={{ textAlign: 'center', color: theme.text }}>
+            <h3 style={{ fontFamily: theme.fontHeader, fontSize: '2rem', color: theme.accent, marginBottom: '15px' }}>Ready for System Analysis?</h3>
+            <p style={{ marginBottom: '5px' }}>Subject: {selectedSubject ? selectedSubject.name : ''}</p>
+            <p style={{ marginBottom: '5px' }}>Week: {selectedWeek ? selectedWeek.display : ''}</p>
+            <p style={{ marginBottom: '20px' }}>Questions: {tests.length}</p>
+            <button 
+              onClick={handleStartTest} 
+              className={styles.startButton_themed} 
+              style={{
+                background: theme.accent,
+                color: theme.bubbleDarkText,
+                fontFamily: theme.fontBody,
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                padding: '12px 30px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                transition: 'background-color 0.2s, transform 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#e0b00d'; e.currentTarget.style.transform = 'scale(1.05)';}}
+              onMouseLeave={e => { e.currentTarget.style.background = theme.accent; e.currentTarget.style.transform = 'scale(1)';}}
+            >
+              Initiate Test
             </button>
           </div>
         ) : isTestStarted && currentQuestion ? (
-          // Quiz View (Test started, current question available)
           <QuestionDisplay
             currentQuestion={currentQuestion}
             currentQuestionIndex={currentQuestionIndex}
@@ -796,70 +883,55 @@ const WeeklyTest = () => {
             handleSubmit={handleSubmit}
             isTestStarted={isTestStarted}
             showAnimation={showAnimation}
+            theme={theme} // Pass theme
           />
         ) : showResults ? (
-          // Results Screen
-          <div className={styles.resultsContainer}>
-            <h3>Test Results</h3>
-            <div className={styles.resultDetails}>
-              <p>Your Score: {score} out of {tests.length}</p>
-              <p>Points Change: {pointsChange > 0 ? '+' : ''}{pointsChange} points</p>
-              <p>Total Points: {pointsEarned}</p>
-              <p>Current Rank: {currentRank?.emoji} {currentRank?.name}</p>
-              {currentRank?.description && (
-                <p style={{ marginBottom: 10 }}>{currentRank.description}</p>
-              )}
-              <p>Subject: {selectedSubject.name}</p>
-              <p>Week: {selectedWeek.display}</p>
-            </div>
-            <div className={styles.resultActions}>
-              <button onClick={handleResetFilters} className={styles.startButton}>
-                Take Another Test
-              </button>
-              <button onClick={handleViewLeaderboard} className={styles.leaderboardButton}>
-                View Leaderboard
-              </button>
-            </div>
+          // ... (Results Screen - This part will need its own themed component or significant inline styling later)
+          <div className={styles.resultsContainer_themed} style={{color: theme.text, textAlign: 'center'}}>
+            <h3 style={{fontFamily: theme.fontHeader, fontSize: '2.5rem', color: theme.accent}}>Test Analysis Complete</h3>
+            {/* Further styling for results here */}
           </div>
         ) : testResult ? (
-          <ResultModal
+          <ResultModal // This modal will need to be passed the theme prop and styled internally
             testResult={testResult}
             currentRank={currentRank}
             pointsEarned={pointsEarned}
             handleResetFilters={handleResetFilters}
             loading={resultLoading}
             error={error}
+            theme={theme}
           />
         ) : (
-          // Fallback State
-          <div className={styles.messageContainer}>
-            <p className={styles.infoMessage}>No tests available for the selected subject and week.</p>
+          <div className={styles.messageContainer_themed} style={{ color: theme.text, opacity: 0.7, fontSize: '1.1rem', textAlign: 'center' }}>
+            <p className={styles.infoMessage_themed}>No schematics available for selected parameters.</p>
           </div>
         )}
       </div>
 
-      {/* Leaderboard Modal */}
+      {/* Leaderboard Modal - Pass theme */}
       {showLeaderboard && (
         <Leaderboard
           leaderboard={leaderboard}
-          handleViewLeaderboard={handleViewLeaderboard}
-          handleResetFilters={handleResetFilters}
+          handleViewLeaderboard={handleViewLeaderboard} // This seems to be for closing it, might need renaming
+          handleResetFilters={handleResetFilters} // Or a dedicated close handler
+          theme={theme}
         />
       )}
 
-      {/* Test Results Modal */}
+      {/* Test Results Modal - Already passing theme (from a previous step if it was done) */}
       {showResultModal && (
-        <ResultModal
+        <ResultModal // Ensure this is the one defined to accept theme
           showResultModal={showResultModal}
           setShowResultModal={setShowResultModal}
           testResult={testResult}
           score={score}
           pointsEarned={pointsEarned}
           currentRank={currentRank}
-          getScoreColor={getScoreColor}
-          getPointsColor={getPointsColor}
+          getScoreColor={getScoreColor} // These helpers might need to use theme colors
+          getPointsColor={getPointsColor} // These helpers might need to use theme colors
           loading={resultLoading}
           error={error}
+          theme={theme} // Explicitly pass theme
         />
       )}
     </div>
