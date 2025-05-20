@@ -193,7 +193,7 @@ const WeekSchedule = () => {
           </div>
 
           {guideMode && (
-            <details open className="mb-6 bg-error/10 border border-error rounded p-3">
+            <details className="mb-6 bg-error/10 border border-error rounded p-3">
               <summary className="cursor-pointer font-medium text-base text-error mb-1">How to use the Create Schedule page?</summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
                 <li>Select the subject for the weekly test schedule.</li>

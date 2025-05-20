@@ -301,7 +301,7 @@ const CurrentSchedules = () => {
           </div>
 
           {guideMode && (
-            <details open className="mb-6 bg-success/10 border border-success rounded p-3">
+            <details className="mb-6 bg-success/10 border border-success rounded p-3">
               <summary className="cursor-pointer font-medium text-base text-success mb-1">How to use the Current Schedules page?</summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
                 <li>View all current schedules for weekly tests.</li>

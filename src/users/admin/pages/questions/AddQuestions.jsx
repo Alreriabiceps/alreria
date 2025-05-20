@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MdAdd, MdDelete, MdSave } from "react-icons/md";
+import { FaRegLightbulb, FaFileAlt, FaComments } from 'react-icons/fa';
 import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const BLOOMS_LEVELS = [
@@ -11,15 +12,22 @@ const BLOOMS_LEVELS = [
   "Creating"
 ];
 
+const AI_GENERATION_METHODS = {
+  TOPIC: 'topic',
+  FILE: 'file',
+  CHAT: 'chat'
+};
+
 const AddQuestions = () => {
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questions, setQuestions] = useState([
-    { questionText: "", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }
+    { questionText: "", questionType: "multiple_choice", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }
   ]);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [aiGenerationMethod, setAIGenerationMethod] = useState(AI_GENERATION_METHODS.TOPIC);
   const [aiSubject, setAISubject] = useState("");
   const [aiBloomsLevel, setAIBloomsLevel] = useState("");
   const [aiTopic, setAITopic] = useState("");
@@ -27,17 +35,27 @@ const AddQuestions = () => {
   const [aiError, setAIError] = useState("");
   const [aiGeneratedQuestions, setAIGeneratedQuestions] = useState([]);
   const [aiNumQuestions, setAINumQuestions] = useState(2);
-  const [showFileAIModal, setShowFileAIModal] = useState(false);
+  const [aiQuestionType, setAIQuestionType] = useState("multiple_choice");
   const [file, setFile] = useState(null);
   const [fileExtractedText, setFileExtractedText] = useState("");
+  const [aiPrompt, setAIPrompt] = useState("");
+  const [fileAICustomPrompt, setFileAICustomPrompt] = useState("");
+  const [showFileAIModal, setShowFileAIModal] = useState(false);
   const [fileAIQuestions, setFileAIQuestions] = useState([]);
   const [fileAILoading, setFileAILoading] = useState(false);
   const [fileAIError, setFileAIError] = useState("");
   const [fileAISubject, setFileAISubject] = useState("");
   const [fileAIBloomsLevel, setFileAIBloomsLevel] = useState("");
   const [fileAINumQuestions, setFileAINumQuestions] = useState(2);
-  const [fileAICustomPrompt, setFileAICustomPrompt] = useState("");
+  const [showChatAIModal, setShowChatAIModal] = useState(false);
+  const [chatAIPrompt, setChatAIPrompt] = useState("");
+  const [chatAILoading, setChatAILoading] = useState(false);
+  const [chatAIError, setChatAIError] = useState("");
+  const [chatAIGeneratedQuestions, setChatAIGeneratedQuestions] = useState([]);
+  const [chatAISubject, setChatAISubject] = useState("");
+  const [chatAINumQuestions, setChatAINumQuestions] = useState(2);
   const { guideMode } = useGuideMode();
+  const [tfWarnings, setTFWarnings] = useState({});
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
 
@@ -91,12 +109,20 @@ const AddQuestions = () => {
 
     const formattedData = {
       subjectId: selectedSubject,
-      questions: questions.map((q) => ({
-        questionText: q.questionText,
-        choices: q.choices,
-        correctAnswer: q.correctAnswer,
-        bloomsLevel: q.bloomsLevel
-      })),
+      questions: questions.map((q) => {
+        // Ensure choices array is properly formatted based on question type
+        const formattedChoices = q.questionType === "true_false" 
+          ? ["True", "False"]
+          : q.choices.slice(0, 4).concat(Array(4 - q.choices.length).fill(""));
+
+        return {
+          questionText: q.questionText,
+          choices: formattedChoices,
+          correctAnswer: q.correctAnswer,
+          bloomsLevel: q.bloomsLevel,
+          questionType: q.questionType
+        };
+      }),
     };
     console.log("Submitting questions:", JSON.stringify(formattedData, null, 2));
 
@@ -118,7 +144,7 @@ const AddQuestions = () => {
       if (!response.ok) throw new Error("Failed to submit");
 
       alert("Questions submitted successfully!");
-      setQuestions([{ questionText: "", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }]);
+      setQuestions([{ questionText: "", questionType: "multiple_choice", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }]);
       setSelectedSubject("");
     } catch (err) {
       console.error(err);
@@ -132,6 +158,20 @@ const AddQuestions = () => {
     const updatedQuestions = [...questions];
     if (field === "choices") {
       updatedQuestions[index].choices[value.choiceIndex] = value.choiceValue;
+    } else if (field === "questionType") {
+      updatedQuestions[index].questionType = value;
+      if (value === "true_false") {
+        updatedQuestions[index].choices = ["True", "False"];
+        // Convert question text to statement
+        updatedQuestions[index].questionText = toTrueFalseStatement(updatedQuestions[index].questionText);
+      } else {
+        updatedQuestions[index].choices = ["", "", "", ""];
+      }
+    } else if (field === "questionText" && updatedQuestions[index].questionType === "true_false") {
+      // Auto-convert to statement for true/false
+      updatedQuestions[index].questionText = toTrueFalseStatement(value);
+      // Show warning if original text looked like a question
+      setTFWarnings(w => ({ ...w, [index]: /which of the following|what is|who is|\?$/i.test(value) }));
     } else {
       updatedQuestions[index][field] = value;
     }
@@ -141,7 +181,7 @@ const AddQuestions = () => {
   const handleAddQuestion = () => {
     setQuestions([
       ...questions,
-      { questionText: "", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }
+      { questionText: "", questionType: "multiple_choice", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }
     ]);
   };
 
@@ -153,35 +193,102 @@ const AddQuestions = () => {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
-  // AI Generate Handler
+  // Unified AI Generate Handler
   const handleAIGenerate = async (e) => {
     e.preventDefault();
     setAIError("");
     setAILoading(true);
+    if (!aiSubject) {
+      setAIError("Please select a subject.");
+      setAILoading(false);
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-      if (!aiSubject || !aiBloomsLevel || !aiTopic || !aiNumQuestions) {
-        setAIError("Please fill all fields.");
+      if (!aiBloomsLevel) {
+        setAIError("Please select Bloom's level");
         setAILoading(false);
         return;
       }
-      const res = await fetch(`${backendurl}/api/generate-questions`, {
+
+      let endpoint;
+      let body;
+
+      // Build a structured prompt for true/false questions
+      let structuredPrompt = "";
+      if (aiQuestionType === 'true_false') {
+        const topicOrSubject = aiTopic || subjects.find(s => s._id === aiSubject)?.subject || 'the topic';
+        structuredPrompt = `Generate ${aiNumQuestions} true/false questions about ${topicOrSubject}. Each question should be a complete factual statement that can be answered with True or False.`;
+      }
+
+      switch (aiGenerationMethod) {
+        case AI_GENERATION_METHODS.TOPIC:
+          endpoint = `${backendurl}/api/generate-questions`;
+          body = {
+            subjectId: aiSubject,
+            bloomsLevel: aiBloomsLevel,
+            topic: aiTopic,
+            numQuestions: aiNumQuestions,
+            questionType: 'multiple_choice'
+          };
+          break;
+        case AI_GENERATION_METHODS.FILE: {
+          endpoint = `${backendurl}/api/questions/generate-questions-from-file`;
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('subjectId', aiSubject);
+          formData.append('bloomsLevel', aiBloomsLevel);
+          formData.append('numQuestions', aiNumQuestions);
+          formData.append('questionType', 'multiple_choice');
+          if (fileAICustomPrompt) formData.append('customPrompt', fileAICustomPrompt);
+          body = formData;
+          break;
+        }
+        case AI_GENERATION_METHODS.CHAT:
+          endpoint = `${backendurl}/api/generate-questions-chat`;
+          body = {
+            subjectId: chatAISubject,
+            bloomsLevel: aiBloomsLevel,
+            prompt: aiPrompt,
+            numQuestions: aiNumQuestions,
+            questionType: 'multiple_choice'
+          };
+          break;
+      }
+
+      const headers = {
+        "Authorization": `Bearer ${token}`
+      };
+
+      if (aiGenerationMethod !== AI_GENERATION_METHODS.FILE) {
+        headers["Content-Type"] = "application/json";
+      }
+
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          subjectId: aiSubject,
-          bloomsLevel: aiBloomsLevel,
-          topic: aiTopic,
-          numQuestions: aiNumQuestions
-        })
+        headers: headers,
+        body: aiGenerationMethod === AI_GENERATION_METHODS.FILE ? body : JSON.stringify(body)
       });
+
       if (!res.ok) throw new Error("Failed to generate questions");
       const data = await res.json();
-      setAIGeneratedQuestions(data);
+
+      if (aiGenerationMethod === AI_GENERATION_METHODS.FILE && data.extractedText) {
+        setFileExtractedText(data.extractedText.slice(0, 3000));
+      } else {
+        setFileExtractedText(""); // Clear extracted text if not file method
+      }
+
+      // Process the generated questions
+      const processedQuestions = (data.questions || data).map(q => ({
+        ...q,
+        questionType: 'multiple_choice',
+        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
+        bloomsLevel: q.bloomsLevel || aiBloomsLevel
+      }));
+
+      setAIGeneratedQuestions(processedQuestions);
     } catch (err) {
       setAIError(err.message || "Error generating questions");
     } finally {
@@ -191,23 +298,18 @@ const AddQuestions = () => {
 
   // Add generated questions to main questions list
   const handleAddAIGenerated = () => {
-    setSelectedSubject(aiSubject); // Sync subject
+    setSelectedSubject(aiSubject);
     if (aiGeneratedQuestions.length > 0) {
       setQuestions([
-        // Replace first question with the first generated one
-        {
-          questionText: aiGeneratedQuestions[0].questionText || "",
-          choices: aiGeneratedQuestions[0].choices || ["", "", "", ""],
-          correctAnswer: aiGeneratedQuestions[0].correctAnswer || "",
-          bloomsLevel: aiGeneratedQuestions[0].bloomsLevel || aiBloomsLevel || ""
-        },
-        // Append the rest
-        ...aiGeneratedQuestions.slice(1).map(q => ({
-          questionText: q.questionText || "",
-          choices: q.choices || ["", "", "", ""],
-          correctAnswer: q.correctAnswer || "",
-          bloomsLevel: q.bloomsLevel || aiBloomsLevel || ""
-        }))
+        ...questions,
+        ...aiGeneratedQuestions.map(q => {
+          return {
+            questionText: q.questionText || "",
+            choices: q.choices || ["", "", "", ""],
+            correctAnswer: q.correctAnswer || "",
+            bloomsLevel: q.bloomsLevel || aiBloomsLevel || ""
+          };
+        })
       ]);
     }
     setAIGeneratedQuestions([]);
@@ -215,6 +317,10 @@ const AddQuestions = () => {
     setAISubject("");
     setAIBloomsLevel("");
     setAITopic("");
+    setAIPrompt("");
+    setFileAICustomPrompt("");
+    setFile(null);
+    setFileExtractedText("");
     setAIError("");
     setAINumQuestions(2);
   };
@@ -231,12 +337,15 @@ const AddQuestions = () => {
       if (!fileAISubject || !fileAIBloomsLevel) throw new Error("Please select subject and Bloom's level");
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('subjectId', fileAISubject);
       formData.append('bloomsLevel', fileAIBloomsLevel);
       formData.append('numQuestions', fileAINumQuestions);
+      formData.append('questionType', 'multiple_choice');
       if (fileAICustomPrompt) formData.append('customPrompt', fileAICustomPrompt);
+
       const res = await fetch(`${backendurl}/api/questions/generate-questions-from-file`, {
         method: 'POST',
         headers: {
@@ -247,7 +356,16 @@ const AddQuestions = () => {
       if (!res.ok) throw new Error("Failed to generate questions from file");
       const data = await res.json();
       if (data.extractedText) setFileExtractedText(data.extractedText.slice(0, 3000));
-      setFileAIQuestions(data.questions || []);
+      
+      // Process the generated questions
+      const processedQuestions = (data.questions || data).map(q => ({
+        ...q,
+        questionType: 'multiple_choice',
+        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
+        bloomsLevel: q.bloomsLevel || fileAIBloomsLevel
+      }));
+      
+      setFileAIQuestions(processedQuestions);
     } catch (err) {
       setFileAIError(err.message || "Error generating questions from file");
     } finally {
@@ -255,22 +373,89 @@ const AddQuestions = () => {
     }
   };
 
+  // Chat AI Generate Handler
+  const handleChatAIGenerate = async (e) => {
+    e.preventDefault();
+    setChatAIError("");
+    setChatAILoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+      if (!chatAISubject || !chatAIPrompt) {
+        setChatAIError("Please fill all required fields.");
+        setChatAILoading(false);
+        return;
+      }
+
+      const res = await fetch(`${backendurl}/api/generate-questions-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subjectId: chatAISubject,
+          prompt: chatAIPrompt,
+          numQuestions: chatAINumQuestions,
+          questionType: 'multiple_choice'
+        })
+      });
+      if (!res.ok) throw new Error("Failed to generate questions");
+      const data = await res.json();
+      
+      // Process the generated questions
+      const processedQuestions = (data.questions || data).map(q => ({
+        ...q,
+        questionType: 'multiple_choice',
+        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
+        bloomsLevel: q.bloomsLevel || aiBloomsLevel
+      }));
+      
+      setChatAIGeneratedQuestions(processedQuestions);
+    } catch (err) {
+      setChatAIError(err.message || "Error generating questions");
+    } finally {
+      setChatAILoading(false);
+    }
+  };
+
+  // Add chat AI generated questions to main questions list
+  const handleAddChatAIGenerated = () => {
+    setSelectedSubject(chatAISubject);
+    if (chatAIGeneratedQuestions.length > 0) {
+      setQuestions([
+        ...chatAIGeneratedQuestions.map(q => ({
+          questionText: q.questionText || "",
+          choices: q.choices || ["", "", "", ""],
+          correctAnswer: q.correctAnswer || "",
+          bloomsLevel: q.bloomsLevel || ""
+        }))
+      ]);
+    }
+    setChatAIGeneratedQuestions([]);
+    setShowChatAIModal(false);
+    setChatAISubject("");
+    setChatAIPrompt("");
+    setChatAIError("");
+    setChatAINumQuestions(2);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {guideMode && (
-          <details open className="mb-6 bg-base-200 border border-primary rounded p-3">
-            <summary className="cursor-pointer font-medium text-base text-primary mb-1">How to use the Add Questions page?</summary>
-            <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-              <li>You can manually add questions, generate them with AI, or upload a file for AI-based question generation.</li>
-              <li>To add questions manually, select a subject, fill in the question, choices, correct answer, and Bloom's Taxonomy level for each question.</li>
-              <li>To use AI, click <b>Generate with AI</b> and follow the instructions in the modal.</li>
-              <li>To generate questions from a file, click <b>Upload File for AI</b> and follow the instructions in the modal.</li>
-              <li>Review all questions before saving. You can edit or remove any question before submitting.</li>
-            </ol>
-          </details>
-        )}
         <div className="bg-base-200 rounded-lg shadow-lg p-6">
+          {guideMode && (
+            <details className="mb-6 bg-base-200 border border-primary rounded p-3">
+              <summary className="cursor-pointer font-medium text-base text-primary mb-1">How to use the Add Questions page?</summary>
+              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>You can manually add questions, generate them with AI, or upload a file for AI-based question generation.</li>
+                <li>To add questions manually, select a subject, fill in the question, choices, correct answer, and Bloom's Taxonomy level for each question.</li>
+                <li>To use AI, click <b>Generate with AI</b> and follow the instructions in the modal.</li>
+                <li>To generate questions from a file, click <b>Upload File for AI</b> and follow the instructions in the modal.</li>
+                <li>Review all questions before saving. You can edit or remove any question before submitting.</li>
+              </ol>
+            </details>
+          )}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-primary">Add Questions</h1>
             <div className="flex gap-2">
@@ -280,19 +465,6 @@ const AddQuestions = () => {
               >
                 Generate with AI
               </button>
-              <label className="btn btn-secondary btn-sm gap-2 cursor-pointer">
-                <input
-                  type="file"
-                  accept=".docx,.pdf,.pptx"
-                  style={{ display: 'none' }}
-                  onChange={async (e) => {
-                    const uploadedFile = e.target.files[0];
-                    setFile(uploadedFile);
-                    setShowFileAIModal(true);
-                  }}
-                />
-                Upload File for AI
-              </label>
               <button
                 onClick={handleAddQuestion}
                 className="btn btn-primary btn-sm gap-2"
@@ -355,6 +527,9 @@ const AddQuestions = () => {
                       className="textarea textarea-bordered w-full bg-base-100"
                       rows="3"
                     />
+                    {q.questionType === "true_false" && tfWarnings[index] && (
+                      <div className="text-warning text-xs mt-1">True/False questions should be statements, not questions. The text was auto-converted.</div>
+                    )}
                   </div>
 
                   <div className="form-control mb-4">
@@ -414,159 +589,281 @@ const AddQuestions = () => {
             </div>
           </form>
 
-          {/* AI Modal */}
+          {/* Unified AI Modal */}
           {showAIModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 backdrop-blur-sm bg-black/20 -z-10"></div>
-              <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-lg relative overflow-y-auto max-h-[80vh]">
-                <button
-                  className="absolute top-2 right-2 btn btn-ghost btn-sm"
-                  onClick={() => { setShowAIModal(false); setAIGeneratedQuestions([]); setAIError(""); }}
-                >
-                  ✕
-                </button>
-                <h2 className="text-lg font-bold mb-4">Generate Questions with AI</h2>
-                <details className="mb-4">
-                  <summary className="cursor-pointer font-medium text-primary">How to use this feature?</summary>
-                  <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                    <li>Select the subject for your questions.</li>
-                    <li>Choose the Bloom's Taxonomy level that matches the type of questions you want.</li>
-                    <li>Enter the topic you want questions about (for example, "Photosynthesis").</li>
-                    <li>Set how many questions you want to generate (1–5).</li>
-                    <li>Click <b>Generate</b>. The AI will create multiple-choice questions for you to review and edit before saving.</li>
-                  </ol>
-                </details>
-                <form onSubmit={handleAIGenerate} className="space-y-4">
-                  <div className="form-control">
-                    <label className="label">Subject</label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={aiSubject}
-                      onChange={e => setAISubject(e.target.value)}
-                    >
-                      <option value="">-- Select Subject --</option>
-                      {subjects.map((subject) => (
-                        <option key={subject._id} value={subject._id}>{subject.subject}</option>
-                      ))}
-                    </select>
+              <div className="absolute inset-0 backdrop-blur-sm bg-black/40 -z-10"></div>
+              <div className="bg-base-100 rounded-2xl shadow-2xl p-0 w-full max-w-2xl relative overflow-y-auto max-h-[90vh] border border-primary/30">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-base-200">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
+                      <FaRegLightbulb className="text-accent" /> AI Question Generator
+                    </h2>
+                    <p className="text-base-content/70 text-sm mt-1">Use AI to quickly generate multiple-choice questions. Choose a method below.</p>
                   </div>
-                  <div className="form-control">
-                    <label className="label">Bloom's Taxonomy Level</label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={aiBloomsLevel}
-                      onChange={e => setAIBloomsLevel(e.target.value)}
-                    >
-                      <option value="">-- Select Level --</option>
-                      {BLOOMS_LEVELS.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control">
-                    <label className="label">Topic</label>
-                    <input
-                      className="input input-bordered w-full bg-base-100"
-                      value={aiTopic}
-                      onChange={e => setAITopic(e.target.value)}
-                      placeholder="e.g. Law of Demand"
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">How many questions? (max 10)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={10}
-                      className="input input-bordered w-full bg-base-100"
-                      value={aiNumQuestions}
-                      onChange={e => setAINumQuestions(Math.max(1, Math.min(10, Number(e.target.value))))}
-                    />
-                  </div>
-                  {aiError && <div className="alert alert-error py-2">{aiError}</div>}
                   <button
-                    type="submit"
-                    className="btn btn-accent w-full"
-                    disabled={aiLoading}
+                    className="btn btn-ghost btn-circle text-xl"
+                    onClick={() => {
+                      setShowAIModal(false);
+                      setAIGeneratedQuestions([]);
+                      setAIError("");
+                    }}
+                    aria-label="Close"
                   >
-                    {aiLoading ? "Generating..." : "Generate"}
+                    ×
                   </button>
-                </form>
-                {/* Show generated questions for review/edit */}
-                {aiGeneratedQuestions.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-semibold mb-2">Generated Questions</h3>
-                    {aiGeneratedQuestions.map((q, idx) => {
-                      const choices = Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""];
-                      return (
-                        <div key={idx} className="card bg-base-200 p-4 mb-3">
-                          <div className="form-control mb-2">
-                            <label className="label">Question Text</label>
-                            <input
-                              className="input input-bordered w-full bg-base-100"
-                              value={q.questionText}
-                              onChange={e => {
-                                const updated = [...aiGeneratedQuestions];
-                                updated[idx].questionText = e.target.value;
-                                setAIGeneratedQuestions(updated);
-                              }}
-                            />
-                          </div>
-                          <div className="form-control mb-2">
-                            <label className="label">Bloom's Taxonomy Level</label>
-                            <select
-                              className="select select-bordered w-full bg-base-100"
-                              value={q.bloomsLevel || aiBloomsLevel}
-                              onChange={e => {
-                                const updated = [...aiGeneratedQuestions];
-                                updated[idx].bloomsLevel = e.target.value;
-                                setAIGeneratedQuestions(updated);
-                              }}
-                            >
-                              <option value="">-- Select Level --</option>
-                              {BLOOMS_LEVELS.map(level => (
-                                <option key={level} value={level}>{level}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                            {choices.map((choice, cidx) => (
-                              <div key={cidx} className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name={`ai-correct-${idx}`}
-                                  className="radio radio-primary"
-                                  checked={q.correctAnswer === choice}
-                                  onChange={() => {
-                                    const updated = [...aiGeneratedQuestions];
-                                    updated[idx].correctAnswer = choice;
-                                    setAIGeneratedQuestions(updated);
-                                  }}
-                                />
+                </div>
+                {/* Tabs */}
+                <div className="flex gap-2 px-6 pt-4 pb-2 border-b border-base-200">
+                  <button
+                    className={`flex-1 tab tab-lg ${aiGenerationMethod === AI_GENERATION_METHODS.TOPIC ? 'tab-active bg-accent/10 border-accent text-accent' : 'bg-base-200'}`}
+                    onClick={() => setAIGenerationMethod(AI_GENERATION_METHODS.TOPIC)}
+                  >
+                    <FaRegLightbulb className="inline mr-2" /> Topic
+                  </button>
+                  <button
+                    className={`flex-1 tab tab-lg ${aiGenerationMethod === AI_GENERATION_METHODS.FILE ? 'tab-active bg-secondary/10 border-secondary text-secondary' : 'bg-base-200'}`}
+                    onClick={() => setAIGenerationMethod(AI_GENERATION_METHODS.FILE)}
+                  >
+                    <FaFileAlt className="inline mr-2" /> File
+                  </button>
+                  <button
+                    className={`flex-1 tab tab-lg ${aiGenerationMethod === AI_GENERATION_METHODS.CHAT ? 'tab-active bg-info/10 border-info text-info' : 'bg-base-200'}`}
+                    onClick={() => setAIGenerationMethod(AI_GENERATION_METHODS.CHAT)}
+                  >
+                    <FaComments className="inline mr-2" /> Chat
+                  </button>
+                </div>
+                {/* Tab Content */}
+                <div className="px-6 py-4 space-y-4">
+                  <details className="mb-2">
+                    <summary className="cursor-pointer font-medium text-primary">How to use this feature?</summary>
+                    <div className="mt-2 text-sm text-base-content space-y-2">
+                      {aiGenerationMethod === AI_GENERATION_METHODS.TOPIC && (
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Select the subject for your questions.</li>
+                          <li>Choose the Bloom's Taxonomy level.</li>
+                          <li>Enter the topic you want questions about.</li>
+                          <li>Set how many questions you want to generate (1–5).</li>
+                        </ol>
+                      )}
+                      {aiGenerationMethod === AI_GENERATION_METHODS.FILE && (
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Select a .docx, .pdf, or .pptx file from your computer.</li>
+                          <li>Choose the subject and Bloom's Taxonomy level.</li>
+                          <li>Set how many questions you want to generate (1–5).</li>
+                          <li>Optionally add custom instructions to guide the AI.</li>
+                        </ol>
+                      )}
+                      {aiGenerationMethod === AI_GENERATION_METHODS.CHAT && (
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Select the subject for your questions.</li>
+                          <li>Write your prompt in natural language. <span className="tooltip tooltip-info ml-1" data-tip="Describe what kind of questions you want.">ℹ️</span></li>
+                          <li>Set how many questions you want to generate (1–5).</li>
+                        </ol>
+                      )}
+                    </div>
+                  </details>
+                  <form onSubmit={handleAIGenerate} className="space-y-4">
+                    <div className="form-control">
+                      <label className="label font-semibold">Subject</label>
+                      <select
+                        className="select select-bordered w-full bg-base-100"
+                        value={aiSubject}
+                        onChange={e => setAISubject(e.target.value)}
+                      >
+                        <option value="">-- Select Subject --</option>
+                        {subjects.map((subject) => (
+                          <option key={subject._id} value={subject._id}>{subject.subject}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-control">
+                      <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                      <select
+                        className="select select-bordered w-full bg-base-100"
+                        value={aiBloomsLevel}
+                        onChange={e => setAIBloomsLevel(e.target.value)}
+                      >
+                        <option value="">-- Select Level --</option>
+                        {BLOOMS_LEVELS.map(level => (
+                          <option key={level} value={level}>{level}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {aiGenerationMethod === AI_GENERATION_METHODS.TOPIC && (
+                      <>
+                        <div className="form-control">
+                          <label className="label font-semibold">Topic</label>
+                          <input
+                            className="input input-bordered w-full bg-base-100"
+                            value={aiTopic}
+                            onChange={e => setAITopic(e.target.value)}
+                            placeholder="e.g. Law of Demand"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {aiGenerationMethod === AI_GENERATION_METHODS.FILE && (
+                      <>
+                        <div className="form-control">
+                          <label className="label font-semibold">Upload File</label>
+                          <input
+                            type="file"
+                            accept=".docx,.pdf,.pptx"
+                            className="file-input file-input-bordered w-full bg-base-100"
+                            onChange={(e) => setFile(e.target.files[0])}
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label font-semibold">Custom Instructions <span className="tooltip tooltip-info ml-1" data-tip="Optional: e.g. Focus on chapter 2">ℹ️</span></label>
+                          <textarea
+                            className="textarea textarea-bordered w-full bg-base-100"
+                            value={fileAICustomPrompt}
+                            onChange={e => setFileAICustomPrompt(e.target.value)}
+                            placeholder="e.g. Focus on chapter 2, or generate questions about memory management"
+                            rows={2}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {aiGenerationMethod === AI_GENERATION_METHODS.CHAT && (
+                      <>
+                        <div className="form-control">
+                          <label className="label font-semibold">Your Prompt</label>
+                          <textarea
+                            className="textarea textarea-bordered w-full bg-base-100"
+                            value={aiPrompt}
+                            onChange={e => setAIPrompt(e.target.value)}
+                            placeholder="Describe what kind of questions you want to generate..."
+                            rows={4}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="form-control">
+                      <label className="label font-semibold">How many questions? (1-5)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={5}
+                        className="input input-bordered w-full bg-base-100"
+                        value={aiNumQuestions}
+                        onChange={e => setAINumQuestions(Math.max(1, Math.min(5, Number(e.target.value))))}
+                      />
+                    </div>
+
+                    {aiError && <div className="alert alert-error py-2">{aiError}</div>}
+
+                    <button
+                      type="submit"
+                      className="btn btn-accent w-full mt-2"
+                      disabled={aiLoading || !aiSubject}
+                    >
+                      {aiLoading ? "Generating..." : "Generate"}
+                    </button>
+                  </form>
+
+                  {/* Show extracted text preview for file upload */}
+                  {aiGenerationMethod === AI_GENERATION_METHODS.FILE && fileExtractedText && (
+                    <div className="form-control mt-4">
+                      <label className="label font-semibold">Extracted Text (preview)</label>
+                      <textarea
+                        className="textarea textarea-bordered w-full bg-base-100"
+                        value={fileExtractedText}
+                        rows="4"
+                        readOnly
+                      />
+                    </div>
+                  )}
+
+                  {/* Generated Questions Section */}
+                  {aiGeneratedQuestions.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="font-semibold mb-2 text-lg text-primary">Generated Questions</h3>
+                      <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+                        {aiGeneratedQuestions.map((q, idx) => {
+                          const choices = Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""];
+                          return (
+                            <div key={idx} className="card bg-base-200 p-4 mb-1 shadow border border-base-300">
+                              <div className="form-control mb-2">
+                                <label className="label font-semibold">Question Text</label>
                                 <input
                                   className="input input-bordered w-full bg-base-100"
-                                  value={choice}
+                                  value={q.questionText}
                                   onChange={e => {
                                     const updated = [...aiGeneratedQuestions];
-                                    updated[idx].choices = [...choices];
-                                    updated[idx].choices[cidx] = e.target.value;
+                                    updated[idx].questionText = e.target.value;
                                     setAIGeneratedQuestions(updated);
                                   }}
                                 />
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <button
-                      className="btn btn-primary w-full mt-2"
-                      onClick={handleAddAIGenerated}
-                    >
-                      Add to Questions
-                    </button>
-                  </div>
-                )}
+                              <div className="form-control mb-2">
+                                <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                                <select
+                                  className="select select-bordered w-full bg-base-100"
+                                  value={q.bloomsLevel || aiBloomsLevel}
+                                  onChange={e => {
+                                    const updated = [...aiGeneratedQuestions];
+                                    updated[idx].bloomsLevel = e.target.value;
+                                    setAIGeneratedQuestions(updated);
+                                  }}
+                                >
+                                  <option value="">-- Select Level --</option>
+                                  {BLOOMS_LEVELS.map(level => (
+                                    <option key={level} value={level}>{level}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                                {choices.map((choice, cidx) => (
+                                  <div key={cidx} className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      name={`ai-correct-${idx}`}
+                                      className="radio radio-primary"
+                                      checked={q.correctAnswer === choice}
+                                      onChange={() => {
+                                        const updated = [...aiGeneratedQuestions];
+                                        updated[idx].correctAnswer = choice;
+                                        setAIGeneratedQuestions(updated);
+                                      }}
+                                    />
+                                    <input
+                                      className="input input-bordered w-full bg-base-100"
+                                      value={choice}
+                                      readOnly={aiQuestionType === "true_false"}
+                                      onChange={e => {
+                                        if (aiQuestionType !== "true_false") {
+                                          const updated = [...aiGeneratedQuestions];
+                                          updated[idx].choices = [...choices];
+                                          updated[idx].choices[cidx] = e.target.value;
+                                          setAIGeneratedQuestions(updated);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        className="btn btn-primary w-full mt-4"
+                        onClick={handleAddAIGenerated}
+                      >
+                        Add to Questions
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -760,6 +1057,160 @@ const AddQuestions = () => {
                         setFileAIQuestions([]);
                         setFileAIError("");
                       }}
+                    >
+                      Add to Questions
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Chat AI Modal */}
+          {showChatAIModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 backdrop-blur-sm bg-black/20 -z-10"></div>
+              <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-lg relative overflow-y-auto max-h-[80vh]">
+                <button
+                  className="absolute top-2 right-2 btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setShowChatAIModal(false);
+                    setChatAIGeneratedQuestions([]);
+                    setChatAIError("");
+                  }}
+                >
+                  ✕
+                </button>
+                <h2 className="text-lg font-bold mb-4">Chat AI Question Generator</h2>
+                <details className="mb-4">
+                  <summary className="cursor-pointer font-medium text-primary">How to use this feature?</summary>
+                  <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
+                    <li>Select the subject for your questions.</li>
+                    <li>Write your prompt in natural language. For example:
+                      <ul className="list-disc list-inside ml-4 mt-1">
+                        <li>"Generate questions about photosynthesis focusing on the light-dependent reactions"</li>
+                        <li>"Create questions testing understanding of Newton's laws with real-world examples"</li>
+                        <li>"Make questions about the water cycle suitable for middle school students"</li>
+                      </ul>
+                    </li>
+                    <li>Set how many questions you want to generate (1–5).</li>
+                    <li>Click <b>Generate</b>. The AI will create questions based on your prompt.</li>
+                  </ol>
+                </details>
+                <form onSubmit={handleChatAIGenerate} className="space-y-4">
+                  <div className="form-control">
+                    <label className="label">Subject</label>
+                    <select
+                      className="select select-bordered w-full bg-base-100"
+                      value={chatAISubject}
+                      onChange={e => setChatAISubject(e.target.value)}
+                    >
+                      <option value="">-- Select Subject --</option>
+                      {subjects.map((subject) => (
+                        <option key={subject._id} value={subject._id}>{subject.subject}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-control">
+                    <label className="label">Your Prompt</label>
+                    <textarea
+                      className="textarea textarea-bordered w-full bg-base-100"
+                      value={chatAIPrompt}
+                      onChange={e => setChatAIPrompt(e.target.value)}
+                      placeholder="Describe what kind of questions you want to generate..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">How many questions? (1-5)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={5}
+                      className="input input-bordered w-full bg-base-100"
+                      value={chatAINumQuestions}
+                      onChange={e => setChatAINumQuestions(Math.max(1, Math.min(5, Number(e.target.value))))}
+                    />
+                  </div>
+                  {chatAIError && <div className="alert alert-error py-2">{chatAIError}</div>}
+                  <button
+                    type="submit"
+                    className="btn btn-info w-full"
+                    disabled={chatAILoading}
+                  >
+                    {chatAILoading ? "Generating..." : "Generate"}
+                  </button>
+                </form>
+                {/* Show generated questions for review/edit */}
+                {chatAIGeneratedQuestions.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-semibold mb-2">Generated Questions</h3>
+                    {chatAIGeneratedQuestions.map((q, idx) => {
+                      const choices = Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""];
+                      return (
+                        <div key={idx} className="card bg-base-200 p-4 mb-3">
+                          <div className="form-control mb-2">
+                            <label className="label">Question Text</label>
+                            <input
+                              className="input input-bordered w-full bg-base-100"
+                              value={q.questionText}
+                              onChange={e => {
+                                const updated = [...chatAIGeneratedQuestions];
+                                updated[idx].questionText = e.target.value;
+                                setChatAIGeneratedQuestions(updated);
+                              }}
+                            />
+                          </div>
+                          <div className="form-control mb-2">
+                            <label className="label">Bloom's Taxonomy Level</label>
+                            <select
+                              className="select select-bordered w-full bg-base-100"
+                              value={q.bloomsLevel}
+                              onChange={e => {
+                                const updated = [...chatAIGeneratedQuestions];
+                                updated[idx].bloomsLevel = e.target.value;
+                                setChatAIGeneratedQuestions(updated);
+                              }}
+                            >
+                              <option value="">-- Select Level --</option>
+                              {BLOOMS_LEVELS.map(level => (
+                                <option key={level} value={level}>{level}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                            {choices.map((choice, cidx) => (
+                              <div key={cidx} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`chat-ai-correct-${idx}`}
+                                  className="radio radio-primary"
+                                  checked={q.correctAnswer === choice}
+                                  onChange={() => {
+                                    const updated = [...chatAIGeneratedQuestions];
+                                    updated[idx].correctAnswer = choice;
+                                    setChatAIGeneratedQuestions(updated);
+                                  }}
+                                />
+                                <input
+                                  className="input input-bordered w-full bg-base-100"
+                                  value={choice}
+                                  onChange={e => {
+                                    const updated = [...chatAIGeneratedQuestions];
+                                    updated[idx].choices = [...choices];
+                                    updated[idx].choices[cidx] = e.target.value;
+                                    setChatAIGeneratedQuestions(updated);
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <button
+                      className="btn btn-primary w-full mt-2"
+                      onClick={handleAddChatAIGenerated}
                     >
                       Add to Questions
                     </button>

@@ -3,35 +3,51 @@ import styles from './FloatingStars.module.css';
 
 const FloatingStars = () => {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext('2d');
     let animationFrameId;
+    let resizeTimeout;
 
-    // Set canvas dimensions
+    // Set canvas dimensions based on container
     const setCanvasDimensions = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const rect = container.getBoundingClientRect();
+      // Use device pixel ratio for sharper rendering
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      // Scale the context to match the device pixel ratio
+      ctx.scale(dpr, dpr);
+      // Set the canvas CSS size to match the container
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
     };
 
     setCanvasDimensions();
 
     // Star properties
-    const numStars = 100; // Number of stars
+    const numStars = Math.min(100, Math.floor((canvas.width * canvas.height) / 10000)); // Adjust star count based on area
     const stars = [];
-    const starColor = 'rgba(255, 255, 255, 0.8)'; // White with some transparency
+    const starColor = 'rgba(255, 255, 255, 0.8)';
 
     class Star {
       constructor() {
+        this.reset();
+      }
+
+      reset() {
+        // Ensure stars are distributed across the entire canvas
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 1.5 + 0.5; // Star size: 0.5px to 2px
-        this.speedX = (Math.random() - 0.5) * 0.3; // Slow horizontal drift
-        this.speedY = (Math.random() - 0.5) * 0.3; // Slow vertical drift
-        this.opacity = Math.random() * 0.5 + 0.3; // Opacity: 0.3 to 0.8
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.5 + 0.3;
         this.twinkleSpeed = Math.random() * 0.02 + 0.005;
         this.twinkleDirection = 1;
       }
@@ -52,8 +68,7 @@ const FloatingStars = () => {
         this.opacity += this.twinkleSpeed * this.twinkleDirection;
         if (this.opacity > 0.8 || this.opacity < 0.2) {
           this.twinkleDirection *= -1;
-          // Ensure opacity stays within bounds if speed is high
-          this.opacity = Math.max(0.2, Math.min(0.8, this.opacity)); 
+          this.opacity = Math.max(0.2, Math.min(0.8, this.opacity));
         }
 
         // Boundary conditions (wrap around screen)
@@ -67,7 +82,7 @@ const FloatingStars = () => {
     }
 
     const initStars = () => {
-      stars.length = 0; // Clear existing stars if any (e.g., on resize)
+      stars.length = 0;
       for (let i = 0; i < numStars; i++) {
         stars.push(new Star());
       }
@@ -84,20 +99,32 @@ const FloatingStars = () => {
     animate();
 
     const handleResize = () => {
-      setCanvasDimensions();
-      initStars(); // Re-initialize stars for new dimensions
+      // Debounce resize to prevent too many recalculations
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        setCanvasDimensions();
+        // Reinitialize stars on resize to ensure proper distribution
+        initStars();
+      }, 100);
     };
 
-    window.addEventListener('resize', handleResize);
+    // Use ResizeObserver for more reliable container size changes
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+      resizeObserver.disconnect();
     };
   }, []);
 
-  return <canvas ref={canvasRef} className={styles.starsCanvas} />;
+  return (
+    <div ref={containerRef} className={styles.starsContainer}>
+      <canvas ref={canvasRef} className={styles.starsCanvas} />
+    </div>
+  );
 };
 
 export default FloatingStars; 

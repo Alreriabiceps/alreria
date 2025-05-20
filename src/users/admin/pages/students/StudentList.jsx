@@ -255,7 +255,7 @@ const StudentList = () => {
           </div>
 
           {guideMode && (
-            <details open className="mb-6 bg-info/10 border border-info rounded p-3">
+            <details className="mb-6 bg-info/10 border border-info rounded p-3">
               <summary className="cursor-pointer font-medium text-base text-info mb-1">How to use the Student List page?</summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
                 <li>Use the <b>search</b> box to find students by name or ID.</li>

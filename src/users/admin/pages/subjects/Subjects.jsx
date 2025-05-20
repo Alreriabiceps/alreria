@@ -257,7 +257,7 @@ const Subjects = () => {
           </div>
 
           {guideMode && (
-            <details open className="mb-6 bg-primary/10 border border-primary rounded p-3">
+            <details className="mb-6 bg-primary/10 border border-primary rounded p-3">
               <summary className="cursor-pointer font-medium text-base text-primary mb-1">How to use the Subjects page?</summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
                 <li>View all subjects in the list below.</li>
