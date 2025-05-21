@@ -64,6 +64,11 @@ const SideMenu = () => {
           path: "/admin/questionlist",
           icon: <MdQuiz />,
         },
+        {
+          title: "Link Labeler",
+          path: "/admin/linklabeler",
+          icon: <MdBook />,
+        },
       ],
     },
     {

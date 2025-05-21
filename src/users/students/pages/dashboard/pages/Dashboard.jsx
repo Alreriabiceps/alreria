@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react"; // Add useState, useEffect w
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import styles from "./Dashboard.module.css";
-import { MdAssignment } from 'react-icons/md';
 import { FaFire, FaBullseye, FaTrophy, FaChartBar, FaCalendarAlt, FaGift, FaTasks } from 'react-icons/fa';
 import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // Corrected Import FloatingStars
 
