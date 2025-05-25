@@ -40,7 +40,11 @@ import AddQuestions from "./users/admin/pages/questions/AddQuestions.jsx";
 import QuestionList from "./users/admin/pages/questions/QuestionList.jsx";
 import WeekSchedule from "./users/admin/pages/weeks/WeekSchedule.jsx";
 import CurrentSchedules from "./users/admin/pages/weeks/CurrentSchedules";
+<<<<<<< HEAD
 import ReviewerLinks from "./users/admin/pages/reviewer/ReviewerLinks.jsx";
+=======
+import LinkLabeler from "./users/admin/pages/linklabeler/LinkLabeler.jsx";
+>>>>>>> 7dd67aefc74297aa5736d865d1fc0f5f750e5e42
 
 const App = () => {
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
@@ -105,7 +109,11 @@ const App = () => {
               <Route path="settings" element={<Settings />} />
               <Route path="addstudent" element={<AddStudents />} />
               <Route path="studentlist" element={<StudentList />} />
+<<<<<<< HEAD
               <Route path="reviewer-links" element={<ReviewerLinks />} />
+=======
+              <Route path="linklabeler" element={<LinkLabeler />} />
+>>>>>>> 7dd67aefc74297aa5736d865d1fc0f5f750e5e42
             </Route>
 
             {/* Redirect root to appropriate dashboard */}
