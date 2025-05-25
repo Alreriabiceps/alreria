@@ -64,6 +64,43 @@ const getRank = (totalPoints) => {
 // Helper function to get localStorage key
 const getLocalStorageKey = (userId) => userId ? `weeklyTestState_${userId}` : null;
 
+// Achievements definitions
+const ACHIEVEMENTS = [
+  {
+    id: 'first_test',
+    name: 'First Test Completed',
+    description: 'Congratulations on completing your first weekly test!',
+    icon: '🏅',
+    check: ({ previousCompletions }) => previousCompletions === 0,
+  },
+  {
+    id: 'perfect_score',
+    name: 'Perfect Score',
+    description: 'You scored 100% on a weekly test. Amazing!',
+    icon: '🌟',
+    check: ({ score, totalQuestions }) => score === totalQuestions,
+  },
+  {
+    id: 'streak_3',
+    name: '3 Correct in a Row',
+    description: 'You answered 3 questions correctly in a row!',
+    icon: '🔥',
+    check: ({ answers, tests }) => {
+      let streak = 0;
+      for (let i = 0; i < tests.length; i++) {
+        const q = tests[i];
+        if (answers[q._id] === q.correctAnswer) {
+          streak++;
+          if (streak >= 3) return true;
+        } else {
+          streak = 0;
+        }
+      }
+      return false;
+    },
+  },
+];
+
 const WeeklyTest = () => {
   const { user } = useAuth();
   const justRestoredSessionRef = useRef(false); // Ref to signal post-restoration
@@ -106,6 +143,18 @@ const WeeklyTest = () => {
   const [resultLoading, setResultLoading] = useState(false);
   const [filteredWeeks, setFilteredWeeks] = useState([]);
   const [restoredSessionData, setRestoredSessionData] = useState(null); // New state
+  // Timer states
+  const TEST_TIME_LIMIT = 15 * 60; // 15 minutes in seconds
+  const TEST_TIMER_WARNING_THRESHOLD = 60; // 1 minute left warning
+  const [testTimeLeft, setTestTimeLeft] = useState(TEST_TIME_LIMIT);
+  const [testTimerActive, setTestTimerActive] = useState(false);
+  const [showTestTimerWarning, setShowTestTimerWarning] = useState(false);
+  // State for unlocked achievements (session only)
+  const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+  const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [newAchievements, setNewAchievements] = useState([]);
+  // Challenge banner state
+  const [challengeBanner, setChallengeBanner] = useState(null);
 
   // Helper function to clear test data from localStorage
   const clearLocalStorageTestData = () => {
@@ -634,6 +683,29 @@ const WeeklyTest = () => {
       });
       setResultLoading(false);
       clearLocalStorageTestData(); // Clear after successful save
+
+      // --- Achievement logic ---
+      // For demo, count completions in localStorage (or use backend if available)
+      const completionsKey = user ? `weeklyTestCompletions_${user.id}` : null;
+      let previousCompletions = 0;
+      if (completionsKey) {
+        previousCompletions = parseInt(localStorage.getItem(completionsKey) || '0', 10);
+        localStorage.setItem(completionsKey, (previousCompletions + 1).toString());
+      }
+      // Check for new achievements
+      const context = {
+        previousCompletions,
+        score: data.data.testResult.score,
+        totalQuestions: data.data.testResult.totalQuestions,
+        answers,
+        tests,
+      };
+      const newlyUnlocked = ACHIEVEMENTS.filter(a => a.check(context) && !unlockedAchievements.some(u => u.id === a.id));
+      if (newlyUnlocked.length > 0) {
+        setUnlockedAchievements(prev => [...prev, ...newlyUnlocked]);
+        setNewAchievements(newlyUnlocked);
+        setShowAchievementModal(true);
+      }
     } catch (err) {
       console.error('Error saving test result:', err);
       setError(`Failed to save test result: ${err.message}. Please try again later.`);
@@ -641,6 +713,38 @@ const WeeklyTest = () => {
       // Decide if to clear on error: for now, only on success/already completed.
     }
   };
+
+  // --- Effect: Whole test timer logic ---
+  useEffect(() => {
+    if (!isTestStarted) {
+      setTestTimerActive(false);
+      setTestTimeLeft(TEST_TIME_LIMIT);
+      setShowTestTimerWarning(false);
+      return;
+    }
+    setTestTimerActive(true);
+    setShowTestTimerWarning(false);
+  }, [isTestStarted]);
+
+  useEffect(() => {
+    if (!testTimerActive) return;
+    if (!isTestStarted) return;
+    if (testTimeLeft <= 0) {
+      // Time's up: auto-submit
+      handleTestComplete();
+      setTestTimerActive(false);
+      return;
+    }
+    if (testTimeLeft <= TEST_TIMER_WARNING_THRESHOLD) {
+      setShowTestTimerWarning(true);
+    } else {
+      setShowTestTimerWarning(false);
+    }
+    const timer = setTimeout(() => {
+      setTestTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [testTimerActive, testTimeLeft, isTestStarted]);
 
   // --- Event Handlers ---
 
@@ -651,6 +755,9 @@ const WeeklyTest = () => {
       setCurrentQuestionIndex(0); // Go to the first question
       setAnswers({}); // Clear any previous answers
       setShowAnimation(true); // Trigger animation for the first question
+      setTestTimeLeft(TEST_TIME_LIMIT);
+      setTestTimerActive(true);
+      setShowTestTimerWarning(false);
     }
   };
 
@@ -658,7 +765,6 @@ const WeeklyTest = () => {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < tests.length - 1) {
       setShowAnimation(false); // Start fade-out animation
-      // Wait for fade-out, then change index and fade-in
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
         setShowAnimation(true);
@@ -670,7 +776,6 @@ const WeeklyTest = () => {
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setShowAnimation(false); // Start fade-out animation
-      // Wait for fade-out, then change index and fade-in
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev - 1);
         setShowAnimation(true);
@@ -690,6 +795,9 @@ const WeeklyTest = () => {
     setError(null);
     setShowResultModal(false); // Hide modal on reset
     clearLocalStorageTestData(); // Clear on filter reset
+    setTestTimeLeft(TEST_TIME_LIMIT);
+    setTestTimerActive(false);
+    setShowTestTimerWarning(false);
   };
 
   // Handle test submission
@@ -741,6 +849,48 @@ const WeeklyTest = () => {
     return styles.pointsNeutral;
   };
 
+  // Helper to format time as mm:ss
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // Achievement Modal
+  const AchievementModal = ({ achievements, onClose }) => (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      background: 'rgba(0,0,0,0.7)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        background: '#232c3a', color: '#fff', borderRadius: 16, padding: 32, minWidth: 320, maxWidth: 400,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)', textAlign: 'center',
+      }}>
+        <h2 style={{ fontSize: '2rem', marginBottom: 16 }}>Achievement Unlocked!</h2>
+        {achievements.map(a => (
+          <div key={a.id} style={{ margin: '18px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '3rem', marginBottom: 8 }}>{a.icon}</span>
+            <span style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: 4 }}>{a.name}</span>
+            <span style={{ fontSize: '1rem', opacity: 0.85 }}>{a.description}</span>
+          </div>
+        ))}
+        <button onClick={onClose} style={{ marginTop: 18, padding: '10px 28px', borderRadius: 8, background: '#f1c40f', color: '#232c3a', fontWeight: 700, fontSize: '1.1rem', border: 'none', cursor: 'pointer' }}>Close</button>
+      </div>
+    </div>
+  );
+
+  // --- Effect: Check for challenge in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('challenge') === '1') {
+      const from = params.get('from') || 'A friend';
+      const score = params.get('score');
+      setChallengeBanner({ from, score });
+    } else {
+      setChallengeBanner(null);
+    }
+  }, []);
+
   // --- Render Logic ---
   return (
     <div style={{
@@ -790,6 +940,19 @@ const WeeklyTest = () => {
         </p>
       </div>
 
+      {/* Challenge Banner */}
+      {challengeBanner && (
+        <div style={{
+          background: '#f1c40f', color: '#0D131A', fontWeight: 700, fontSize: '1.1rem',
+          borderRadius: 10, padding: '12px 24px', margin: '18px 0',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.15)', textAlign: 'center',
+          maxWidth: 600, alignSelf: 'center',
+        }}>
+          {challengeBanner.from} has challenged you to beat their score of <span style={{ color: '#e74c3c', fontWeight: 900 }}>{challengeBanner.score}</span>!<br />
+          Take the test and see if you can do better!
+        </div>
+      )}
+
       {/* Filter Panel - Themed Wrapper */}
       <div className={styles.filterPanelWrapper_themed} style={{
         background: theme.panelBg,
@@ -831,6 +994,28 @@ const WeeklyTest = () => {
         justifyContent: 'center',
         minHeight: '300px', // Ensure it has some height
       }}>
+        {/* Whole test timer display */}
+        {isTestStarted && (
+          <div
+            className={styles.timerContainer}
+            style={{
+              textAlign: 'center',
+              marginBottom: '10px',
+              fontWeight: 'bold',
+              fontSize: '1.3rem',
+              color: showTestTimerWarning ? '#ff3b3b' : theme.accent,
+              transition: 'color 0.2s',
+              animation: showTestTimerWarning ? 'flash-timer 1s steps(2, start) infinite' : 'none',
+            }}
+          >
+            ⏰ Test Time Left: {formatTime(testTimeLeft)}
+            {showTestTimerWarning && (
+              <span style={{ marginLeft: 10, color: '#ff3b3b', fontWeight: 700 }}>
+                Less than 1 minute left!
+              </span>
+            )}
+          </div>
+        )}
         {isLoading ? (
           <div className={styles.messageContainer_themed} style={{ color: theme.text, fontSize: '1.2rem' }}>
             <p className={styles.loadingMessage_themed}>Loading Schematics...</p>
@@ -849,6 +1034,10 @@ const WeeklyTest = () => {
             <p style={{ marginBottom: '5px' }}>Subject: {selectedSubject ? selectedSubject.name : ''}</p>
             <p style={{ marginBottom: '5px' }}>Week: {selectedWeek ? selectedWeek.display : ''}</p>
             <p style={{ marginBottom: '20px' }}>Questions: {tests.length}</p>
+            <p style={{ marginBottom: '20px', color: theme.accent, fontWeight: 600 }}>
+              <span role="img" aria-label="timer">⏰</span> You will have {TEST_TIME_LIMIT} seconds to answer each question.<br />
+              The test will auto-advance if time runs out.
+            </p>
             <button 
               onClick={handleStartTest} 
               className={styles.startButton_themed} 
@@ -884,6 +1073,7 @@ const WeeklyTest = () => {
             isTestStarted={isTestStarted}
             showAnimation={showAnimation}
             theme={theme} // Pass theme
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
           />
         ) : showResults ? (
           // ... (Results Screen - This part will need its own themed component or significant inline styling later)
@@ -892,7 +1082,7 @@ const WeeklyTest = () => {
             {/* Further styling for results here */}
           </div>
         ) : testResult ? (
-          <ResultModal // This modal will need to be passed the theme prop and styled internally
+          <ResultModal
             testResult={testResult}
             currentRank={currentRank}
             pointsEarned={pointsEarned}
@@ -900,6 +1090,9 @@ const WeeklyTest = () => {
             loading={resultLoading}
             error={error}
             theme={theme}
+            user={user}
+            selectedSubject={selectedSubject}
+            selectedWeek={selectedWeek}
           />
         ) : (
           <div className={styles.messageContainer_themed} style={{ color: theme.text, opacity: 0.7, fontSize: '1.1rem', textAlign: 'center' }}>
@@ -920,19 +1113,42 @@ const WeeklyTest = () => {
 
       {/* Test Results Modal - Already passing theme (from a previous step if it was done) */}
       {showResultModal && (
-        <ResultModal // Ensure this is the one defined to accept theme
+        <ResultModal
           showResultModal={showResultModal}
           setShowResultModal={setShowResultModal}
           testResult={testResult}
           score={score}
           pointsEarned={pointsEarned}
           currentRank={currentRank}
-          getScoreColor={getScoreColor} // These helpers might need to use theme colors
-          getPointsColor={getPointsColor} // These helpers might need to use theme colors
+          getScoreColor={getScoreColor}
+          getPointsColor={getPointsColor}
           loading={resultLoading}
           error={error}
-          theme={theme} // Explicitly pass theme
+          theme={theme}
+          user={user}
+          selectedSubject={selectedSubject}
+          selectedWeek={selectedWeek}
         />
+      )}
+
+      {/* Listen for custom event to jump to a question index (from Review Unanswered button) */}
+      {React.useEffect(() => {
+        const handler = (e) => {
+          if (typeof e.detail?.index === 'number') {
+            setCurrentQuestionIndex(e.detail.index);
+            setShowAnimation(true);
+            setTestTimeLeft(TEST_TIME_LIMIT);
+            setTestTimerActive(true);
+            setShowTestTimerWarning(false);
+          }
+        };
+        window.addEventListener('jumpToQuestionIndex', handler);
+        return () => window.removeEventListener('jumpToQuestionIndex', handler);
+      }, [])}
+
+      {/* Achievement Modal */}
+      {showAchievementModal && newAchievements.length > 0 && (
+        <AchievementModal achievements={newAchievements} onClose={() => setShowAchievementModal(false)} />
       )}
     </div>
   );

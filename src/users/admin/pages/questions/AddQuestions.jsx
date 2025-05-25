@@ -55,7 +55,6 @@ const AddQuestions = () => {
   const [chatAISubject, setChatAISubject] = useState("");
   const [chatAINumQuestions, setChatAINumQuestions] = useState(2);
   const { guideMode } = useGuideMode();
-  const [tfWarnings, setTFWarnings] = useState({});
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
 
@@ -109,20 +108,12 @@ const AddQuestions = () => {
 
     const formattedData = {
       subjectId: selectedSubject,
-      questions: questions.map((q) => {
-        // Ensure choices array is properly formatted based on question type
-        const formattedChoices = q.questionType === "true_false" 
-          ? ["True", "False"]
-          : q.choices.slice(0, 4).concat(Array(4 - q.choices.length).fill(""));
-
-        return {
-          questionText: q.questionText,
-          choices: formattedChoices,
-          correctAnswer: q.correctAnswer,
-          bloomsLevel: q.bloomsLevel,
-          questionType: q.questionType
-        };
-      }),
+      questions: questions.map((q) => ({
+        questionText: q.questionText,
+        choices: q.choices,
+        correctAnswer: q.correctAnswer,
+        bloomsLevel: q.bloomsLevel
+      })),
     };
     console.log("Submitting questions:", JSON.stringify(formattedData, null, 2));
 
@@ -162,16 +153,9 @@ const AddQuestions = () => {
       updatedQuestions[index].questionType = value;
       if (value === "true_false") {
         updatedQuestions[index].choices = ["True", "False"];
-        // Convert question text to statement
-        updatedQuestions[index].questionText = toTrueFalseStatement(updatedQuestions[index].questionText);
       } else {
         updatedQuestions[index].choices = ["", "", "", ""];
       }
-    } else if (field === "questionText" && updatedQuestions[index].questionType === "true_false") {
-      // Auto-convert to statement for true/false
-      updatedQuestions[index].questionText = toTrueFalseStatement(value);
-      // Show warning if original text looked like a question
-      setTFWarnings(w => ({ ...w, [index]: /which of the following|what is|who is|\?$/i.test(value) }));
     } else {
       updatedQuestions[index][field] = value;
     }
@@ -198,29 +182,39 @@ const AddQuestions = () => {
     e.preventDefault();
     setAIError("");
     setAILoading(true);
-    if (!aiSubject) {
-      setAIError("Please select a subject.");
-      setAILoading(false);
-      return;
-    }
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-      if (!aiBloomsLevel) {
-        setAIError("Please select Bloom's level");
+
+      if (!aiSubject) {
+        setAIError("Please select a subject.");
         setAILoading(false);
         return;
       }
-
-      let endpoint;
-      let body;
-
-      // Build a structured prompt for true/false questions
-      let structuredPrompt = "";
-      if (aiQuestionType === 'true_false') {
-        const topicOrSubject = aiTopic || subjects.find(s => s._id === aiSubject)?.subject || 'the topic';
-        structuredPrompt = `Generate ${aiNumQuestions} true/false questions about ${topicOrSubject}. Each question should be a complete factual statement that can be answered with True or False.`;
+      
+      // Validation based on selected method
+      if (aiGenerationMethod === AI_GENERATION_METHODS.TOPIC) {
+        if (!aiTopic || !aiBloomsLevel) {
+          setAIError("Please fill all required fields for Topic Based generation.");
+          setAILoading(false);
+          return;
+        }
+      } else if (aiGenerationMethod === AI_GENERATION_METHODS.FILE) {
+        if (!file || !aiBloomsLevel) {
+          setAIError("Please select a file and Bloom's level for File Upload generation.");
+          setAILoading(false);
+          return;
+        }
+      } else if (aiGenerationMethod === AI_GENERATION_METHODS.CHAT) {
+         if (!aiPrompt || !aiBloomsLevel) { // Add check for aiBloomsLevel
+          setAIError("Please fill all required fields for Chat Style generation.");
+          setAILoading(false);
+          return;
+        }
       }
+
+      let endpoint = '';
+      let body = {};
 
       switch (aiGenerationMethod) {
         case AI_GENERATION_METHODS.TOPIC:
@@ -230,7 +224,7 @@ const AddQuestions = () => {
             bloomsLevel: aiBloomsLevel,
             topic: aiTopic,
             numQuestions: aiNumQuestions,
-            questionType: 'multiple_choice'
+            questionType: aiQuestionType
           };
           break;
         case AI_GENERATION_METHODS.FILE: {
@@ -238,9 +232,9 @@ const AddQuestions = () => {
           const formData = new FormData();
           formData.append('file', file);
           formData.append('subjectId', aiSubject);
-          formData.append('bloomsLevel', aiBloomsLevel);
+          formData.append('bloomsLevel', aiBloomsLevel); // Ensure using unified state
           formData.append('numQuestions', aiNumQuestions);
-          formData.append('questionType', 'multiple_choice');
+          formData.append('questionType', aiQuestionType);
           if (fileAICustomPrompt) formData.append('customPrompt', fileAICustomPrompt);
           body = formData;
           break;
@@ -249,10 +243,10 @@ const AddQuestions = () => {
           endpoint = `${backendurl}/api/generate-questions-chat`;
           body = {
             subjectId: chatAISubject,
-            bloomsLevel: aiBloomsLevel,
+            bloomsLevel: aiBloomsLevel, // Add bloomsLevel for Chat
             prompt: aiPrompt,
             numQuestions: aiNumQuestions,
-            questionType: 'multiple_choice'
+            questionType: aiQuestionType
           };
           break;
       }
@@ -277,16 +271,22 @@ const AddQuestions = () => {
       if (aiGenerationMethod === AI_GENERATION_METHODS.FILE && data.extractedText) {
         setFileExtractedText(data.extractedText.slice(0, 3000));
       } else {
-        setFileExtractedText(""); // Clear extracted text if not file method
+         setFileExtractedText(""); // Clear extracted text if not file method
       }
 
-      // Process the generated questions
-      const processedQuestions = (data.questions || data).map(q => ({
-        ...q,
-        questionType: 'multiple_choice',
-        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
-        bloomsLevel: q.bloomsLevel || aiBloomsLevel
-      }));
+      // Ensure the generated questions match the selected question type
+      const processedQuestions = (data.questions || data).map(q => {
+        if (aiQuestionType === 'true_false') {
+          let correct = (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False';
+          // If the questionText itself is a statement, keep as is, else try to extract
+          return {
+            ...q,
+            choices: ["True", "False"],
+            correctAnswer: correct
+          };
+        }
+        return q;
+      });
 
       setAIGeneratedQuestions(processedQuestions);
     } catch (err) {
@@ -303,6 +303,14 @@ const AddQuestions = () => {
       setQuestions([
         ...questions,
         ...aiGeneratedQuestions.map(q => {
+          if (aiQuestionType === 'true_false') {
+            return {
+              questionText: q.questionText || "",
+              choices: ["True", "False"],
+              correctAnswer: (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False',
+              bloomsLevel: q.bloomsLevel || aiBloomsLevel || ""
+            };
+          }
           return {
             questionText: q.questionText || "",
             choices: q.choices || ["", "", "", ""],
@@ -337,15 +345,13 @@ const AddQuestions = () => {
       if (!fileAISubject || !fileAIBloomsLevel) throw new Error("Please select subject and Bloom's level");
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-
       const formData = new FormData();
       formData.append('file', file);
       formData.append('subjectId', fileAISubject);
       formData.append('bloomsLevel', fileAIBloomsLevel);
       formData.append('numQuestions', fileAINumQuestions);
-      formData.append('questionType', 'multiple_choice');
+      formData.append('questionType', aiQuestionType);
       if (fileAICustomPrompt) formData.append('customPrompt', fileAICustomPrompt);
-
       const res = await fetch(`${backendurl}/api/questions/generate-questions-from-file`, {
         method: 'POST',
         headers: {
@@ -356,15 +362,18 @@ const AddQuestions = () => {
       if (!res.ok) throw new Error("Failed to generate questions from file");
       const data = await res.json();
       if (data.extractedText) setFileExtractedText(data.extractedText.slice(0, 3000));
-      
-      // Process the generated questions
-      const processedQuestions = (data.questions || data).map(q => ({
-        ...q,
-        questionType: 'multiple_choice',
-        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
-        bloomsLevel: q.bloomsLevel || fileAIBloomsLevel
-      }));
-      
+      // Ensure the generated questions match the selected question type
+      const processedQuestions = (data.questions || data).map(q => {
+        if (aiQuestionType === 'true_false') {
+          let correct = (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False';
+          return {
+            ...q,
+            choices: ["True", "False"],
+            correctAnswer: correct
+          };
+        }
+        return q;
+      });
       setFileAIQuestions(processedQuestions);
     } catch (err) {
       setFileAIError(err.message || "Error generating questions from file");
@@ -386,7 +395,6 @@ const AddQuestions = () => {
         setChatAILoading(false);
         return;
       }
-
       const res = await fetch(`${backendurl}/api/generate-questions-chat`, {
         method: "POST",
         headers: {
@@ -396,21 +404,23 @@ const AddQuestions = () => {
         body: JSON.stringify({
           subjectId: chatAISubject,
           prompt: chatAIPrompt,
-          numQuestions: chatAINumQuestions,
-          questionType: 'multiple_choice'
+          numQuestions: chatAINumQuestions
         })
       });
       if (!res.ok) throw new Error("Failed to generate questions");
       const data = await res.json();
-      
-      // Process the generated questions
-      const processedQuestions = (data.questions || data).map(q => ({
-        ...q,
-        questionType: 'multiple_choice',
-        choices: Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""],
-        bloomsLevel: q.bloomsLevel || aiBloomsLevel
-      }));
-      
+      // Ensure the generated questions match the selected question type
+      const processedQuestions = (data.questions || data).map(q => {
+        if (aiQuestionType === 'true_false') {
+          let correct = (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False';
+          return {
+            ...q,
+            choices: ["True", "False"],
+            correctAnswer: correct
+          };
+        }
+        return q;
+      });
       setChatAIGeneratedQuestions(processedQuestions);
     } catch (err) {
       setChatAIError(err.message || "Error generating questions");
@@ -527,9 +537,20 @@ const AddQuestions = () => {
                       className="textarea textarea-bordered w-full bg-base-100"
                       rows="3"
                     />
-                    {q.questionType === "true_false" && tfWarnings[index] && (
-                      <div className="text-warning text-xs mt-1">True/False questions should be statements, not questions. The text was auto-converted.</div>
-                    )}
+                  </div>
+
+                  <div className="form-control mb-4">
+                    <label className="label">
+                      <span className="label-text font-medium">Question Type</span>
+                    </label>
+                    <select
+                      className="select select-bordered w-full bg-base-100"
+                      value={q.questionType}
+                      onChange={(e) => handleQuestionChange(index, "questionType", e.target.value)}
+                    >
+                      <option value="multiple_choice">Multiple Choice</option>
+                      <option value="true_false">True or False</option>
+                    </select>
                   </div>
 
                   <div className="form-control mb-4">
@@ -681,21 +702,32 @@ const AddQuestions = () => {
                     </div>
 
                     <div className="form-control">
-                      <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                      <label className="label font-semibold">Question Type</label>
                       <select
                         className="select select-bordered w-full bg-base-100"
-                        value={aiBloomsLevel}
-                        onChange={e => setAIBloomsLevel(e.target.value)}
+                        value={aiQuestionType}
+                        onChange={e => setAIQuestionType(e.target.value)}
                       >
-                        <option value="">-- Select Level --</option>
-                        {BLOOMS_LEVELS.map(level => (
-                          <option key={level} value={level}>{level}</option>
-                        ))}
+                        <option value="multiple_choice">Multiple Choice</option>
+                        <option value="true_false">True or False</option>
                       </select>
                     </div>
 
                     {aiGenerationMethod === AI_GENERATION_METHODS.TOPIC && (
                       <>
+                        <div className="form-control">
+                          <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                          <select
+                            className="select select-bordered w-full bg-base-100"
+                            value={aiBloomsLevel}
+                            onChange={e => setAIBloomsLevel(e.target.value)}
+                          >
+                            <option value="">-- Select Level --</option>
+                            {BLOOMS_LEVELS.map(level => (
+                              <option key={level} value={level}>{level}</option>
+                            ))}
+                          </select>
+                        </div>
                         <div className="form-control">
                           <label className="label font-semibold">Topic</label>
                           <input
@@ -710,6 +742,19 @@ const AddQuestions = () => {
 
                     {aiGenerationMethod === AI_GENERATION_METHODS.FILE && (
                       <>
+                        <div className="form-control">
+                          <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                          <select
+                            className="select select-bordered w-full bg-base-100"
+                            value={aiBloomsLevel}
+                            onChange={e => setAIBloomsLevel(e.target.value)}
+                          >
+                            <option value="">-- Select Level --</option>
+                            {BLOOMS_LEVELS.map(level => (
+                              <option key={level} value={level}>{level}</option>
+                            ))}
+                          </select>
+                        </div>
                         <div className="form-control">
                           <label className="label font-semibold">Upload File</label>
                           <input
@@ -729,6 +774,19 @@ const AddQuestions = () => {
                             rows={2}
                           />
                         </div>
+                        <div className="form-control">
+                          <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                          <select
+                            className="select select-bordered w-full bg-base-100"
+                            value={aiBloomsLevel}
+                            onChange={e => setAIBloomsLevel(e.target.value)}
+                          >
+                            <option value="">-- Select Level --</option>
+                            {BLOOMS_LEVELS.map(level => (
+                              <option key={level} value={level}>{level}</option>
+                            ))}
+                          </select>
+                        </div>
                       </>
                     )}
 
@@ -743,6 +801,19 @@ const AddQuestions = () => {
                             placeholder="Describe what kind of questions you want to generate..."
                             rows={4}
                           />
+                        </div>
+                        <div className="form-control">
+                          <label className="label font-semibold">Bloom's Taxonomy Level</label>
+                          <select
+                            className="select select-bordered w-full bg-base-100"
+                            value={aiBloomsLevel}
+                            onChange={e => setAIBloomsLevel(e.target.value)}
+                          >
+                            <option value="">-- Select Level --</option>
+                            {BLOOMS_LEVELS.map(level => (
+                              <option key={level} value={level}>{level}</option>
+                            ))}
+                          </select>
                         </div>
                       </>
                     )}
@@ -764,7 +835,7 @@ const AddQuestions = () => {
                     <button
                       type="submit"
                       className="btn btn-accent w-full mt-2"
-                      disabled={aiLoading || !aiSubject}
+                      disabled={aiLoading}
                     >
                       {aiLoading ? "Generating..." : "Generate"}
                     </button>
@@ -838,14 +909,11 @@ const AddQuestions = () => {
                                     <input
                                       className="input input-bordered w-full bg-base-100"
                                       value={choice}
-                                      readOnly={aiQuestionType === "true_false"}
                                       onChange={e => {
-                                        if (aiQuestionType !== "true_false") {
-                                          const updated = [...aiGeneratedQuestions];
-                                          updated[idx].choices = [...choices];
-                                          updated[idx].choices[cidx] = e.target.value;
-                                          setAIGeneratedQuestions(updated);
-                                        }
+                                        const updated = [...aiGeneratedQuestions];
+                                        updated[idx].choices = [...choices];
+                                        updated[idx].choices[cidx] = e.target.value;
+                                        setAIGeneratedQuestions(updated);
                                       }}
                                     />
                                   </div>

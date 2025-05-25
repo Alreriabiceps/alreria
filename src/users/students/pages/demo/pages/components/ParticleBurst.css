@@ -1,0 +1,50 @@
+.particle-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 4000;
+}
+
+.particle {
+  position: absolute;
+  opacity: 0.92;
+  animation: particle-burst-move 0.7s cubic-bezier(.22,1.2,.36,1) forwards;
+  will-change: transform, opacity;
+}
+
+.particle.circle {
+  border-radius: 50%;
+  box-shadow: 0 0 18px 6px #fffbe7, 0 0 32px 12px #f1c40f44;
+}
+
+.particle.star {
+  filter: drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 12px #fffbe7);
+  /* Add a subtle sparkle pulse */
+  animation: particle-burst-move 0.7s cubic-bezier(.22,1.2,.36,1) forwards, sparkle-pulse 0.7s linear;
+}
+
+@keyframes particle-burst-move {
+  0% {
+    transform: translate(-50%, -50%) scale(0.7) rotate(var(--particle-rotate, 0deg));
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+    filter: brightness(1.2) drop-shadow(0 0 24px #fffbe7);
+  }
+  100% {
+    transform: translate(calc(-50% + var(--distance, 60px)), calc(-50% - var(--distance, 60px))) scale(1.2) rotate(var(--particle-rotate, 0deg));
+    opacity: 0;
+    filter: brightness(1) drop-shadow(0 0 0 #fffbe7);
+  }
+}
+
+@keyframes sparkle-pulse {
+  0% { filter: drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 12px #fffbe7); }
+  50% { filter: drop-shadow(0 0 18px #fffbe7) drop-shadow(0 0 24px #ffe066); }
+  100% { filter: drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 12px #fffbe7); }
+} 

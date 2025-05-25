@@ -1134,3 +1134,18 @@
   background-color: rgba(0,0,0,0.2); /* Darker, transparent background */
   border-radius: 8px;
 }
+
+@keyframes flash-timer {
+  0% { color: #ff3b3b; }
+  50% { color: #fff; }
+  100% { color: #ff3b3b; }
+}
+
+.timerContainer {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: var(--blueprint-accent);
+  transition: color 0.2s;
+}

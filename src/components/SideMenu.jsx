@@ -16,6 +16,7 @@ import {
   MdLightMode,
   MdMenu,
   MdClose,
+  MdLink,
 } from "react-icons/md";
 
 const SideMenu = () => {
@@ -63,6 +64,11 @@ const SideMenu = () => {
           title: "Question List",
           path: "/admin/questionlist",
           icon: <MdQuiz />,
+        },
+        {
+          title: "Reviewer Links",
+          path: "/admin/reviewer-links",
+          icon: <MdLink />,
         },
       ],
     },
