@@ -52,7 +52,6 @@ const AddQuestions = () => {
   const [chatAILoading, setChatAILoading] = useState(false);
   const [chatAIError, setChatAIError] = useState("");
   const [chatAIGeneratedQuestions, setChatAIGeneratedQuestions] = useState([]);
-  const [chatAISubject, setChatAISubject] = useState("");
   const [chatAINumQuestions, setChatAINumQuestions] = useState(2);
   const { guideMode } = useGuideMode();
 
@@ -242,7 +241,7 @@ const AddQuestions = () => {
         case AI_GENERATION_METHODS.CHAT:
           endpoint = `${backendurl}/api/generate-questions-chat`;
           body = {
-            subjectId: chatAISubject,
+            subjectId: aiSubject,
             bloomsLevel: aiBloomsLevel, // Add bloomsLevel for Chat
             prompt: aiPrompt,
             numQuestions: aiNumQuestions,
@@ -390,7 +389,7 @@ const AddQuestions = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-      if (!chatAISubject || !chatAIPrompt) {
+      if (!chatAIPrompt) {
         setChatAIError("Please fill all required fields.");
         setChatAILoading(false);
         return;
@@ -402,7 +401,7 @@ const AddQuestions = () => {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          subjectId: chatAISubject,
+          subjectId: aiSubject,
           prompt: chatAIPrompt,
           numQuestions: chatAINumQuestions
         })
@@ -431,7 +430,7 @@ const AddQuestions = () => {
 
   // Add chat AI generated questions to main questions list
   const handleAddChatAIGenerated = () => {
-    setSelectedSubject(chatAISubject);
+    setSelectedSubject(aiSubject);
     if (chatAIGeneratedQuestions.length > 0) {
       setQuestions([
         ...chatAIGeneratedQuestions.map(q => ({
@@ -444,7 +443,6 @@ const AddQuestions = () => {
     }
     setChatAIGeneratedQuestions([]);
     setShowChatAIModal(false);
-    setChatAISubject("");
     setChatAIPrompt("");
     setChatAIError("");
     setChatAINumQuestions(2);
@@ -666,14 +664,14 @@ const AddQuestions = () => {
                           <li>Select the subject for your questions.</li>
                           <li>Choose the Bloom's Taxonomy level.</li>
                           <li>Enter the topic you want questions about.</li>
-                          <li>Set how many questions you want to generate (1–5).</li>
+                          <li>Set how many questions you want to generate (1–15).</li>
                         </ol>
                       )}
                       {aiGenerationMethod === AI_GENERATION_METHODS.FILE && (
                         <ol className="list-decimal list-inside space-y-1">
                           <li>Select a .docx, .pdf, or .pptx file from your computer.</li>
                           <li>Choose the subject and Bloom's Taxonomy level.</li>
-                          <li>Set how many questions you want to generate (1–5).</li>
+                          <li>Set how many questions you want to generate (1–15).</li>
                           <li>Optionally add custom instructions to guide the AI.</li>
                         </ol>
                       )}
@@ -681,7 +679,7 @@ const AddQuestions = () => {
                         <ol className="list-decimal list-inside space-y-1">
                           <li>Select the subject for your questions.</li>
                           <li>Write your prompt in natural language. <span className="tooltip tooltip-info ml-1" data-tip="Describe what kind of questions you want.">ℹ️</span></li>
-                          <li>Set how many questions you want to generate (1–5).</li>
+                          <li>Set how many questions you want to generate (1–15).</li>
                         </ol>
                       )}
                     </div>
@@ -819,14 +817,14 @@ const AddQuestions = () => {
                     )}
 
                     <div className="form-control">
-                      <label className="label font-semibold">How many questions? (1-5)</label>
+                      <label className="label font-semibold">How many questions? (1-15)</label>
                       <input
                         type="number"
                         min={1}
-                        max={5}
+                        max={15}
                         className="input input-bordered w-full bg-base-100"
                         value={aiNumQuestions}
-                        onChange={e => setAINumQuestions(Math.max(1, Math.min(5, Number(e.target.value))))}
+                        onChange={e => setAINumQuestions(Math.max(1, Math.min(15, Number(e.target.value))))}
                       />
                     </div>
 
@@ -960,7 +958,7 @@ const AddQuestions = () => {
                     <li>Click <b>Upload File for AI</b> and select a .docx, .pdf, or .pptx file from your computer.</li>
                     <li>Select the subject for your questions.</li>
                     <li>Choose the Bloom's Taxonomy level that matches the type of questions you want.</li>
-                    <li>Set how many questions you want to generate (1–5).</li>
+                    <li>Set how many questions you want to generate (1–15).</li>
                     <li>(Optional) Add custom instructions to guide the AI (for example, "Focus on chapter 2").</li>
                     <li>Click <b>Generate</b>. The AI will extract text from your file and create multiple-choice questions for you to review and edit before saving.</li>
                   </ol>
@@ -993,14 +991,14 @@ const AddQuestions = () => {
                     </select>
                   </div>
                   <div className="form-control">
-                    <label className="label">How many questions? (1-5)</label>
+                    <label className="label">How many questions? (1-15)</label>
                     <input
                       type="number"
                       min={1}
-                      max={5}
+                      max={15}
                       className="input input-bordered w-full bg-base-100"
                       value={fileAINumQuestions}
-                      onChange={e => setFileAINumQuestions(Math.max(1, Math.min(5, Number(e.target.value))))}
+                      onChange={e => setFileAINumQuestions(Math.max(1, Math.min(15, Number(e.target.value))))}
                     />
                   </div>
                   <div className="form-control">
@@ -1161,7 +1159,7 @@ const AddQuestions = () => {
                         <li>"Make questions about the water cycle suitable for middle school students"</li>
                       </ul>
                     </li>
-                    <li>Set how many questions you want to generate (1–5).</li>
+                    <li>Set how many questions you want to generate (1–15).</li>
                     <li>Click <b>Generate</b>. The AI will create questions based on your prompt.</li>
                   </ol>
                 </details>
@@ -1170,8 +1168,8 @@ const AddQuestions = () => {
                     <label className="label">Subject</label>
                     <select
                       className="select select-bordered w-full bg-base-100"
-                      value={chatAISubject}
-                      onChange={e => setChatAISubject(e.target.value)}
+                      value={aiSubject}
+                      onChange={e => setAISubject(e.target.value)}
                     >
                       <option value="">-- Select Subject --</option>
                       {subjects.map((subject) => (
@@ -1190,14 +1188,14 @@ const AddQuestions = () => {
                     />
                   </div>
                   <div className="form-control">
-                    <label className="label">How many questions? (1-5)</label>
+                    <label className="label">How many questions? (1-15)</label>
                     <input
                       type="number"
                       min={1}
-                      max={5}
+                      max={15}
                       className="input input-bordered w-full bg-base-100"
                       value={chatAINumQuestions}
-                      onChange={e => setChatAINumQuestions(Math.max(1, Math.min(5, Number(e.target.value))))}
+                      onChange={e => setChatAINumQuestions(Math.max(1, Math.min(15, Number(e.target.value))))}
                     />
                   </div>
                   {chatAIError && <div className="alert alert-error py-2">{chatAIError}</div>}

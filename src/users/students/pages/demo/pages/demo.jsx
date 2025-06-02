@@ -397,6 +397,18 @@ const ExplodingKittensGame = () => {
           <div className="side-panel-content">
             <h3>Question Details</h3>
             <div className="question-details">
+              {/* Show subject and Bloom's level */}
+              <div style={{ marginBottom: '10px' }}>
+                <div>
+                  <strong>Subject:</strong>{' '}
+                  {selectedCard.questionData.subjectName
+                    || (typeof selectedCard.questionData.subject === 'object'
+                        ? selectedCard.questionData.subject.subject
+                        : selectedCard.questionData.subject)
+                    || 'N/A'}
+                </div>
+                <div><strong>Bloom's Level:</strong> {selectedCard.questionData.bloomsLevel || 'N/A'}</div>
+              </div>
               <p className="question-text">{selectedCard.questionData.questionText}</p>
               <div className="choices">
                 {selectedCard.questionData.choices.map((choice, index) => (
