@@ -40,36 +40,28 @@ const QuestionDisplay = ({
   return (
     <div className={styles.questionPanel}>
       {/* Question Number Navigation Bar */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div className={styles.questionNavItemContainer}>
         {tests.map((q, idx) => {
           const isCurrent = idx === currentQuestionIndex;
           const isAnswered = !!answers[q._id];
-          let bg = '#232c3a', color = '#fff', border = '1.5px solid #444';
+          let itemClass = styles.questionNavItem; // Base class
+
           if (isCurrent) {
-            bg = '#f1c40f'; color = '#0D131A'; border = '2.5px solid #f1c40f';
+            itemClass = `${styles.questionNavItemCurrent}`;
           } else if (isAnswered) {
-            bg = '#27ae60'; color = '#fff'; border = '2px solid #27ae60';
+            itemClass = `${styles.questionNavItemAnswered}`;
           } else {
-            bg = '#e74c3c'; color = '#fff'; border = '2px solid #e74c3c';
+            itemClass = `${styles.questionNavItemUnanswered}`;
           }
+
           return (
             <button
               key={q._id}
-              onClick={() => setCurrentQuestionIndex(idx)}
-              style={{
-                width: 36, height: 36, borderRadius: '50%',
-                background: bg, color, border,
-                fontWeight: isCurrent ? 800 : 600,
-                fontSize: '1.1rem',
-                cursor: isCurrent ? 'default' : 'pointer',
-                outline: isCurrent ? '2px solid #fff' : 'none',
-                boxShadow: isCurrent ? '0 0 8px #f1c40f' : 'none',
-                transition: 'all 0.18s',
-                margin: 2,
-                pointerEvents: isCurrent ? 'none' : 'auto',
-              }}
+              onClick={() => !isCurrent && setCurrentQuestionIndex(idx)} // Prevent action if current
+              className={itemClass}
               aria-label={`Go to question ${idx + 1}`}
-              tabIndex={0}
+              disabled={isCurrent} // Disable current button from being "clicked" again
+              tabIndex={isCurrent ? -1 : 0} // Improve keyboard navigation
             >
               {idx + 1}
             </button>
@@ -111,22 +103,21 @@ const QuestionDisplay = ({
         <button
           onClick={handlePreviousQuestion}
           disabled={currentQuestionIndex === 0}
-          className={styles.navButton}
+          className={styles.navButton} // Uses new base .navButton style
         >
           Previous
         </button>
         {currentQuestionIndex === tests.length - 1 ? (
-          <>
-            {/* Show message and review button if not all answered */}
+          // On the last question
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             {!allAnswered && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: 16 }}>
-                <span style={{ color: '#ff3b3b', fontWeight: 600, marginBottom: 6 }}>
-                  You have {unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}.
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span className={styles.unansweredMessage}>
+                  {unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}.
                 </span>
                 <button
                   type="button"
-                  className={styles.navButton}
-                  style={{ background: '#ff3b3b', color: '#fff', fontWeight: 700, marginBottom: 0 }}
+                  className={styles.reviewUnansweredButton} // New specific class
                   onClick={handleReviewUnanswered}
                 >
                   Review Unanswered
@@ -134,18 +125,20 @@ const QuestionDisplay = ({
               </div>
             )}
             <button
-              className={styles.submitButton}
+              className={styles.submitButton} // Uses new base .submitButton style
               onClick={handleSubmit}
-              disabled={!allAnswered}
+              disabled={!allAnswered && isTestStarted} // Disable if not all answered (and test is started)
             >
-              Submit
+              Submit Test
             </button>
-          </>
+          </div>
         ) : (
+          // Not on the last question
           <button
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === tests.length - 1}
-            className={styles.navButton}
+            // No explicit disabled state here, assuming handleNextQuestion handles boundaries
+            // or if it should be disabled if current question isn't answered (depends on quiz logic)
+            className={styles.navButton} // Uses new base .navButton style
           >
             Next
           </button>

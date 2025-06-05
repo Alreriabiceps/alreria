@@ -263,10 +263,6 @@ const GameNavbar = () => {
         {isMobile && <span className={styles.panelIcon}>{Icons.MtgDemo}</span>}{" "}
         MTG Demo
       </NavLink>
-      <NavLink to="/student/sketchfab" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && <span className={styles.panelIcon}><FaChartBar /></span>} {" "}
-        3D Viewer
-      </NavLink>
       <NavLink
         to="/student/profile"
         className={navLinkClass}

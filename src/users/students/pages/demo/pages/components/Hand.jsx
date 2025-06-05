@@ -1,11 +1,17 @@
 import React from 'react';
 import Card from './Card';
 
-const Hand = ({ hand, onCardClick, nextSlotRef }) => {
+const Hand = ({ hand, onCardClick, nextSlotRef, onDragStart }) => {
   return (
     <div className="cards-container">
       {hand.map((card, idx) => (
-        <Card key={card.id} card={card} onClick={() => onCardClick(idx)} />
+        <div
+          key={card.id}
+          draggable={!!onDragStart}
+          onDragStart={onDragStart ? (e) => onDragStart(e, card, idx) : undefined}
+        >
+          <Card card={card} onClick={() => onCardClick(idx)} />
+        </div>
       ))}
       {/* Ghost slot for next dealt card, only if nextSlotRef is provided */}
       {nextSlotRef && (

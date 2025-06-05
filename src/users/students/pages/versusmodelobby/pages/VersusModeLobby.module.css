@@ -16,6 +16,7 @@
   --dbz-red: #e74c3c;
   --dbz-yellow: #f1c40f;
   --dbz-dark-blue: #2c3e50;
+  --dbz-dark-blue-rgb: 44, 62, 80;
   --dbz-light-gray: #ecf0f1;
   --dbz-dark-gray: #34495e;
   --dbz-black: #1C1C1C;
@@ -25,9 +26,11 @@
   --blueprint-grid-line: rgba(173, 216, 230, 0.35);
   --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
   --blueprint-text: #E0F2F7;
+  --blueprint-text-muted: rgba(224, 242, 247, 0.7);
   --blueprint-panel-bg: rgba(30, 45, 60, 0.85); /* Panels slightly more opaque for readability */
   --blueprint-panel-border: var(--blueprint-grid-line-strong);
   --blueprint-accent: var(--dbz-yellow);
+  --blueprint-accent-rgb: 241, 196, 15;
   --blueprint-accent-text-dark: var(--dbz-black);
   --blueprint-shadow: rgba(0, 0, 0, 0.4);
 
@@ -39,7 +42,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 25px 15px 50px 15px; /* Match dashboard padding */
+  padding: 20px 15px 40px 15px; /* Reduced top/bottom padding (from 25px/50px) */
   font-family: var(--font-body);
   background-color: var(--blueprint-bg); /* Match dashboard background */
   background-image: none; /* Plain background */
@@ -63,7 +66,7 @@
 .pageHeader {
   width: 100%;
   max-width: 1000px; /* Match dashboard */
-  margin-bottom: 25px;
+  margin-bottom: 20px; /* Reduced from 25px */
   text-align: center; /* Match dashboard */
   z-index: 1;
   position: relative;
@@ -73,16 +76,16 @@
 
 .pageTitle {
   font-family: var(--font-header); /* Match dashboard */
-  font-size: 4rem;  /* Match dashboard */
+  font-size: 3.5rem;  /* Reduced from 4rem */
   color: var(--blueprint-accent); /* Match dashboard (Yellow title) */
-  letter-spacing: 3px; /* Match dashboard */
+  letter-spacing: 2.5px; /* Reduced from 3px */
   text-shadow: /* Match dashboard */
     3px 3px 0 var(--dbz-black),
     -1px -1px 0 var(--blueprint-bg),
     1px -1px 0 var(--blueprint-bg),
     -1px 1px 0 var(--blueprint-bg),
     1px 1px 0 var(--blueprint-bg);
-  margin-bottom: 0.2rem; /* Match dashboard */
+  margin-bottom: 0.1rem; /* Reduced from 0.2rem */
   line-height: 1.1; /* Match dashboard */
   animation: titleSmash 0.5s ease-out 0.2s backwards; /* Match dashboard animation */
 }
@@ -95,11 +98,11 @@
 
 .pageSubtitle {
   font-family: var(--font-accent); /* Match dashboard */
-  font-size: 1.3rem; /* Match dashboard */
+  font-size: 1.2rem; /* Reduced from 1.3rem */
   color: var(--blueprint-text); /* Match dashboard */
   opacity: 0.85; /* Match dashboard */
   text-shadow: 1px 1px 2px var(--dbz-black); /* Match dashboard */
-  margin-top: 5px; /* Match dashboard */
+  margin-top: 4px; /* Reduced from 5px */
 }
 
 /* ==========================================================================
@@ -111,52 +114,52 @@
   max-width: 1100px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
-  margin-top: 10px;
+  gap: 20px; /* Reduced from 30px */
+  margin-top: 8px; /* Reduced from 10px */
 }
 
 .panel {
   background: var(--blueprint-panel-bg);
   border: 1.5px solid var(--blueprint-panel-border);
-  border-radius: 15px; /* Match dashboard panel */
-  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25); /* Match dashboard panel */
-  padding: 20px 25px; /* Match dashboard panel */
+  border-radius: 12px; /* Reduced from 15px */
+  box-shadow: 0 4px 15px var(--blueprint-shadow), inset 0 0 10px rgba(0,0,0,0.2); /* Reduced shadow */
+  padding: 18px 22px; /* Reduced from 20px 25px */
   display: flex;
   flex-direction: column;
   align-items: center; /* Keep if specific to this panel's content */
   backdrop-filter: blur(3px); /* Match dashboard panel */
   animation: panelFlyIn 0.5s ease-out backwards; /* Match dashboard panel animation */
-  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out; /* Match dashboard panel */
+  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out, transform 0.2s ease-out; /* Added transform */
   opacity: 1; /* Ensure visible */
 }
 
 .panel:hover {
   border-color: var(--blueprint-accent); /* Match dashboard panel hover */
-  box-shadow: 0 8px 25px var(--blueprint-shadow), 0 0 15px var(--blueprint-accent); /* Match dashboard panel hover */
-  transform: translateY(-5px) scale(1.02); /* Keep subtle hover effect or remove if dashboard doesn't have it */
+  box-shadow: 0 6px 20px var(--blueprint-shadow), 0 0 12px var(--blueprint-accent); /* Adjusted hover shadow */
+  transform: translateY(-3px) scale(1.01); /* Slightly reduced hover effect */
   z-index: 2;
 }
 
 .panelHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px; /* Reduced from 10px */
   color: var(--blueprint-accent); /* Yellow panel headers */
   font-family: var(--font-header);
-  font-size: 1.8rem; /* Match dashboard panelHeader */
-  margin-bottom: 18px; /* Match dashboard panelHeader */
-  padding-bottom: 10px; /* Match dashboard panelHeader */
+  font-size: 1.6rem; /* Reduced from 1.8rem */
+  margin-bottom: 15px; /* Reduced from 18px */
+  padding-bottom: 8px; /* Reduced from 10px */
   border-bottom: 2px dashed var(--blueprint-grid-line-strong); /* Match dashboard panelHeader */
   width: 100%;
-  letter-spacing: 2px; /* Match dashboard panelHeader */
+  letter-spacing: 1.5px; /* Reduced from 2px */
   text-shadow: 1px 1px 0 var(--dbz-black); /* Match dashboard panelHeader */
   /* animation: fadeInUpPop 1.1s cubic-bezier(.4,0,.2,1) 0.12s both; */ /* Remove old animation */
   opacity: 1; /* Ensure visible */
 }
 
 .panelIcon {
-  font-size: 1.8rem; /* Match dashboard panelIcon */
-  filter: drop-shadow(0 0 5px var(--blueprint-accent)); /* Match dashboard panelIcon */
+  font-size: 1.6rem; /* Reduced from 1.8rem, to match panelHeader */
+  filter: drop-shadow(0 0 4px var(--blueprint-accent)); /* Reduced shadow */
   transition: transform 0.2s ease-out; /* Match dashboard panelIcon */
   color: var(--blueprint-accent); /* Ensure icon matches header */
   flex-shrink: 0;
@@ -164,7 +167,7 @@
   opacity: 1; /* Ensure visible */
 }
 .panel:hover .panelIcon { /* Match dashboard panelIcon hover */
-  transform: scale(1.2) rotate(-10deg);
+  transform: scale(1.15) rotate(-8deg); /* Adjusted hover effect */
 }
 
 /* Grid placement (remains the same) */
@@ -176,18 +179,18 @@
      ========================================================================== */
 .themedButton { /* Base class for all buttons, similar to WeeklyTest */
   font-family: var(--font-header);
-  font-size: 1.2rem;
-  letter-spacing: 1.5px;
-  color: var(--blueprint-accent-text-dark); /* Dark text for yellow button */
-  background: var(--blueprint-accent); /* Yellow button */
-  padding: 10px 25px;
-  border-radius: 25px;
-  border: 2px solid var(--dbz-black); /* Black border for pop */
+  font-size: 1.1rem; /* Reduced from 1.2rem */
+  letter-spacing: 1.2px; /* Reduced from 1.5px */
+  color: var(--blueprint-accent-text-dark); 
+  background: var(--blueprint-accent); 
+  padding: 9px 22px; /* Reduced from 10px 25px */
+  border-radius: 22px; /* Reduced from 25px */
+  border: 2px solid var(--dbz-black); 
   text-transform: uppercase;
   cursor: pointer;
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out;
   text-decoration: none;
-  display: inline-flex; /* Use inline-flex for icon alignment if needed */
+  display: inline-flex; 
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -252,16 +255,17 @@
 
 /* Base style for common inputs - Dashboard Aligned */
 .textInputBase {
-  width: 100%;
-  padding: 10px 16px; /* Match filterSelect padding */
-  background: var(--dbz-dark-gray); /* Darker background for input */
-  border: 1.5px solid var(--blueprint-panel-border); /* Match panel border */
-  color: var(--blueprint-text); /* Light text */
-  border-radius: 8px; /* Consistent border radius */
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); /* Subtle inner shadow */
   font-family: var(--font-body);
-  font-size: 1rem; /* Consistent base size */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.95rem; /* Reduced from 1rem */
+  color: var(--blueprint-text);
+  background-color: var(--dbz-dark-gray);
+  border: 1.5px solid var(--blueprint-panel-border);
+  padding: 9px 14px; /* Reduced from 10px 16px */
+  border-radius: 6px; /* Reduced from 8px */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  width: 100%; /* Ensure inputs take available width */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .textInputBase::placeholder {
@@ -449,16 +453,12 @@
 }
 
 .lobbyListContainer {
-  border: 1px solid var(--color-divider);
-  padding: 0.75rem;
-  background-color: rgba(0, 0, 0, 0.1);
-  max-height: 300px; /* Limit height */
-  overflow-y: auto; /* Enable scroll */
-  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
-  flex-grow: 1; /* Take available vertical space */
-  min-height: 150px; /* Ensure it has some height even when empty */
-  display: flex; /* Needed for centering the no lobbies message */
-  flex-direction: column; /* Stack items vertically */
+  width: 100%;
+  margin-top: 15px; /* Reduced from 20px */
+  /* background-color: rgba(var(--dbz-dark-blue-rgb), 0.15); Slightly different background if needed */
+  /* padding: 15px; Reduced */
+  /* border-radius: 10px; Reduced */
+  /* box-shadow: inset 0 0 10px rgba(0,0,0,0.2); */
 }
 
 .lobbyList {
@@ -467,102 +467,123 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  /* Animation applied here */
-   animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  gap: 12px; /* Reduced from 15px */
 }
 
 .lobbyItem {
-  background: rgba(var(--blueprint-panel-bg-rgb, 30, 45, 60), 0.7); /* Slightly more transparent than full panel */
-  border: 1px solid var(--blueprint-grid-line);
-  border-radius: 10px;
-  padding: 15px 20px;
-  margin-bottom: 12px;
-  display: grid; /* Using grid for better layout control */
-  grid-template-columns: 1fr auto; /* Name/Host left, Players/Buttons right */
-  gap: 10px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto; /* Adjust as needed */
+  gap: 12px 18px; /* Reduced from 15px 20px */
   align-items: center;
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-  /* animation: none; Remove old pixel animation if any */
+  padding: 12px 18px; /* Reduced from 15px 20px */
+  background-color: rgba(var(--dbz-dark-blue-rgb, 44, 62, 80), 0.4); /* Use a defined RGB or direct rgba */
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 8px; /* Reduced from 10px */
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
 .lobbyItem:hover {
-  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.1); /* Subtle yellow tint */
+  background-color: rgba(var(--blueprint-accent-rgb, 241, 196, 15), 0.1); /* Use a defined RGB or direct rgba */
   border-color: var(--blueprint-accent);
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 4px 15px rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.2);
+  transform: translateY(-2px);
 }
 
 .lobbyDetails {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Reduced gap */
-  flex-grow: 1; /* Take available horizontal space */
-  min-width: 150px; /* Prevent collapsing too much */
-  /* margin-right: 1rem; */ /* Removed: Space before buttons/info - grid gap handles this */
+  gap: 2px; /* Reduced from 4px */
+  overflow: hidden; /* Prevent text overflow issues */
 }
 
 .lobbyName {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-base); /* Use base text color */
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  word-break: break-word; /* Allow long names to wrap */
+  font-family: var(--font-accent);
+  font-size: 1.1rem; /* Reduced from 1.2rem */
+  color: var(--blueprint-text);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lobbyHost {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+  font-size: 0.8rem; /* Reduced from 0.85rem */
+  color: var(--blueprint-text-muted, rgba(224, 242, 247, 0.7)); /* Ensure muted text var is available */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Container for Player count and Buttons */
-.lobbyActions {
-  display: flex;
-  gap: 8px;
-  align-items: center; /* This will vertically center the button if lobbyActions is its direct parent in the grid cell */
-}
+.lobbyActions { /* This class seems unused for lobby item buttons, joinButton is directly in item */ }
 
 .lobbyPlayers {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  /* min-width: 40px; */ /* Removed: Not needed if part of .lobbyDetails flex column */
-  /* text-align: right; */ /* Removed: Not needed if part of .lobbyDetails flex column */
+  font-size: 0.9rem; /* Reduced from 1rem */
+  color: var(--blueprint-text);
+  text-align: center;
+  min-width: 60px; /* Adjust if needed */
 }
 
 .lobbyButtons {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 8px; /* Reduced from 10px */
 }
 
-.joinButton {
-  composes: gameButton;
-  padding: 6px 14px; /* Slightly adjusted padding */
-  font-size: 0.7rem;
-  flex-shrink: 0; /* Prevent shrinking */
+.lobbyItem .joinButton { /* Targets join button specifically within a lobby item */
+  /* REMOVED: composes: themedButton; */
+  /* Manually copied styles from .themedButton */
+  font-family: var(--font-header);
+  letter-spacing: 1.2px;
+  color: var(--blueprint-accent-text-dark);
+  background: var(--blueprint-accent);
+  border-radius: 22px;
+  border: 2px solid var(--dbz-black);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out; /* Added color */
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 3px 3px 0 var(--dbz-black);
+  user-select: none;
+  white-space: nowrap;
+
+  /* Specific overrides for .lobbyItem .joinButton */
+  font-size: 0.9rem; 
+  padding: 7px 15px; 
 }
 
-/* Override animation for join buttons within lobby items to prevent initial fade */
-.lobbyItem .joinButton {
+.lobbyItem .joinButton:hover:not(:disabled) {
+  /* Copied from .themedButton:hover:not(:disabled) */
+  background: var(--dbz-orange);
+  color: var(--blueprint-text);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
+}
+
+.lobbyItem .joinButton:active:not(:disabled) {
+  /* Copied from .themedButton:active:not(:disabled) */
+  transform: translateY(1px) scale(1);
+  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
+}
+
+.lobbyItem .joinButton:disabled {
+  /* Copied from .themedButton:disabled */
+  background: var(--dbz-dark-gray) !important;
+  color: var(--blueprint-text) !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  box-shadow: 1px 1px 0 var(--dbz-black) !important;
+  transform: none !important;
+  border-color: var(--dbz-dark-gray) !important;
+  filter: grayscale(30%);
   animation: none !important;
-  opacity: 1 !important;
 }
 
 .privateBadge {
-  background-color: rgba(var(--dbz-red-rgb, 231, 76, 60), 0.2); /* Subtle red background for private */
-  color: var(--dbz-red); /* Red text for private */
-  padding: 4px 10px;
-  border-radius: 12px; /* Softer radius */
-  font-family: var(--font-accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: inline-flex; /* For icon alignment */
-  align-items: center;
-  gap: 5px;
-  border: 1px solid var(--dbz-red);
+  font-size: 0.7rem; /* Reduced from 0.75rem */
+  padding: 3px 7px; /* Reduced */
+  /* ... other badge styles ... */
 }
 
 .noLobbiesMessage {
@@ -634,6 +655,7 @@
   z-index: 1000;
   backdrop-filter: blur(5px); /* Stronger blur */
   animation: fadeIn 0.3s ease-out;
+  padding: 20px; /* Add some padding for smaller modals not to touch edge */
 }
 
 /* Base Modal Structure */
@@ -644,11 +666,12 @@
   box-shadow: 0 8px 30px var(--blueprint-shadow), inset 0 0 15px rgba(0,0,0,0.3); /* Enhanced shadow */
   padding: 20px 25px;
   width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   position: relative;
   animation: slideInPanel 0.4s ease-out backwards; /* Use panel animation */
   color: var(--blueprint-text);
   border: 1.5px solid var(--blueprint-panel-border); /* Added border */
+  margin: auto; /* Ensure centering */
 }
 
 /* Join Modal specific animation */
@@ -661,21 +684,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed var(--color-divider);
-  margin-bottom: 15px;
+  padding-bottom: 10px; /* Reduced from 15px (if it was different) */
+  margin-bottom: 15px; /* Reduced from 20px (if it was different) */
   flex-shrink: 0; /* Prevent header shrinking */
 }
 
 .modalHeader h2 {
   color: var(--color-accent);
-  font-size: 1.2rem;
+  font-size: 1.4rem; /* Reduced from 1.6rem */
   margin: 0;
   text-shadow: 2px 2px 0 var(--color-pixel-shadow);
   font-family: var(--font-game);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: 1px;
 }
 
 .closeButton {
@@ -707,38 +730,30 @@
   overflow-y: auto; /* Allow content scrolling if needed */
   /* flex-grow: 1; Let modal size determine height usually */
   min-height: 0; /* Allow shrinking */
+  padding: 0; /* Remove specific padding if panel padding is sufficient, or set to e.g., 10px */
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 0.5rem; /* Reduced bottom margin */
+  margin-bottom: 12px; /* Reduced from 15px */
 }
 
 .formGroup label,
 .passwordLabel {
   display: block; /* Ensure label takes its own line */
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Reduced */
   font-weight: 500;
   font-family: var(--font-body); /* Ensure correct font */
   transition: all 0.2s ease;
 }
 
 .modalInput {
-  /* No compose needed - define specific style */
-  width: 100%;
-  padding: 10px; /* Standard padding */
-  background-color: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  border-radius: 0px; /* Consistent */
-  color: var(--color-text-base);
-  font-family: var(--font-body);
-  font-size: 1rem; /* Slightly larger for readability */
-  transition: all 0.3s ease; /* Smooth transition */
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
-  /* Remove animated focus ring for general input */
+  composes: textInputBase; /* Inherits compact styles */
+  /* font-size: 0.9rem; */ /* Already 0.95rem from textInputBase, adjust if needed */
+  /* padding: 8px 12px; */ /* Already 9px 14px from textInputBase */
 }
 
 .modalInput:focus {
@@ -755,14 +770,10 @@
 
 .modalFooter {
   display: flex;
-  /* Default: row layout */
-  flex-wrap: wrap; /* Allow buttons to wrap */
-  justify-content: flex-end; /* Align buttons right by default */
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 15px;
-  border-top: 1px dashed var(--color-divider);
-  flex-shrink: 0; /* Prevent footer shrinking */
+  justify-content: flex-end;
+  gap: 10px; /* Reduced from 15px */
+  padding-top: 15px; /* Reduced from 20px */
+  margin-top: 10px; /* Added to ensure space from content if content has no margin-bottom */
 }
 
 .submitButton {
@@ -1028,205 +1039,341 @@
 @media (max-width: 992px) {
   .actionsGrid {
     grid-template-columns: 1fr; /* Stack panels */
-    gap: 25px; /* Slightly reduce gap */
+    gap: 20px; /* Keep desktop gap or reduce slightly */
   }
-
   .panel {
-    min-height: auto; /* Allow panels to shrink vertically */
+    margin-bottom: 20px; /* Add margin when stacked */
+    padding: 15px 20px; /* Slightly reduce padding */
   }
-
-   /* Adjust lobby list height slightly if needed */
+  .panelHeader {
+    font-size: 1.5rem; /* Slightly smaller for this view */
+    margin-bottom: 12px;
+    padding-bottom: 7px;
+  }
+  .panelIcon {
+    font-size: 1.5rem;
+  }
   .lobbyListContainer {
-     max-height: 280px;
+    margin-top: 10px;
   }
+  .lobbyItem {
+    padding: 10px 15px; /* Reduce padding */
+    gap: 10px 15px;
+  }
+  .lobbyName {
+    font-size: 1rem;
+  }
+  .lobbyPlayers {
+    font-size: 0.85rem;
+  }
+  .lobbyItem .joinButton {
+    /* Manually copied styles from .themedButton */
+    font-family: var(--font-header);
+    letter-spacing: 1.2px; /* Base from .themedButton */
+    color: var(--blueprint-accent-text-dark);
+    background: var(--blueprint-accent);
+    border-radius: 22px; /* Base from .themedButton */
+    border: 2px solid var(--dbz-black);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 3px 3px 0 var(--dbz-black);
+    user-select: none;
+    white-space: nowrap;
 
-  /* Center the create button text since button itself might be full width later */
-   .createButton {
-      text-align: center;
+    /* Specific overrides for 992px */
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+  .themedButton { /* Slightly smaller base buttons for this breakpoint */
+    font-size: 1rem;
+    padding: 8px 20px;
+  }
+  .textInputBase {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  .modal {
+    max-width: 420px; /* Slightly smaller modal */
+  }
+  .modalHeader h2 {
+    font-size: 1.3rem;
   }
 }
 
 /* Larger Mobiles / Small Tablets */
 @media (max-width: 768px) {
-    .pvpContainer {
-        padding: 20px 10px 30px 10px; /* Reduce padding further */
-    }
+  .pvpContainer {
+    padding: 15px 10px 30px 10px; /* Reduced padding */
+  }
+  .pageHeader {
+    margin-bottom: 15px; /* Reduced margin */
+  }
+  .pageTitle {
+    font-size: 3rem; /* Further reduce */
+    letter-spacing: 2px;
+  }
+  .pageSubtitle {
+    font-size: 1.1rem; /* Further reduce */
+  }
+  .panel {
+    padding: 12px 15px; /* Further reduced padding */
+    margin-bottom: 15px;
+    border-radius: 10px;
+  }
+  .panelHeader {
+    font-size: 1.4rem; /* Further reduce */
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    gap: 6px;
+  }
+  .panelIcon {
+    font-size: 1.4rem;
+  }
 
-    .pageHeader {
-      margin-bottom: 20px;
-    }
+  .lobbyBrowserHeader .panelHeader { /* Specific for lobby browser */
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+  .lobbySearchContainer {
+    margin-bottom: 10px;
+  }
+  .lobbySearchInput {
+    font-size: 0.85rem; /* Smaller search input */
+    padding: 7px 10px;
+  }
 
-    .panel {
-        padding: 20px 20px; /* Reduce panel padding */
-    }
+  .lobbyItem {
+    grid-template-columns: 1fr auto; /* Name/host left, players/buttons right or stack more */
+    padding: 10px 12px; 
+    gap: 8px 10px;
+    border-radius: 6px;
+  }
+  .lobbyName {
+    font-size: 0.9rem;
+  }
+  .lobbyHost {
+    font-size: 0.75rem;
+  }
+  .lobbyPlayers {
+    font-size: 0.8rem;
+    min-width: 50px;
+  }
+  .lobbyItem .joinButton {
+    /* Manually copied styles from .themedButton */
+    font-family: var(--font-header);
+    letter-spacing: 1.2px; /* Base from .themedButton, overridden by grouped rule later if more specific */
+    color: var(--blueprint-accent-text-dark);
+    background: var(--blueprint-accent);
+    border-radius: 22px; /* Base from .themedButton */
+    border: 2px solid var(--dbz-black);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 3px 3px 0 var(--dbz-black);
+    user-select: none;
+    white-space: nowrap;
 
-    .lobbyBrowserHeader {
-       /* Stack title and search vertically if needed, wrap is often ok */
-       /* flex-direction: column; */
-       /* align-items: stretch; */
-    }
+    /* Specific overrides for 768px */
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    /* Letter-spacing will come from the grouped .themedButton rule at this breakpoint if not specified here */
+  }
 
-    .lobbyBrowserHeader .panelHeader {
-        font-size: 1rem; /* Slightly smaller header in lobby browser */
-        margin-bottom: 10px; /* Add space if stacking */
-    }
+  .themedButton { /* General buttons for smaller screens */
+    font-size: 0.9rem;
+    padding: 7px 15px;
+    letter-spacing: 1px;
+  }
+  /* Specific button overrides if needed */
+  .inviteButton, .queueButton, .createButton {
+    font-size: 0.9rem;
+    padding: 8px 18px; /* Adjust if they need to be larger */
+  }
+  .pageButton {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
 
-    .lobbySearchContainer {
-      min-width: 150px; /* Allow further shrinking */
-    }
+  .textInputBase {
+    font-size: 0.85rem;
+    padding: 7px 10px;
+    border-radius: 5px;
+  }
 
-    .lobbyItem {
-      padding: 12px;
-    }
-
-    /* Slightly reduce main button padding */
-    .gameButton {
-      padding: 10px 18px;
-      font-size: 0.75rem;
-    }
-    .inviteButton, .queueButton {
-         font-size: 0.8rem; /* Keep main actions slightly larger */
-         padding: 12px 20px;
-    }
-    .createButton {
-        padding: 10px 20px;
-        font-size: 0.8rem;
-    }
-
-    .modal {
-        padding: 15px;
-    }
-
-    .modalHeader h2 {
-      font-size: 1.1rem;
-    }
-
-    .modalFooter {
-      justify-content: space-between; /* Space out buttons */
-    }
-
-    .submitButton, .cancelButton {
-       font-size: 0.8rem;
-       padding: 10px 15px;
-       flex-grow: 1; /* Make footer buttons take equal space */
-       text-align: center;
-    }
+  .modal {
+    max-width: 90%; /* More fluid width */
+    padding: 15px; /* Modal's own padding, panel composes base panel styles */
+  }
+  .modalHeader h2 {
+    font-size: 1.2rem;
+  }
+  .modalContent {
+    /* padding: 10px 0; */ /* Adjust if needed */
+  }
+  .formGroup label, .passwordLabel {
+    font-size: 0.8rem;
+  }
+  .modalFooter {
+    gap: 8px;
+    padding-top: 10px;
+    margin-top: 8px;
+  }
+  .modalFooter .submitButton, .modalFooter .cancelButton {
+    font-size: 0.85rem;
+    padding: 7px 12px;
+  }
 }
 
 /* Small Mobiles */
 @media (max-width: 480px) {
+  .pvpContainer {
+    padding: 10px 5px 20px 5px;
+  }
   .pageTitle {
-     font-size: clamp(1.5rem, 7vw, 1.8rem); /* Adjust clamp */
+    font-size: 2.5rem;
+    letter-spacing: 1.5px;
   }
-
   .pageSubtitle {
-     font-size: clamp(0.9rem, 4vw, 1rem); /* Adjust clamp */
-  }
-
-  .panel {
-    padding: 15px; /* Further reduce panel padding */
-  }
-
-  .panelHeader {
     font-size: 1rem;
-    gap: 8px;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
+    margin-top: 2px;
+  }
+  .panel {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  .panelHeader {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    gap: 5px;
+    letter-spacing: 1px;
   }
   .panelIcon {
-     font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
-  .inviteInput, .modalInput {
-    font-size: 1rem;
-    padding: 10px 12px;
-  }
-  .lobbySearchInput {
-     font-size: 0.9rem;
-     padding-top: 6px;
-     padding-bottom: 6px;
+  .textInputBase,
+  .inviteInput, .modalInput, .lobbySearchInput {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+    border-radius: 4px;
   }
 
   .createDescription {
-    font-size: 1rem;
-    margin-bottom: 15px;
+    font-size: 0.8rem; /* If exists and needs adjustment */
+    margin-bottom: 10px;
+  }
+  .queueStatus { font-size: 1rem; margin-bottom: 5px;}
+  .queueTime { font-size: 1.6rem; margin-bottom: 10px;}
+  
+  .themedButton, 
+  .inviteButton, .createButton, .queueButton, .cancelQueueButton, 
+  .pageButton { /* .lobbyItem .joinButton is INTENTIONALLY REMOVED from this group */
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    letter-spacing: 0.5px;
   }
 
-  .queueStatus { font-size: 1.1rem; }
-  .queueTime { font-size: 1.8rem; margin-bottom: 20px;}
+  .lobbyItem .joinButton {
+    /* Manually copied styles from .themedButton */
+    font-family: var(--font-header);
+    color: var(--blueprint-accent-text-dark);
+    background: var(--blueprint-accent);
+    border-radius: 22px;
+    border: 2px solid var(--dbz-black);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 3px 3px 0 var(--dbz-black);
+    user-select: none;
+    white-space: nowrap;
 
-  /* Make key action buttons full width for easier tapping */
-  .inviteButton, .createButton, .queueButton, .cancelQueueButton {
-     width: 100%;
-     align-self: stretch; /* Override previous aligns */
-     font-size: 0.9rem; /* Slightly larger font for full width */
-     padding: 12px;
+    /* Specific overrides for 480px for .lobbyItem .joinButton */
+    font-size: 0.8rem; 
+    padding: 5px 8px; 
+    letter-spacing: 0.5px; 
   }
-  .createButton { margin-top: auto; } /* Push to bottom if desc shrinks */
 
-   /* Lobby List adjustments */
   .lobbyListContainer {
-      min-height: 100px; /* Lower min height */
-      padding: 0.5rem;
-      max-height: 250px; /* Further reduce max height */
+    margin-top: 5px;
   }
-
+  .lobbyList {
+    gap: 8px;
+  }
   .lobbyItem {
-      flex-direction: column; /* Stack content vertically */
-      align-items: stretch; /* Align items full width */
-      gap: 8px; /* Gap between stacked elements */
-      padding: 10px;
+    grid-template-columns: 1fr; /* Stack everything */
+    padding: 8px;
+    gap: 6px;
   }
   .lobbyDetails {
-      margin-right: 0; /* Remove margin */
-      width: 100%; /* Take full width */
-      gap: 2px;
+    gap: 1px;
+    align-items: center; /* Center text when stacked */
+    text-align: center;
   }
   .lobbyName { font-size: 0.85rem; }
-  .lobbyHost { font-size: 0.75rem; }
-
-  .lobbyActions {
-      width: 100%; /* Take full width */
-      justify-content: space-between; /* Space out players and button */
-      margin-top: 5px; /* Add slight space */
-      gap: 0.5rem;
+  .lobbyHost { font-size: 0.7rem; }
+  .lobbyPlayers {
+    font-size: 0.75rem; 
+    text-align: center; /* Ensure centered */
+    margin: 3px 0;
   }
-  .lobbyPlayers { font-size: 0.8rem; text-align: left; min-width: 0;} /* Reset min-width */
-  .lobbyButtons { justify-content: flex-end; /* Align buttons to the right */}
-
-  .joinButton {
-      padding: 5px 12px; /* Small join button */
-      font-size: 0.7rem;
+  .lobbyButtons {
+    justify-content: center; /* Center buttons */
+    width: 100%;
   }
+  .privateBadge { 
+    font-size: 0.6rem; 
+    padding: 2px 5px;
+    margin: 3px auto; /* Center badge */
+  }
+  
+  .pagination { gap: 5px; margin-top:10px;}
+  .pageInfo { font-size: 0.75rem; }
 
-  .privateBadge { font-size: 0.65rem;}
-  .privateBadge::before { font-size: 0.7rem; }
-
-  /* Pagination on small screens */
-  .pagination { gap: 0.5rem; }
-  .pageButton { padding: 5px 10px; min-width: 35px; }
-  .pageInfo { font-size: 0.8rem; }
-
-  /* Modal Adjustments */
+  .modal {
+    padding: 10px;
+  }
+  .modalHeader h2 {
+    font-size: 1.1rem;
+  }
+  .modalContent {
+    /* padding: 5px 0; */
+  }
+   .formGroup label, .passwordLabel {
+    font-size: 0.75rem;
+  }
   .modalFooter {
-    flex-direction: column; /* Stack buttons vertically */
-    align-items: stretch; /* Make buttons full width */
+    flex-direction: column; /* Stack modal buttons */
+    align-items: stretch;
+    gap: 6px;
+    padding-top: 8px;
   }
-  .submitButton, .cancelButton {
-    width: 100%; /* Full width */
-    margin: 0; /* Remove potential horizontal margins */
-    order: 0; /* Reset order for vertical stack if desired (or keep default) */
+  .modalFooter .submitButton, .modalFooter .cancelButton {
+    font-size: 0.8rem;
+    padding: 8px 10px; /* Uniform padding for stacked */
+    width: 100%;
   }
 
-  .lobbyDetail {
-     padding: 8px 0; /* Adjust padding */
-  }
-  .detailLabel { font-size: 0.8rem; }
-  .detailValue { font-size: 0.9rem; }
-
-  .errorMessage { padding: 10px; gap: 8px; }
-  .errorIcon { font-size: 1.1rem; }
-  .errorMessage p { font-size: 0.9rem; }
+  .errorMessage { padding: 8px; gap: 6px; font-size:0.8rem; }
+  .errorIcon { font-size: 1rem; }
+  .errorMessage p { font-size: 0.8rem; }
 }
 
 .connectionStatus {

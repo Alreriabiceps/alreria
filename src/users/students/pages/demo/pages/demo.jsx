@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './demo.css'; // We'll create/update this for Exploding Kittens
+import './demo.css';
 import Hand from './components/Hand';
 import HPBar from './components/HPBar';
 import QuestionModal from './components/QuestionModal';
@@ -8,29 +8,18 @@ import GameStartOverlay from './components/GameStartOverlay';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import DeckPile from './components/DeckPile';
 import ParticleBurst from './components/ParticleBurst';
-// import io from 'socket.io-client';
-
-// --- Multiplayer socket connection is commented for single-player feature development ---
-// const socket = io(import.meta.env.VITE_BACKEND_URL, {
-//   auth: {
-//     token: localStorage.getItem('token')
-//   },
-//   reconnection: true,
-//   reconnectionAttempts: 5,
-//   reconnectionDelay: 1000
-// });
 
 // --- Card Definitions ---
 const CARD_TYPES = {
-  EXPLODING_KITTEN: 'EXPLODING_KITTEN',
-  QUESTION: 'QUESTION', // Question cards
+  SPECIAL: 'SPECIAL',
+  QUESTION: 'QUESTION',
 };
 
 const createCard = (id, type, questionData = null) => ({
   id,
   type,
   name: type === CARD_TYPES.QUESTION ? 'Question Card' : type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
-  questionData, // Store question data for question cards
+  questionData,
 });
 
 // --- Game Setup Utilities ---
@@ -78,9 +67,9 @@ const createInitialDrawPile = async (numPlayers) => {
     console.error('Error fetching questions:', error);
   }
 
-  // Add Exploding Kittens (fewer than before since we want more questions)
+  // Add Special cards (previously Exploding Kittens, now generic)
   for (let i = 0; i < Math.floor(numPlayers / 2); i++) {
-    pile.push(createCard(pile.length + 1, CARD_TYPES.EXPLODING_KITTEN));
+    pile.push(createCard(pile.length + 1, CARD_TYPES.SPECIAL));
   }
   
   return shuffleArray(pile);
@@ -96,7 +85,7 @@ const shuffleArray = (array) => {
 };
 
 // --- React Component ---
-const ExplodingKittensGame = () => {
+const QuizCardGame = () => {
   const navigate = useNavigate();
   const [drawPile, setDrawPile] = useState([]);
   const [playerHand, setPlayerHand] = useState([]);
@@ -116,7 +105,7 @@ const ExplodingKittensGame = () => {
   const [showStartOverlay, setShowStartOverlay] = useState(true);
   const [startDealing, setStartDealing] = useState(false);
   const [dealing, setDealing] = useState(false);
-  const [dealQueue, setDealQueue] = useState([]); // queue of cards to deal
+  const [dealQueue, setDealQueue] = useState([]);
   const CARDS_TO_DEAL = 7;
   const { user } = useAuth();
   const playAreaRef = useRef(null);
@@ -124,6 +113,8 @@ const ExplodingKittensGame = () => {
   const [flyingCard, setFlyingCard] = useState(null);
   const [flyingStyle, setFlyingStyle] = useState({});
   const nextSlotRef = useRef(null);
+  const [spellHand, setSpellHand] = useState([]);
+  const [isDraggingOverSpellArea, setIsDraggingOverSpellArea] = useState(false);
 
   // Only start dealing after overlay is dismissed
   useEffect(() => {
@@ -138,7 +129,6 @@ const ExplodingKittensGame = () => {
       setGameOver(false);
       setMessage('Dealing cards...');
       setIsLoading(false);
-      // Prepare a queue of cards to deal
       setDealQueue(initialPile.slice(-CARDS_TO_DEAL));
       setDrawPile(initialPile.slice(0, -CARDS_TO_DEAL));
       setDealing(true);
@@ -149,15 +139,12 @@ const ExplodingKittensGame = () => {
   // Animate dealing cards one by one
   useEffect(() => {
     if (!dealing || flyingCard || dealQueue.length === 0) return;
-    // Animate the next card in the queue
     const card = dealQueue[0];
-    // Get deck and next slot positions
     const deckElem = playAreaRef.current?.querySelector('.deck-pile');
     const slotElem = nextSlotRef.current;
     const handElem = handAreaRef.current;
     if (!deckElem || !handElem) return;
     const deckRect = deckElem.getBoundingClientRect();
-    // Fallback to hand center if slot not available
     let endX, endY;
     if (slotElem) {
       const slotRect = slotElem.getBoundingClientRect();
@@ -168,14 +155,13 @@ const ExplodingKittensGame = () => {
       endX = handRect.left + handRect.width / 2;
       endY = handRect.top + handRect.height / 2;
     }
-    // Start position: deck center
     const startX = deckRect.left + deckRect.width / 2;
     const startY = deckRect.top + deckRect.height / 2;
     setFlyingCard(card);
     setFlyingStyle({
       position: 'fixed',
-      left: startX - 30, // card width/2
-      top: startY - 45,  // card height/2
+      left: startX - 30,
+      top: startY - 45,
       width: 60,
       height: 90,
       zIndex: 3000,
@@ -183,7 +169,6 @@ const ExplodingKittensGame = () => {
       transform: 'translate(0,0) scale(1) rotateY(0deg)',
       opacity: 1,
     });
-    // Animate to hand after a tick
     setTimeout(() => {
       setFlyingStyle((prev) => ({
         ...prev,
@@ -191,7 +176,6 @@ const ExplodingKittensGame = () => {
         opacity: 1,
       }));
     }, 20);
-    // Animate shrink to fit
     setTimeout(() => {
       setFlyingStyle((prev) => ({
         ...prev,
@@ -200,23 +184,19 @@ const ExplodingKittensGame = () => {
         opacity: 1,
       }));
     }, 350);
-    // After shrink, add card to hand
     setTimeout(() => {
       setPlayerHand((prev) => [...prev, card]);
       setFlyingCard(null);
       setDealQueue((prev) => prev.slice(1));
-      // If this was the last card, finish dealing
       if (dealQueue.length === 1) {
         setDealing(false);
         setMessage('Your turn!');
       }
     }, 570);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dealing, flyingCard, dealQueue]);
 
   const handleDrawCard = () => {
     if (gameOver || drawPile.length === 0) return;
-    // Draw a card from the pile
     const newPile = [...drawPile];
     const card = newPile.pop();
     setDrawPile(newPile);
@@ -230,7 +210,6 @@ const ExplodingKittensGame = () => {
     setQuestionResult(isCorrect);
     
     if (isCorrect) {
-      // If correct, player gets to draw an extra card and deals damage to opponent
       if (drawPile.length > 0) {
         const extraCard = drawPile[0];
         const newDrawPile = drawPile.slice(1);
@@ -241,14 +220,10 @@ const ExplodingKittensGame = () => {
       } else {
         setMessage('Correct! But there are no more cards to draw.');
       }
-      
-      // Deal damage to opponent
-      setPlayerHP(Math.max(0, playerHP - 10)); // Deal 10 damage
+      setPlayerHP(Math.max(0, playerHP - 10));
     } else {
       setMessage('Incorrect! Try again next time.');
     }
-    
-    // Close modal after a delay
     setTimeout(() => {
       setShowQuestionModal(false);
       setCurrentQuestion(null);
@@ -265,22 +240,19 @@ const ExplodingKittensGame = () => {
       setSelectedCard(cardToPlay);
       setShowSidePanel(true);
     }
-    // Remove the card from hand after playing (optional, or after answering question)
   };
 
   const endTurnLogic = (shouldDrawOnEnd = true) => {
     if (gameOver) return;
-
-    // Normal turn ending
     setGameOver(true);
     setMessage(`Game Over!`);
   };
 
   // --- Drag and Drop Handlers ---
-  const handleDragStart = (e, card, handIndex) => {
+  const handleDragStart = (e, card, handIndex, fromSpellHand = false) => {
     if (gameOver) return;
-    setSelectedCard({ ...card, handIndex });
-    e.dataTransfer.setData('application/json', JSON.stringify({ cardId: card.id, handIndex }));
+    setSelectedCard({ ...card, handIndex, fromSpellHand });
+    e.dataTransfer.setData('application/json', JSON.stringify({ cardId: card.id, handIndex, fromSpellHand }));
     e.dataTransfer.effectAllowed = 'move';
   };
 
@@ -304,7 +276,7 @@ const ExplodingKittensGame = () => {
 
   const handleDragEnd = () => {
     setSelectedCard(null);
-    setIsDraggingOverPlayArea(false); // Just in case dragleave didn't fire
+    setIsDraggingOverPlayArea(false);
   };
 
   const handleCardClick = (card) => {
@@ -319,7 +291,32 @@ const ExplodingKittensGame = () => {
     setSelectedCard(null);
   };
 
-  // Show overlay before game starts
+  const handleDragOverSpellArea = (e) => {
+    e.preventDefault();
+    setIsDraggingOverSpellArea(true);
+  };
+
+  const handleDragLeaveSpellArea = (e) => {
+    setIsDraggingOverSpellArea(false);
+  };
+
+  const handleDropOnSpellArea = (e) => {
+    e.preventDefault();
+    setIsDraggingOverSpellArea(false);
+    if (selectedCard && selectedCard.type === CARD_TYPES.SPECIAL && !gameOver) {
+      if (!selectedCard.fromSpellHand) {
+        const card = playerHand[selectedCard.handIndex];
+        setPlayerHand(playerHand.filter((_, idx) => idx !== selectedCard.handIndex));
+        setSpellHand([...spellHand, card]);
+      } else {
+        const card = spellHand[selectedCard.handIndex];
+        setSpellHand(spellHand.filter((_, idx) => idx !== selectedCard.handIndex));
+        setPlayerHand([...playerHand, card]);
+      }
+    }
+    setSelectedCard(null);
+  };
+
   if (showStartOverlay) {
     return (
       <GameStartOverlay
@@ -332,72 +329,86 @@ const ExplodingKittensGame = () => {
 
   if (gameOver) {
     return (
-        <div className="exploding-kittens-game game-over">
+        <div className="quiz-card-game game-over">
             <h1>Game Over!</h1>
             <p>{message}</p>
-            <button onClick={initializeGame} className="ek-button">Play Again?</button>
+            <button onClick={() => window.location.reload()} className="ek-button">Play Again?</button>
         </div>
     );
   }
 
   return (
-    <div className="exploding-kittens-game">
-      <h2>Exploding Kittens</h2>
-
-      {/* Game Info & Play Area (Middle) */}
-      <div className="center-console" ref={playAreaRef}>
+    <div className="quiz-card-game compact-layout">
+      <div className="top-bar">
         <div className="game-info">
           <p>Draw Pile: {drawPile.length} cards</p>
           <p className="game-message">{message}</p>
         </div>
-        <div 
-          className={`play-area ${isDraggingOverPlayArea ? 'drag-over' : ''}`}
-          onDragOver={handleDragOverPlayArea}
-          onDragLeave={handleDragLeavePlayArea}
-          onDrop={handleDropOnPlayArea}
-        >
-          {/* Deck pile in the center during dealing */}
-          {dealing && <DeckPile count={drawPile.length} dealing={dealing} />}
-          {!dealing && 'Drop card here to play'}
-          {/* Flying card animation */}
-          {flyingCard && (
-            <div style={flyingStyle} className="flying-card">
-              <div className="deck-card flip" />
-            </div>
-          )}
+        <div className="actions-area">
+          <button 
+            onClick={handleDrawCard} 
+            disabled={drawPile.length === 0 || gameOver || dealing} 
+            className="ek-button draw-button"
+          >
+            Draw Card
+          </button>
         </div>
       </div>
-      
-      {/* Current Player's Hand Area (Bottom) */}
-      <div className="player-hand-display current-player-hand-area current-player-active" ref={handAreaRef} style={{ position: 'relative' }}>
-        <div className="player-info">
-          <div className="player-header">
-            <h3>{user?.firstName || 'You'}</h3>
+      <div className="main-board">
+        <div className="center-console">
+          <div 
+            className={`play-area${isDraggingOverPlayArea ? ' drag-over' : ''}`}
+            ref={playAreaRef}
+            onDragOver={handleDragOverPlayArea}
+            onDragLeave={handleDragLeavePlayArea}
+            onDrop={handleDropOnPlayArea}
+          >
+            {dealing && <DeckPile count={drawPile.length} dealing={dealing} />}
+            {!dealing && 'Drop card here to play'}
+            {flyingCard && (
+              <div style={flyingStyle} className="flying-card">
+                <div className="deck-card flip" />
+              </div>
+            )}
           </div>
-          <HPBar hp={playerHP} maxHp={MAX_HP} />
         </div>
-        <Hand hand={playerHand} onCardClick={playCard} nextSlotRef={dealing && dealQueue.length > 0 ? nextSlotRef : undefined} />
+        <div className="player-hand-area">
+          <div className="player-info">
+            <div className="player-header">
+              <h3>{user?.firstName || 'You'}</h3>
+            </div>
+            <HPBar hp={playerHP} maxHp={MAX_HP} />
+          </div>
+          <Hand 
+            hand={playerHand} 
+            onCardClick={playCard} 
+            nextSlotRef={dealing && dealQueue.length > 0 ? nextSlotRef : undefined}
+            onDragStart={(e, card, idx) => handleDragStart(e, card, idx, false)}
+          />
+        </div>
+        <div className="spell-hand-area">
+          <h4>Spell Cards</h4>
+          <div
+            className={`spell-play-area${isDraggingOverSpellArea ? ' drag-over' : ''}`}
+            onDragOver={handleDragOverSpellArea}
+            onDragLeave={handleDragLeaveSpellArea}
+            onDrop={handleDropOnSpellArea}
+          >
+            <Hand 
+              hand={spellHand} 
+              onCardClick={() => {}} 
+              onDragStart={(e, card, idx) => handleDragStart(e, card, idx, true)}
+            />
+            <div className="spell-hint">Drag SPECIAL cards here</div>
+          </div>
+        </div>
       </div>
-
-      {/* Actions Area */}
-      <div className="actions-area">
-        <button 
-          onClick={handleDrawCard} 
-          disabled={drawPile.length === 0 || gameOver || dealing} 
-          className="ek-button draw-button"
-        >
-          Draw Card
-        </button>
-      </div>
-
-      {/* Side Panel */}
       {showSidePanel && selectedCard && selectedCard.type === CARD_TYPES.QUESTION && (
         <div className="side-panel">
           <button className="close-panel-button" onClick={closeSidePanel}>×</button>
           <div className="side-panel-content">
             <h3>Question Details</h3>
             <div className="question-details">
-              {/* Show subject and Bloom's level */}
               <div style={{ marginBottom: '10px' }}>
                 <div>
                   <strong>Subject:</strong>{' '}
@@ -434,8 +445,6 @@ const ExplodingKittensGame = () => {
           </div>
         </div>
       )}
-
-      {/* Question Modal */}
       {showQuestionModal && currentQuestion && (
         <QuestionModal
           question={currentQuestion}
@@ -454,4 +463,4 @@ const ExplodingKittensGame = () => {
   );
 };
 
-export default ExplodingKittensGame;
+export default QuizCardGame;

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap');
 
-.exploding-kittens-game {
+.quiz-card-game {
   --dbz-orange: #f39c12;
   --dbz-blue: #3498db;
   --dbz-red: #e74c3c;
@@ -15,7 +15,7 @@
   --blueprint-grid-line: rgba(173, 216, 230, 0.35);
   --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
   --blueprint-text: #E0F2F7;
-  --blueprint-panel-bg: rgba(30, 45, 60, 0.85);
+  --blueprint-panel-bg: rgba(30, 45, 60, 0.92);
   --blueprint-panel-border: var(--blueprint-grid-line-strong);
   --blueprint-accent: var(--dbz-yellow);
   --blueprint-accent-text-dark: var(--dbz-black);
@@ -25,27 +25,300 @@
   --font-body: 'Montserrat', sans-serif;
   --font-accent: 'Roboto Condensed', sans-serif;
 
-  background-color: var(--blueprint-bg);
-  padding: 25px 15px 50px 15px; /* Adjusted padding to match dashboard L/R spacing */
-  border-radius: 15px; /* Consistent with dashboard panels */
-  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25); /* Dashboard panel shadow */
-  width: 95%;
-  max-width: 1100px; /* Increased max-width for a wider layout */
-  margin: 0 auto; /* Center the game container itself */
-  text-align: center;
+  min-height: 100vh;
+  background: var(--blueprint-bg);
+  color: var(--blueprint-text);
   font-family: var(--font-body);
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center flex items (panels, etc.) */
-  gap: 25px; /* Consistent spacing with dashboard */
-  color: var(--blueprint-text);
-  border: 1.5px solid var(--blueprint-panel-border);
-  min-height: 100vh; /* Ensure it takes full viewport height */
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  overflow-x: hidden;
 }
 
-.exploding-kittens-game h2,
-.exploding-kittens-game h3 {
+.quiz-card-game .header {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 12px auto;
+  text-align: center;
+  font-family: var(--font-header);
+  font-size: 2.7rem;
+  color: var(--blueprint-accent);
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 var(--dbz-black), 0 0 8px var(--blueprint-accent);
+  padding: 18px 0 0 0;
+}
+
+.quiz-card-game .main-board {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  justify-content: center;
+}
+
+.quiz-card-game .top-bar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  margin-bottom: 0;
+  padding: 0 0 8px 0;
+}
+
+.quiz-card-game .game-info {
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px var(--blueprint-shadow);
+  padding: 10px 18px;
+  font-family: var(--font-accent);
+  font-size: 1.1rem;
+  color: var(--blueprint-text);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 180px;
+}
+
+.quiz-card-game .game-message {
+  color: var(--blueprint-accent);
+  font-weight: 700;
+  font-family: var(--font-accent);
+  font-size: 1.1em;
+  margin-top: 4px;
+  min-height: 22px;
+  text-shadow: 1px 1px 1px var(--dbz-black);
+}
+
+.quiz-card-game .actions-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-card-game .ek-button.draw-button {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  color: var(--blueprint-accent-text-dark);
+  background: var(--blueprint-accent);
+  padding: 8px 22px;
+  border-radius: 22px;
+  border: 2px solid var(--dbz-black);
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 2px 2px 0 var(--dbz-black);
+  transition: transform 0.15s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
+  margin: 0;
+}
+.quiz-card-game .ek-button.draw-button:hover {
+  background: var(--dbz-orange);
+  color: var(--blueprint-text);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 4px 4px 0 var(--dbz-black), 0 0 10px var(--dbz-orange);
+}
+
+.quiz-card-game .board-panels {
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 12px;
+}
+
+.quiz-card-game .panel {
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 18px;
+  box-shadow: 0 6px 20px var(--blueprint-shadow), 0 0 12px var(--blueprint-accent) inset;
+  padding: 18px 18px 10px 18px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quiz-card-game .play-area {
+  width: 100%;
+  min-height: 120px;
+  background: linear-gradient(135deg, rgba(52,152,219,0.08) 0%, rgba(241,196,15,0.08) 100%);
+  border: 2px dashed var(--blueprint-accent);
+  border-radius: 14px;
+  padding: 18px 0 12px 0;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-accent);
+  font-size: 1.1em;
+  color: var(--blueprint-accent);
+  box-shadow: 0 2px 8px var(--blueprint-shadow);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.quiz-card-game .deck-pile {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.quiz-card-game .play-area.drag-over {
+  background: linear-gradient(135deg, rgba(241,196,15,0.18) 0%, rgba(52,152,219,0.18) 100%);
+  border-color: var(--dbz-yellow);
+  color: var(--dbz-yellow);
+}
+
+.quiz-card-game .player-hand-area {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.quiz-card-game .player-info {
+  margin-bottom: 4px;
+  padding: 4px 0 0 0;
+  background: none;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quiz-card-game .player-header {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--blueprint-accent);
+  text-shadow: 2px 2px 0 var(--dbz-black);
+  margin: 0;
+}
+
+.quiz-card-game .hp-bar-container {
+  height: 18px;
+  width: 120px;
+  margin-left: 12px;
+}
+
+.quiz-card-game .cards-container {
+  min-height: 90px;
+  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.quiz-card-game .card.ek-card {
+  width: 70px;
+  height: 100px;
+  font-size: 0.75em;
+  padding: 5px;
+  background: var(--dbz-light-gray);
+  border: 2px solid var(--dbz-dark-gray);
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px #0005;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.quiz-card-game .card.ek-card:hover {
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 6px 12px #0007, 0 0 10px var(--dbz-yellow);
+  border-color: var(--dbz-yellow);
+}
+
+.quiz-card-game .spell-hand-area {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.quiz-card-game .spell-play-area {
+  min-height: 70px;
+  border: 2px dashed var(--dbz-yellow);
+  border-radius: 8px;
+  padding: 6px 0 6px 0;
+  margin-bottom: 0;
+  background: rgba(241,196,15,0.04);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quiz-card-game .spell-hint {
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.quiz-card-game .spell-hand-area h4 {
+  margin: 6px 0 2px 0;
+  font-size: 1.1rem;
+  color: #f1c40f;
+  font-family: var(--font-header);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 900px) {
+  .quiz-card-game .main-board, .quiz-card-game .top-bar, .quiz-card-game .header {
+    max-width: 99vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+  }
+  .quiz-card-game .panel, .quiz-card-game .play-area, .quiz-card-game .spell-play-area {
+    max-width: 98vw;
+  }
+}
+
+@media (max-width: 600px) {
+  .quiz-card-game .header {
+    font-size: 1.5rem;
+    padding: 10px 0 0 0;
+  }
+  .quiz-card-game .main-board, .quiz-card-game .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0 2vw;
+  }
+  .quiz-card-game .panel, .quiz-card-game .play-area, .quiz-card-game .spell-play-area {
+    max-width: 99vw;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .quiz-card-game .player-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .quiz-card-game .hp-bar-container {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.quiz-card-game h2,
+.quiz-card-game h3 {
   font-family: var(--font-header);
   color: var(--blueprint-accent); /* Yellow title like dashboard */
   text-shadow:
@@ -58,8 +331,8 @@
   margin-bottom: 15px;
 }
 
-.exploding-kittens-game h2 { font-size: 2.5rem; } /* Larger, more impactful */
-.exploding-kittens-game h3 { font-size: 1.8rem; } /* Consistent with panel headers */
+.quiz-card-game h2 { font-size: 2.5rem; } /* Larger, more impactful */
+.quiz-card-game h3 { font-size: 1.8rem; } /* Consistent with panel headers */
 
 /* Shared panel style for different areas - like Dashboard panel */
 .ek-panel {
@@ -76,30 +349,31 @@
   box-shadow: 0 8px 25px var(--blueprint-shadow), 0 0 15px var(--blueprint-accent);
 }
 
-.exploding-kittens-game .opponent-hand-area {
+.quiz-card-game .opponent-hand-area {
   order: 1; /* Opponent's hand at the top */
   padding: 20px;
 }
 
-.exploding-kittens-game .opponent-hand-area h3,
-.exploding-kittens-game .current-player-hand-area h3 {
+.quiz-card-game .opponent-hand-area h3,
+.quiz-card-game .current-player-hand-area h3 {
    border-bottom: 2px dashed var(--blueprint-grid-line-strong);
    padding-bottom: 10px;
    margin-bottom: 18px; /* Match panelHeader style */
 }
 
-.exploding-kittens-game .center-console {
-  order: 2;
+.quiz-card-game .center-console {
+  margin: 0 auto 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Adjusted gap */
+  align-items: center;
+  gap: 0;
+  justify-content: center;
 }
 
-.exploding-kittens-game .game-info {
-  text-align: left;
-}
-
-.exploding-kittens-game .game-info p {
+.quiz-card-game .game-info p {
   margin: 8px 0;
   font-size: 1rem;
   font-family: var(--font-accent);
@@ -107,20 +381,7 @@
   opacity: 0.9;
 }
 
-.exploding-kittens-game .game-message {
-  font-weight: 700;
-  font-family: var(--font-accent);
-  color: var(--blueprint-accent);
-  min-height: 25px;
-  font-size: 1.1em;
-  padding: 10px 15px;
-  border-radius: 8px;
-  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.15); /* Subtle yellow BG */
-  border: 1px solid var(--blueprint-accent);
-  text-shadow: 1px 1px 1px var(--dbz-black);
-}
-
-.exploding-kittens-game.game-over .game-message {
+.quiz-card-game.game-over .game-message {
   color: var(--dbz-red);
   background-color: rgba(231, 76, 60, 0.15); /* Subtle red BG */
   border-color: var(--dbz-red);
@@ -129,40 +390,20 @@
   text-shadow: 1px 1px 1px var(--dbz-black);
 }
 
-.exploding-kittens-game .play-area {
-  background-color: rgba(0,0,0, 0.2); /* Darker, transparent like dashboard tierBox */
-  border: 2px dashed var(--blueprint-grid-line);
-  border-radius: 12px; /* More rounded */
-  padding: 30px;
-  color: var(--blueprint-text);
-  opacity: 0.8;
-  font-size: 1.1em;
-  font-family: var(--font-accent);
-  font-weight: 700;
-  transition: all 0.2s ease-in-out;
-}
-
-.exploding-kittens-game .play-area.drag-over {
-  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.2);
-  border-color: var(--blueprint-accent);
-  color: var(--blueprint-accent);
-  opacity: 1;
-}
-
-.exploding-kittens-game .current-player-hand-area {
+.quiz-card-game .current-player-hand-area {
   order: 3; /* Player's hand at the bottom (before actions) */
   padding: 20px;
 }
 
-.exploding-kittens-game .current-player-hand-area.current-player-active {
+.quiz-card-game .current-player-hand-area.current-player-active {
   border-color: var(--dbz-orange); /* Use a DBZ accent for active player */
   box-shadow: 0 0 15px var(--dbz-orange), 0 8px 25px var(--blueprint-shadow);
 }
 
 /* Apply .ek-panel style to hand areas and game info */
-.exploding-kittens-game .opponent-hand-area,
-.exploding-kittens-game .game-info,
-.exploding-kittens-game .current-player-hand-area {
+.quiz-card-game .opponent-hand-area,
+.quiz-card-game .game-info,
+.quiz-card-game .current-player-hand-area {
   composes: ek-panel;
   /* Manually copying properties for this context: */
   background: var(--blueprint-panel-bg);
@@ -173,7 +414,7 @@
   backdrop-filter: blur(3px);
 }
 
-.exploding-kittens-game .cards-container {
+.quiz-card-game .cards-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -181,7 +422,7 @@
   min-height: 120px; /* Adjusted min-height */
 }
 
-.exploding-kittens-game .card.ek-card {
+.quiz-card-game .card.ek-card {
   width: 85px; /* Slightly larger cards */
   height: 120px;
   background-color: var(--dbz-light-gray); /* Lighter card BG */
@@ -203,20 +444,20 @@
   user-select: none;
 }
 
-.exploding-kittens-game .card.ek-card:hover {
+.quiz-card-game .card.ek-card:hover {
   transform: translateY(-6px) scale(1.05); /* More pronounced hover */
   box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 10px var(--dbz-yellow);
   border-color: var(--dbz-yellow);
 }
 
-.exploding-kittens-game .card.ek-card.dragging {
+.quiz-card-game .card.ek-card.dragging {
   opacity: 0.6;
   transform: scale(0.95) rotate(3deg);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   cursor: grabbing;
 }
 
-.exploding-kittens-game .card.ek-card.card-back {
+.quiz-card-game .card.ek-card.card-back {
   background-color: var(--dbz-dark-blue);
   background-image: repeating-linear-gradient(
     45deg,
@@ -229,19 +470,12 @@
   border: 2px solid var(--blueprint-accent);
   text-shadow: 1px 1px 0 var(--dbz-black);
 }
-.exploding-kittens-game .card.ek-card.card-back::after {
+.quiz-card-game .card.ek-card.card-back::after {
   content: "EK"; /* Or some other gamified text/symbol */
 }
 
-.exploding-kittens-game .actions-area {
-  order: 4;
-  margin-top: 15px;
-  padding-top: 20px;
-  border-top: 1.5px solid var(--blueprint-panel-border);
-}
-
 /* Style buttons like dashboard browseButton */
-.exploding-kittens-game .ek-button {
+.quiz-card-game .ek-button {
   font-family: var(--font-header);
   font-size: 1.2rem;
   letter-spacing: 1.5px;
@@ -260,19 +494,19 @@
   margin: 5px; /* Add some margin between buttons */
 }
 
-.exploding-kittens-game .ek-button:hover {
+.quiz-card-game .ek-button:hover {
   background: var(--dbz-orange);
   color: var(--blueprint-text);
   transform: translateY(-3px) scale(1.03);
   box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
 }
 
-.exploding-kittens-game .ek-button:active {
+.quiz-card-game .ek-button:active {
   transform: translateY(-1px) scale(1.01); /* Smoother active state */
   box-shadow: 2px 2px 0 var(--dbz-black), 0 0 10px var(--dbz-orange);
 }
 
-.exploding-kittens-game .ek-button:disabled {
+.quiz-card-game .ek-button:disabled {
   background-color: var(--dbz-dark-gray);
   color: var(--blueprint-text);
   opacity: 0.6;
@@ -282,11 +516,11 @@
   border-color: var(--dbz-dark-gray);
 }
 
-.exploding-kittens-game .ek-button.draw-button {
+.quiz-card-game .ek-button.draw-button {
   background-color: var(--dbz-blue); /* Different color for draw */
   color: var(--blueprint-text);
 }
-.exploding-kittens-game .ek-button.draw-button:hover {
+.quiz-card-game .ek-button.draw-button:hover {
   background-color: var(--dbz-red); /* Exciting hover for draw */
   color: var(--blueprint-text);
   box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-red);
@@ -298,14 +532,14 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.exploding-kittens-game .card.ek-card {
+.quiz-card-game .card.ek-card {
   animation: cardPopInEK 0.3s ease-out backwards;
 }
 /* Stagger card animations if they are added dynamically */
 /* Example: .card:nth-child(1) { animation-delay: 0.1s; } etc. */
 
 /* Challenge Modal Styles */
-.exploding-kittens-game .question-modal {
+.quiz-card-game .question-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -319,7 +553,7 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-.exploding-kittens-game .question-content {
+.quiz-card-game .question-content {
   background: var(--blueprint-panel-bg);
   border: 2px solid var(--blueprint-accent);
   border-radius: 15px;
@@ -331,7 +565,7 @@
   position: relative;
 }
 
-.exploding-kittens-game .question-content h3 {
+.quiz-card-game .question-content h3 {
   color: var(--blueprint-accent);
   font-size: 1.8rem;
   margin-bottom: 20px;
@@ -340,7 +574,7 @@
   letter-spacing: 2px;
 }
 
-.exploding-kittens-game .question-text {
+.quiz-card-game .question-text {
   font-size: 1.2rem;
   color: var(--blueprint-text);
   margin-bottom: 25px;
@@ -352,13 +586,13 @@
   border: 1px solid var(--blueprint-grid-line);
 }
 
-.exploding-kittens-game .choices {
+.quiz-card-game .choices {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-.exploding-kittens-game .choice-button {
+.quiz-card-game .choice-button {
   background: var(--blueprint-panel-bg);
   border: 2px solid var(--blueprint-grid-line);
   border-radius: 8px;
@@ -372,7 +606,7 @@
   overflow: hidden;
 }
 
-.exploding-kittens-game .choice-button:hover:not(:disabled) {
+.quiz-card-game .choice-button:hover:not(:disabled) {
   background: var(--blueprint-accent);
   color: var(--blueprint-accent-text-dark);
   border-color: var(--blueprint-accent);
@@ -380,7 +614,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.exploding-kittens-game .choice-button.correct {
+.quiz-card-game .choice-button.correct {
   background: #27ae60;
   border-color: #27ae60;
   color: var(--blueprint-text);
@@ -388,7 +622,7 @@
   animation: correctAnswer 0.5s ease-out;
 }
 
-.exploding-kittens-game .choice-button.incorrect {
+.quiz-card-game .choice-button.incorrect {
   background: var(--dbz-red);
   border-color: var(--dbz-red);
   color: var(--blueprint-text);
@@ -396,7 +630,7 @@
   animation: incorrectAnswer 0.5s ease-out;
 }
 
-.exploding-kittens-game .choice-button:disabled {
+.quiz-card-game .choice-button:disabled {
   cursor: default;
   opacity: 0.7;
 }
@@ -421,14 +655,14 @@
   100% { transform: scale(1); }
 }
 
-.exploding-kittens-game .card.ek-card.question-card.challenging {
+.quiz-card-game .card.ek-card.question-card.challenging {
   animation: challengePulse 1s infinite;
   border-color: var(--blueprint-accent);
   box-shadow: 0 0 15px var(--blueprint-accent);
 }
 
 /* Side Panel Styles */
-.exploding-kittens-game .side-panel {
+.quiz-card-game .side-panel {
   position: fixed;
   top: 80px; /* Adjust this value based on your navigation bar height */
   left: 0;
@@ -442,7 +676,7 @@
   overflow-y: auto;
 }
 
-.exploding-kittens-game .close-panel-button {
+.quiz-card-game .close-panel-button {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -460,43 +694,43 @@
   transition: all 0.2s ease;
 }
 
-.exploding-kittens-game .close-panel-button:hover {
+.quiz-card-game .close-panel-button:hover {
   background: var(--blueprint-accent);
   color: var(--blueprint-accent-text-dark);
 }
 
-.exploding-kittens-game .side-panel-content {
+.quiz-card-game .side-panel-content {
   padding: 30px;
 }
 
-.exploding-kittens-game .side-panel-content h3 {
+.quiz-card-game .side-panel-content h3 {
   color: var(--blueprint-accent);
   font-size: 1.8rem;
   margin-bottom: 20px;
   text-align: center;
 }
 
-.exploding-kittens-game .question-details {
+.quiz-card-game .question-details {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
 }
 
-.exploding-kittens-game .question-details .question-text {
+.quiz-card-game .question-details .question-text {
   font-size: 1.2rem;
   color: var(--blueprint-text);
   margin-bottom: 20px;
   line-height: 1.5;
 }
 
-.exploding-kittens-game .question-details .choices {
+.quiz-card-game .question-details .choices {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.exploding-kittens-game .question-details .choice-item {
+.quiz-card-game .question-details .choice-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -506,28 +740,28 @@
   transition: all 0.2s ease;
 }
 
-.exploding-kittens-game .question-details .choice-item:hover {
+.quiz-card-game .question-details .choice-item:hover {
   background: rgba(var(--blueprint-accent-rgb, 241, 196, 15), 0.2);
 }
 
-.exploding-kittens-game .question-details .choice-letter {
+.quiz-card-game .question-details .choice-letter {
   color: var(--blueprint-accent);
   font-weight: bold;
   min-width: 20px;
 }
 
-.exploding-kittens-game .question-details .choice-text {
+.quiz-card-game .question-details .choice-text {
   color: var(--blueprint-text);
   flex: 1;
 }
 
-.exploding-kittens-game .question-actions {
+.quiz-card-game .question-actions {
   margin-top: 20px;
   display: flex;
   justify-content: center;
 }
 
-.exploding-kittens-game .play-question-button {
+.quiz-card-game .play-question-button {
   background: var(--blueprint-accent);
   color: var(--blueprint-accent-text-dark);
   padding: 12px 25px;
@@ -538,7 +772,7 @@
   transition: all 0.2s ease;
 }
 
-.exploding-kittens-game .play-question-button:hover {
+.quiz-card-game .play-question-button:hover {
   background: var(--dbz-orange);
   color: var(--blueprint-text);
   transform: translateY(-2px);
@@ -555,18 +789,18 @@
 }
 
 /* Update card styles to show clickable cursor */
-.exploding-kittens-game .card.ek-card.question-card {
+.quiz-card-game .card.ek-card.question-card {
   cursor: pointer;
 }
 
-.exploding-kittens-game .card.ek-card.question-card:hover {
+.quiz-card-game .card.ek-card.question-card:hover {
   transform: translateY(-6px) scale(1.05);
   box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 15px var(--blueprint-accent);
   border-color: var(--blueprint-accent);
 }
 
 /* Player Info and HP Bar Styles */
-.exploding-kittens-game .player-info {
+.quiz-card-game .player-info {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -576,21 +810,21 @@
   border-radius: 8px;
 }
 
-.exploding-kittens-game .player-header {
+.quiz-card-game .player-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
 }
 
-.exploding-kittens-game .player-info h3 {
+.quiz-card-game .player-info h3 {
   margin: 0;
   font-size: 1.5rem;
   color: var(--blueprint-accent);
   text-shadow: 2px 2px 0 var(--dbz-black);
 }
 
-.exploding-kittens-game .surrender-button {
+.quiz-card-game .surrender-button {
   background: var(--dbz-red);
   color: var(--blueprint-text);
   border: 2px solid var(--dbz-black);
@@ -606,18 +840,18 @@
   box-shadow: 2px 2px 0 var(--dbz-black);
 }
 
-.exploding-kittens-game .surrender-button:hover:not(:disabled) {
+.quiz-card-game .surrender-button:hover:not(:disabled) {
   background: #c0392b;
   transform: translateY(-2px);
   box-shadow: 3px 3px 0 var(--dbz-black);
 }
 
-.exploding-kittens-game .surrender-button:active:not(:disabled) {
+.quiz-card-game .surrender-button:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: 1px 1px 0 var(--dbz-black);
 }
 
-.exploding-kittens-game .surrender-button:disabled {
+.quiz-card-game .surrender-button:disabled {
   background: var(--dbz-dark-gray);
   color: var(--blueprint-text);
   opacity: 0.6;
@@ -626,7 +860,7 @@
   transform: none;
 }
 
-.exploding-kittens-game .hp-bar-container {
+.quiz-card-game .hp-bar-container {
   width: 100%;
   height: 25px;
   background: rgba(0, 0, 0, 0.3);
@@ -636,7 +870,7 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.exploding-kittens-game .hp-bar {
+.quiz-card-game .hp-bar {
   height: 100%;
   background: linear-gradient(90deg, 
     var(--dbz-red) 0%,
@@ -650,7 +884,7 @@
   justify-content: center;
 }
 
-.exploding-kittens-game .hp-text {
+.quiz-card-game .hp-text {
   color: var(--blueprint-text);
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
@@ -659,7 +893,7 @@
 }
 
 /* Add a shine effect to the HP bar */
-.exploding-kittens-game .hp-bar::after {
+.quiz-card-game .hp-bar::after {
   content: '';
   position: absolute;
   top: 0;
@@ -685,7 +919,7 @@
 }
 
 /* Question Card Styles */
-.exploding-kittens-game .card.ek-card.question-card {
+.quiz-card-game .card.ek-card.question-card {
   background: linear-gradient(135deg, var(--blueprint-panel-bg) 0%, var(--dbz-dark-blue) 100%);
   border-color: var(--blueprint-accent);
   color: var(--blueprint-text);
@@ -693,7 +927,7 @@
   overflow: hidden;
 }
 
-.exploding-kittens-game .question-card-content {
+.quiz-card-game .question-card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -702,7 +936,7 @@
   gap: 8px;
 }
 
-.exploding-kittens-game .question-card-icon {
+.quiz-card-game .question-card-icon {
   font-family: var(--font-header);
   font-size: 1.8em;
   color: var(--blueprint-accent);
@@ -718,7 +952,7 @@
   box-shadow: 0 0 10px var(--blueprint-accent);
 }
 
-.exploding-kittens-game .question-card-text {
+.quiz-card-game .question-card-text {
   font-size: 0.7em;
   line-height: 1.2;
   text-align: center;
@@ -730,14 +964,14 @@
   text-shadow: 1px 1px 1px var(--dbz-black);
 }
 
-.exploding-kittens-game .card.ek-card.question-card:hover {
+.quiz-card-game .card.ek-card.question-card:hover {
   transform: translateY(-6px) scale(1.05);
   box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 15px var(--blueprint-accent);
   border-color: var(--blueprint-accent);
 }
 
 /* Game Options Styles */
-.exploding-kittens-game .game-options {
+.quiz-card-game .game-options {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -750,14 +984,14 @@
   margin: 0 auto;
 }
 
-.exploding-kittens-game .join-game {
+.quiz-card-game .join-game {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
 }
 
-.exploding-kittens-game .game-id-input {
+.quiz-card-game .game-id-input {
   padding: 12px;
   border: 2px solid var(--blueprint-grid-line);
   border-radius: 8px;
@@ -769,14 +1003,14 @@
   transition: all 0.2s ease;
 }
 
-.exploding-kittens-game .game-id-input:focus {
+.quiz-card-game .game-id-input:focus {
   border-color: var(--blueprint-accent);
   outline: none;
   box-shadow: 0 0 10px var(--blueprint-accent);
 }
 
 /* Waiting Room Styles */
-.exploding-kittens-game .players-list {
+.quiz-card-game .players-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -789,7 +1023,7 @@
   margin: 20px auto;
 }
 
-.exploding-kittens-game .player-item {
+.quiz-card-game .player-item {
   padding: 15px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -802,7 +1036,7 @@
   align-items: center;
 }
 
-.exploding-kittens-game .player-item::after {
+.quiz-card-game .player-item::after {
   content: '●';
   color: var(--blueprint-accent);
   animation: pulse 1.5s infinite;
@@ -815,14 +1049,14 @@
 }
 
 /* Game ID Display */
-.exploding-kittens-game p {
+.quiz-card-game p {
   font-family: var(--font-accent);
   color: var(--blueprint-text);
   font-size: 1.2rem;
   margin: 10px 0;
 }
 
-.exploding-kittens-game p:first-of-type {
+.quiz-card-game p:first-of-type {
   color: var(--blueprint-accent);
   font-size: 1.4rem;
   font-weight: bold;
@@ -867,4 +1101,150 @@
   height: 120px;
   margin: 0 6px;
   display: inline-block;
+}
+
+.quiz-card-game.compact-layout {
+  padding: 10px 0 20px 0;
+  gap: 0;
+  min-height: unset;
+  max-width: 900px;
+}
+
+.quiz-card-game .top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 24px 0 24px;
+  margin-bottom: 0;
+  background: none;
+  min-height: 0;
+}
+
+.quiz-card-game .main-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.quiz-card-game .center-console {
+  margin: 0 auto 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.quiz-card-game .play-area {
+  margin: 0 auto 0 auto;
+  min-height: 120px;
+  padding: 18px 0 12px 0;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 10px;
+}
+
+.quiz-card-game .player-hand-area {
+  margin: 0 auto 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.quiz-card-game .player-info {
+  margin-bottom: 4px;
+  padding: 4px 0 0 0;
+  background: none;
+}
+
+.quiz-card-game .cards-container {
+  min-height: 90px;
+  gap: 8px;
+}
+
+.quiz-card-game .spell-hand-area {
+  margin: 0 auto 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.quiz-card-game .spell-play-area {
+  min-height: 70px;
+  border: 2px dashed #f1c40f;
+  border-radius: 8px;
+  padding: 6px 0 6px 0;
+  margin-bottom: 0;
+  background: rgba(241,196,15,0.04);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quiz-card-game .spell-hint {
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.quiz-card-game .game-info {
+  min-width: 180px;
+  padding: 0;
+  margin: 0;
+  background: none;
+}
+
+.quiz-card-game .game-message {
+  min-height: 18px;
+  font-size: 1em;
+  padding: 4px 8px;
+  margin: 0;
+}
+
+.quiz-card-game .actions-area {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.quiz-card-game .ek-button.draw-button {
+  margin: 0;
+  padding: 7px 18px;
+  font-size: 1rem;
+}
+
+.quiz-card-game .hp-bar-container {
+  height: 18px;
+}
+
+.quiz-card-game .card.ek-card {
+  width: 70px;
+  height: 100px;
+  font-size: 0.75em;
+  padding: 5px;
+}
+
+.quiz-card-game .spell-hand-area h4 {
+  margin: 6px 0 2px 0;
+  font-size: 1.1rem;
+  color: #f1c40f;
+  font-family: var(--font-header);
+  letter-spacing: 1px;
 } 

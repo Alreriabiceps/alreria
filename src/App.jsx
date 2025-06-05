@@ -22,7 +22,6 @@ import Profile from "./users/students/pages/profile/pages/Profile.jsx";
 import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
 import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
-import SketchfabViewer from "./users/students/pages/dashboard/pages/SketchfabViewer.jsx";
 import AllChats from "./users/students/pages/chat/AllChats.jsx";
 import MtgQuiz from "./users/students/pages/demo/pages/demo.jsx";
 import ExplodingKittensGame from './users/students/pages/demo/pages/demo';
@@ -79,7 +78,6 @@ const App = () => {
               <Route path="crew" element={<Crew />} />
               <Route path="partymmr" element={<Partymmr />} />
               <Route path="versusmodelobby" element={<VersusModeLobby />} />
-              <Route path="sketchfab" element={<SketchfabViewer />} />
               <Route path="chats" element={<AllChats currentUser={currentUser} socketRef={socketRef} />} />
               <Route path="mtg-demo" element={<MtgQuiz />} />
               <Route path="game" element={<ExplodingKittensGame />} />

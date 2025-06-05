@@ -57,7 +57,7 @@
 
 .profileContainer {
   min-height: 100vh;
-  padding: 20px;
+  padding: 15px;
   font-family: var(--font-primary);
   background-color: var(--blueprint-bg);
   color: var(--blueprint-text);
@@ -69,8 +69,8 @@
   background-color: var(--blueprint-panel-bg);
   border: 1px solid var(--blueprint-panel-border);
   border-radius: 12px;
-  padding: 20px 25px;
-  margin-bottom: 25px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
   box-shadow: var(--blueprint-panel-shadow);
   opacity: 0; /* Start hidden */
   animation: panelFlyIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
@@ -125,18 +125,18 @@
 .tabsContainer {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px; 
-  gap: 10px;
-  padding-bottom: 10px;
+  margin-bottom: 25px;
+  gap: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--blueprint-panel-border);
   flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
 }
 
 .tabButton {
-  padding: 12px 25px;
+  padding: 10px 20px;
   font-family: var(--font-header);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   border: none;
   border-bottom: 3px solid transparent;
   background: none;
@@ -451,61 +451,632 @@
   }
 }
 
+/* Enhanced mobile responsive styles for compactness */
 @media (max-width: 768px) {
   .profileContainer {
-    padding: 30px 15px 50px 15px;
+    padding: 15px 10px 30px 10px;
   }
 
-  .profilePanel {
-    padding: 20px;
+  .profileSection {
+    padding: 12px 15px;
+    margin-bottom: 15px;
   }
 
-  .profileHeader {
-    flex-direction: column;
-    text-align: center;
+  /* Tab navigation more compact */
+  .tabsContainer {
+    margin-bottom: 20px;
+    gap: 3px;
+  }
+
+  .tabButton {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Overview layout adjustments */
+  .overviewLayoutContainer {
     gap: 15px;
   }
 
-  .avatarPlaceholder {
-    width: 80px;
-    height: 80px;
+  .rankSidePanel {
+    padding: 15px;
+    max-height: 250px;
+    gap: 10px;
+  }
+
+  .rankPanelTitleText {
+    font-size: 1.2rem;
+  }
+
+  .modalListItem {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .modalListItemEmoji {
+    font-size: 1.3rem;
+  }
+
+  .modalListItemName {
+    font-size: 0.9rem;
+  }
+
+  .modalListItemDescription {
+    font-size: 0.8rem;
+  }
+
+  .modalListItemPoints {
+    font-size: 0.85rem;
+  }
+
+  /* Profile card compactness */
+  .profileNameLarge {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+
+  .profileStatsRow {
+    gap: 15px;
+  }
+
+  .statBlock {
+    min-width: 130px;
+    padding: 8px;
+  }
+
+  .statPointsHighlight {
     font-size: 2rem;
   }
 
-  .profileName {
-    font-size: 1.4rem;
+  .statLabelWithIcon {
+    font-size: 1rem;
+    gap: 6px;
   }
 
-  .profileRank {
-    justify-content: center;
+  .statRankIcon {
+    font-size: 1.2em;
   }
 
-  .statsGrid {
-    grid-template-columns: 1fr;
+  .profileDescription {
+    font-size: 0.9rem;
+    max-width: 350px;
+  }
+
+  /* Progress cards */
+  .progressCard {
+    padding: 12px 16px;
+    min-width: 240px;
+  }
+
+  .progressCardRankName {
+    font-size: 1rem;
+  }
+
+  .progressCardPoints {
+    font-size: 1.6rem;
+  }
+
+  .progressBarContainer {
+    height: 16px;
+    margin: 10px 0 6px 0;
+  }
+
+  .progressTextContainer {
+    font-size: 0.8rem;
+    margin-top: 6px;
+  }
+
+  .progressNextRankText {
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  /* Analytics grid */
+  .analyticsGrid {
+    gap: 15px;
   }
 
   .statCard {
-    text-align: center;
-    border-left: none;
-    border-top: 3px solid var(--color-accent);
+    padding: 15px 16px;
+    min-width: 120px;
+    flex-basis: 140px;
+  }
+
+  .statCardIcon {
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+  }
+
+  .statCardLabel {
+    font-size: 0.75rem;
+  }
+
+  .statCardValue {
+    font-size: 1.3rem;
+  }
+
+  /* History items */
+  .historyItem {
+    padding: 10px 12px;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .historyItemIcon {
+    font-size: 1.6rem;
+    margin-right: 8px;
+  }
+
+  .historyItemTitle {
+    font-size: 1rem;
+  }
+
+  .historyItemSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .historyItemMeta {
+    min-width: 80px;
+  }
+
+  .historyItemScorePercent {
+    font-size: 0.95rem;
+  }
+
+  .historyItemDate {
+    font-size: 0.8rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+  }
+
+  .noHistoryMessage {
+    margin-top: 30px;
+    padding: 15px;
+    font-size: 1rem;
+  }
+
+  .noHistoryEmoji {
+    font-size: 2rem;
+    margin-bottom: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .profileContainer {
-    padding: 20px 10px 40px 10px;
+    padding: 10px 8px 20px 8px;
   }
 
-  .profilePanel {
-    padding: 15px;
+  .profileSection {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+
+  /* Tab navigation ultra compact */
+  .tabsContainer {
+    margin-bottom: 15px;
+    gap: 2px;
+    padding-bottom: 8px;
+  }
+
+  .tabButton {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* Overview layout ultra compact */
+  .overviewLayoutContainer {
+    gap: 12px;
+  }
+
+  .rankSidePanel {
+    padding: 10px 12px;
+    max-height: 200px;
+    gap: 8px;
+    border-radius: 8px;
+  }
+
+  .rankPanelTitleText {
+    font-size: 1rem;
+    gap: 6px;
+  }
+
+  .rankPanelToggleHeader {
+    padding: 6px 4px;
+    margin-bottom: 8px;
+  }
+
+  .rankPanelToggleIcon {
+    font-size: 1.1rem;
+  }
+
+  .modalListItem {
+    padding: 6px 10px;
+    gap: 8px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+  }
+
+  .modalListItemEmoji {
+    font-size: 1.1rem;
+  }
+
+  .modalListItemName {
+    font-size: 0.8rem;
+  }
+
+  .modalListItemDescription {
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
+
+  .modalListItemPoints {
+    font-size: 0.75rem;
+  }
+
+  /* Profile card ultra compact */
+  .profileNameLarge {
+    font-size: 1.5rem;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+  }
+
+  .profileStatsRow {
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .statBlock {
+    min-width: 110px;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .statPointsHighlight {
+    font-size: 1.6rem;
+  }
+
+  .statLabelWithIcon {
+    font-size: 0.85rem;
+    gap: 4px;
+  }
+
+  .statRankIcon {
+    font-size: 1.1em;
+  }
+
+  .statRankName {
+    font-weight: 600;
+  }
+
+  .statSubLabel {
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+  }
+
+  .profileDescription {
+    font-size: 0.8rem;
+    max-width: 280px;
+    line-height: 1.4;
+  }
+
+  /* Progress cards ultra compact */
+  .progressCard {
+    padding: 8px 12px;
+    min-width: 200px;
+    border-radius: 8px;
+  }
+
+  .progressCardHeader {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .progressCardRankName {
+    font-size: 0.85rem;
+  }
+
+  .progressCardPoints {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+  }
+
+  .progressBarContainer {
+    height: 12px;
+    margin: 8px 0 5px 0;
+    border-radius: 6px;
+  }
+
+  .progressFill {
+    border-radius: 5px;
+  }
+
+  .progressTextContainer {
+    font-size: 0.7rem;
+    margin-top: 5px;
+  }
+
+  .progressNextRankText {
+    font-size: 0.75rem;
+    margin-top: 3px;
+  }
+
+  /* Analytics grid ultra compact */
+  .analyticsGrid {
+    gap: 10px;
+  }
+
+  .statCard {
+    padding: 10px 12px;
+    min-width: 100px;
+    flex-basis: 120px;
+    border-radius: 8px;
+  }
+
+  .statCardIcon {
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+  }
+
+  .statCardLabel {
+    font-size: 0.7rem;
+    margin-bottom: 3px;
+  }
+
+  .statCardValue {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* History items ultra compact */
+  .historyItem {
+    padding: 8px 10px;
+    gap: 10px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    border-left-width: 3px;
+  }
+
+  .historyItemIcon {
+    font-size: 1.3rem;
+    margin-right: 6px;
+  }
+
+  .historyItemTitle {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+  }
+
+  .historyItemSubtitle {
+    font-size: 0.8rem;
+  }
+
+  .historyItemMeta {
+    min-width: 70px;
+  }
+
+  .historyItemScorePercent {
+    font-size: 0.85rem;
+  }
+
+  .historyItemDate {
+    font-size: 0.7rem;
+    margin-top: 2px;
+  }
+
+  .sectionTitle {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+
+  .noHistoryMessage {
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .noHistoryEmoji {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  /* Avatar adjustments */
+  .avatarPlaceholder {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+
+  /* Profile info card inline styles adjustments for mobile */
+  .profileInfoContainer {
+    gap: 10px;
+  }
+
+  /* Modern Overview Mobile Styles */
+  .modernProfileHeader {
+    flex-direction: row; /* Change to row for more compact layout */
+    align-items: center;
+    text-align: left;
+    gap: 12px;
+    padding: 10px 12px; /* Further reduced padding */
+    margin-bottom: 12px;
+  }
+
+  .profileAvatarSection {
+    flex-shrink: 0;
+  }
+
+  .avatarPlaceholder {
+    width: 50px !important; /* Much smaller avatar */
+    height: 50px !important;
+    font-size: 20px !important;
+  }
+
+  .profileHeaderInfo {
+    flex: 1;
+    text-align: left;
+  }
+
+  .profileStats {
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .profileName {
-    font-size: 1.2rem;
+    font-size: 1.1rem; /* Much smaller name */
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .profileRanks {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .rankBadge {
+    padding: 1px 4px; /* Very small padding */
+    font-size: 0.6rem; /* Smaller font */
+    gap: 2px;
+  }
+
+  .statItem {
+    align-items: flex-end;
   }
 
   .statValue {
-    font-size: 1.4rem;
+    font-size: 1rem; /* Smaller values */
+    line-height: 1;
+  }
+
+  .statLabel {
+    font-size: 0.6rem; /* Very small labels */
+    margin-top: 1px;
+  }
+
+  .avatarBadge {
+    width: 18px; /* Much smaller badge */
+    height: 18px;
+    font-size: 9px;
+    bottom: -3px;
+    right: -3px;
+  }
+
+  .progressGrid {
+    grid-template-columns: 1fr;
+    gap: 12px; /* Reduced from 15px */
+    margin-bottom: 15px; /* Reduced */
+  }
+
+  .progressCardModern {
+    padding: 10px 12px; /* Reduced from 12px */
+  }
+
+  .progressCardTitle {
+    font-size: 0.85rem; /* Reduced */
+    gap: 4px;
+  }
+
+  .progressCardValue {
+    font-size: 1rem; /* Reduced */
+  }
+
+  .progressCardFooter {
+    font-size: 0.7rem; /* Reduced */
+    margin-top: 4px;
+  }
+
+  .progressBarContainer {
+    height: 10px; /* Reduced height */
+    margin: 8px 0 4px 0; /* Reduced margins */
+  }
+
+  .quickStatsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px; /* Reduced from 10px */
+    margin-bottom: 15px; /* Reduced */
+  }
+
+  .quickStatCard {
+    padding: 8px 10px; /* Reduced from 12px */
+  }
+
+  .quickStatIcon {
+    font-size: 1.1rem; /* Reduced from 1.3rem */
+    margin-bottom: 4px; /* Reduced */
+  }
+
+  .quickStatValue {
+    font-size: 0.95rem; /* Reduced from 1.1rem */
+    margin-bottom: 2px; /* Reduced */
+  }
+
+  .quickStatLabel {
+    font-size: 0.65rem; /* Reduced */
+  }
+
+  .actionCardsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px; /* Reduced from 15px */
+  }
+
+  .actionCard {
+    padding: 12px; /* Reduced from 15px */
+  }
+
+  .actionCardIcon {
+    font-size: 1.4rem; /* Reduced from 1.6rem */
+    margin-bottom: 8px; /* Reduced */
+  }
+
+  .actionCardTitle {
+    font-size: 0.9rem; /* Reduced */
+    margin-bottom: 4px; /* Reduced */
+  }
+
+  .actionCardDescription {
+    font-size: 0.75rem; /* Reduced */
+    margin-bottom: 10px; /* Reduced */
+    line-height: 1.3;
+  }
+
+  .actionCardButton {
+    padding: 5px 12px; /* Reduced */
+    font-size: 0.75rem; /* Reduced */
+  }
+
+  .rankGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .rankCard {
+    padding: 12px;
+  }
+
+  .rankCardIcon {
+    font-size: 1.6rem;
+  }
+
+  .settingCard {
+    margin-bottom: 15px;
+  }
+
+  .settingCardHeader {
+    padding: 12px;
+  }
+
+  .settingCardContent {
+    padding: 12px;
   }
 }
 
@@ -1009,4 +1580,453 @@
 
 .rankPanelToggleIconOpen {
   transform: rotate(180deg);
+}
+
+/* Modern Overview Layout Styles */
+.modernProfileHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, var(--blueprint-panel-bg-opaque) 60%, rgba(var(--blueprint-accent-rgb), 0.1) 100%);
+  border-radius: 12px;
+  padding: 16px 20px; /* Reduced padding */
+  margin: 0 auto 18px auto; /* Center and reduce margin */
+  max-width: 600px; /* Add max-width for desktop */
+  border: 1px solid var(--blueprint-panel-border);
+  box-shadow: var(--blueprint-panel-shadow);
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out 0.1s forwards;
+}
+
+.profileAvatarSection {
+  flex-shrink: 0;
+}
+
+.avatarWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarBadge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 26px; /* Slightly smaller */
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--blueprint-panel-bg);
+  font-size: 13px; /* Slightly smaller */
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.profileHeaderInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileName {
+  font-family: var(--font-display);
+  font-size: 1.6rem; /* Reduced from 1.8rem */
+  color: var(--blueprint-text);
+  margin: 0 0 6px 0; /* Reduced margin */
+  letter-spacing: 1px;
+}
+
+.profileRanks {
+  display: flex;
+  gap: 8px; /* Reduced gap */
+  flex-wrap: wrap;
+}
+
+.rankBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Reduced gap */
+  padding: 3px 8px; /* Reduced padding */
+  border: 1px solid;
+  border-radius: 20px;
+  font-size: 0.8rem; /* Reduced font size */
+  font-family: var(--font-header);
+  font-weight: 600;
+  background: rgba(var(--blueprint-panel-bg-rgb, 20, 30, 40), 0.5);
+}
+
+.profileStats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Reduced gap */
+  align-items: flex-end;
+  text-align: right;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 1.4rem; /* Reduced from 1.6rem */
+  font-weight: 700;
+  line-height: 1;
+  color: var(--blueprint-text);
+}
+
+.statLabel {
+  font-size: 0.75rem; /* Reduced font size */
+  color: var(--blueprint-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-header);
+}
+
+/* Progress Cards Grid */
+.progressGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Reduced min-width */
+  gap: 16px; /* Reduced gap */
+  margin: 0 auto 20px auto; /* Center and reduce margin */
+  max-width: 600px; /* Add max-width for desktop */
+}
+
+.progressCardModern {
+  background: var(--blueprint-panel-bg-opaque);
+  border: 1px solid var(--blueprint-panel-border);
+  border-radius: 10px;
+  padding: 14px 16px; /* Reduced padding */
+  box-shadow: var(--blueprint-panel-shadow);
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.progressCardModern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.progressCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px; /* Reduced margin */
+}
+
+.progressCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced gap */
+  font-family: var(--font-header);
+  font-weight: 700;
+  color: var(--blueprint-text);
+  font-size: 0.95rem; /* Reduced font size */
+}
+
+.progressCardValue {
+  font-family: var(--font-display);
+  font-size: 1.2rem; /* Reduced from 1.4rem */
+  font-weight: 700;
+}
+
+.progressCardFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px; /* Reduced margin */
+  font-size: 0.8rem; /* Reduced font size */
+}
+
+.currentRank {
+  color: var(--blueprint-text);
+  font-weight: 600;
+}
+
+.nextRank {
+  color: var(--blueprint-text-muted);
+}
+
+/* Quick Stats Grid */
+.quickStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Reduced min-width */
+  gap: 12px; /* Reduced gap */
+  margin: 0 auto 20px auto; /* Center and reduce margin */
+  max-width: 600px; /* Add max-width for desktop */
+}
+
+.quickStatCard {
+  background: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  border-radius: 8px;
+  padding: 12px; /* Reduced padding */
+  text-align: center;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.quickStatCard:hover {
+  transform: translateY(-2px);
+  background: var(--blueprint-panel-bg);
+}
+
+.quickStatIcon {
+  font-size: 1.3rem; /* Reduced font size */
+  color: var(--blueprint-accent);
+  margin-bottom: 6px; /* Reduced margin */
+}
+
+.quickStatValue {
+  font-family: var(--font-display);
+  font-size: 1.1rem; /* Reduced from 1.3rem */
+  color: var(--blueprint-text);
+  margin-bottom: 3px; /* Reduced margin */
+}
+
+.quickStatLabel {
+  font-size: 0.75rem; /* Reduced font size */
+  color: var(--blueprint-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-header);
+}
+
+/* Action Cards Grid */
+.actionCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Reduced min-width */
+  gap: 16px; /* Reduced gap */
+  margin: 0 auto; /* Center */
+  max-width: 500px; /* Add max-width for desktop */
+}
+
+.actionCard {
+  background: linear-gradient(135deg, var(--blueprint-panel-bg-opaque) 60%, rgba(var(--blueprint-accent-rgb), 0.05) 100%);
+  border: 1px solid var(--blueprint-panel-border);
+  border-radius: 10px;
+  padding: 16px; /* Reduced padding */
+  text-align: center;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.actionCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.actionCardIcon {
+  font-size: 1.8rem; /* Reduced from 2rem */
+  color: var(--blueprint-accent);
+  margin-bottom: 10px; /* Reduced margin */
+}
+
+.actionCardTitle {
+  font-family: var(--font-header);
+  font-size: 1rem; /* Reduced font size */
+  font-weight: 700;
+  color: var(--blueprint-text);
+  margin-bottom: 6px; /* Reduced margin */
+}
+
+.actionCardDescription {
+  font-size: 0.85rem; /* Reduced font size */
+  color: var(--blueprint-text-muted);
+  margin-bottom: 12px; /* Reduced margin */
+  line-height: 1.4;
+}
+
+.actionCardButton {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-bg);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px; /* Reduced padding */
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 0.85rem; /* Reduced font size */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.actionCardButton:hover {
+  background: var(--blueprint-button-hover-bg);
+  transform: translateY(-1px);
+}
+
+/* Achievements Tab Styles */
+.achievementSection {
+  margin-bottom: 30px;
+}
+
+.achievementSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-header);
+  font-size: 1.3rem;
+  color: var(--blueprint-accent-secondary);
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--blueprint-panel-border);
+}
+
+.rankGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.rankCard {
+  background: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.rankCardUnlocked {
+  border-color: var(--blueprint-success);
+  background: rgba(var(--blueprint-success), 0.05);
+}
+
+.rankCardLocked {
+  opacity: 0.6;
+}
+
+.rankCard:hover {
+  transform: translateY(-2px);
+}
+
+.rankCardIcon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.rankCardName {
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.rankCardDescription {
+  font-size: 0.85rem;
+  color: var(--blueprint-text-muted);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.rankCardPoints {
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  font-weight: 600;
+}
+
+.rankCardUnlockedBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--blueprint-success);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Settings Tab Styles */
+.settingsGrid {
+  display: grid;
+  gap: 20px;
+}
+
+.settingCard {
+  background: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+}
+
+.settingCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--blueprint-panel-header-bg);
+  padding: 16px;
+  border-bottom: 1px solid var(--blueprint-input-border);
+}
+
+.settingCardIcon {
+  font-size: 1.2rem;
+  color: var(--blueprint-accent);
+}
+
+.settingCardTitle {
+  font-family: var(--font-header);
+  font-weight: 700;
+  color: var(--blueprint-text);
+}
+
+.settingCardContent {
+  padding: 16px;
+}
+
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(var(--blueprint-input-border), 0.3);
+}
+
+.settingItem:last-child {
+  border-bottom: none;
+}
+
+.settingItem label {
+  font-weight: 600;
+  color: var(--blueprint-text);
+}
+
+.settingItem span {
+  color: var(--blueprint-text-muted);
+}
+
+.settingButton {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-bg);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settingButton:hover {
+  background: var(--blueprint-button-hover-bg);
+}
+
+/* Overview Section Container - Make it more compact */
+.overviewSection {
+  max-width: 700px; /* Constrain the overview container width */
+  margin: 0 auto 20px auto; /* Center the overview section */
 }

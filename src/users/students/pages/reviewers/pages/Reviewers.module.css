@@ -1,498 +1,758 @@
 /* src/components/Reviewers.module.css */
 
-/* Blueprint Capsule Corp Theme Variables */
-:root { /* Scoped to this module for safety, or ensure global availability */
+/* === THEME VARIABLES (Aligned with VersusModeLobby) === */
+:root {
+  /* Core Palette */
   --dbz-orange: #f39c12;
   --dbz-blue: #3498db;
   --dbz-red: #e74c3c;
   --dbz-yellow: #f1c40f;
   --dbz-dark-blue: #2c3e50;
+  --dbz-dark-blue-rgb: 44, 62, 80; /* Added from VML */
   --dbz-light-gray: #ecf0f1;
   --dbz-dark-gray: #34495e;
   --dbz-black: #1C1C1C;
+  --dbz-black-rgb: 28, 28, 28; /* Added from VML */
 
+  /* Blueprint Theme */
   --blueprint-bg: #0D131A;
   --blueprint-grid-line: rgba(173, 216, 230, 0.35);
   --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
   --blueprint-text: #E0F2F7;
-  --blueprint-text-muted: #a0b0c0; /* Adjusted for better contrast */
-  --blueprint-panel-bg: rgba(30, 45, 60, 0.9); /* Slightly more opaque */
+  --blueprint-text-muted: rgba(224, 242, 247, 0.7); /* Aligned with VML */
+  --blueprint-panel-bg: rgba(30, 45, 60, 0.85); /* Aligned with VML panel */
   --blueprint-panel-border: var(--blueprint-grid-line-strong);
-  --blueprint-accent: var(--dbz-yellow); /* Key accent color */
-  --blueprint-accent-rgb: 241, 196, 15;
+  --blueprint-accent: var(--dbz-yellow);
+  --blueprint-accent-rgb: 241, 196, 15; /* Aligned with VML */
   --blueprint-accent-text-dark: var(--dbz-black);
   --blueprint-shadow: rgba(0, 0, 0, 0.4);
-  --blueprint-input-bg: rgba(13, 20, 26, 0.8); /* Darker input background */
-  --blueprint-input-border: var(--blueprint-grid-line);
-  --blueprint-item-hover-bg: rgba(var(--blueprint-accent-rgb), 0.1);
+  
+  /* Inputs (Based on VML .textInputBase) */
+  --blueprint-input-bg: var(--dbz-dark-gray); /* VML uses dbz-dark-gray for textInputBase */
+  --blueprint-input-border: var(--blueprint-panel-border); /* VML uses panel-border for textInputBase */
+  --blueprint-input-hover-glow: rgba(var(--blueprint-accent-rgb), 0.4); /* For focus glow */
 
-  --font-header: 'Bangers', cursive; /* Ensure Bangers is imported globally or add @import */
-  --font-body: 'Montserrat', sans-serif; /* Ensure Montserrat is imported globally or add @import */
-  --font-accent: 'Roboto Condensed', sans-serif; /* Ensure Roboto Condensed is imported globally or add @import */
+  /* Fonts (Ensure these are imported/available globally as in VML) */
+  --font-header: 'Bangers', cursive;
+  --font-body: 'Montserrat', sans-serif;
+  --font-accent: 'Roboto Condensed', sans-serif;
 
-  /* File Icon Specific Colors (Blueprint Aligned) */
+  /* File Icon Specific Colors (Kept from original, ensure good contrast) */
   --file-icon-pdf-bg: var(--dbz-red);
   --file-icon-docx-bg: var(--dbz-blue);
   --file-icon-pptx-bg: var(--dbz-orange);
   --file-icon-default-bg: var(--dbz-dark-gray);
-  --file-icon-text: var(--blueprint-text); /* Ensure good contrast on colored backgrounds */
+  --file-icon-text: #FFFFFF; /* Explicitly white for better contrast on colored bg */
 }
 
-/* Keyframe Animations */
+/* === KEYFRAME ANIMATIONS (Standardized) === */
 @keyframes powerUpBg {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
-@keyframes panelFlyIn {
-  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+@keyframes panelFlyIn { /* Standard panel animation */
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes titleSmash {
+@keyframes titleSmash { /* Standard title animation */
   0% { opacity: 0; transform: scale(1.5) translateY(-20px); }
   60% { opacity: 1; transform: scale(0.9) translateY(10px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-@keyframes fadeInSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeInSlideUp { /* General purpose subtle entry */
+  from { opacity: 0; transform: translateY(15px); } /* Reduced distance */
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* === MAIN PAGE CONTAINER === */
 .reviewersContainer {
   min-height: 100vh;
   display: flex;
-  flex-direction: column; /* Align panel and other potential elements centrally */
+  flex-direction: column;
   align-items: center;
-  padding: 40px 20px;
+  padding: 20px 15px 40px 15px; /* Reduced padding */
   font-family: var(--font-body);
   background-color: var(--blueprint-bg);
   color: var(--blueprint-text);
   animation: powerUpBg 0.7s ease-out forwards;
   overflow-x: hidden;
+  position: relative; /* For FloatingStars or other absolute elements */
 }
 
-.reviewersPanel {
+/* === PAGE HEADER (Matches VML .pageHeader and .pageTitle) === */
+.pageHeaderWrapper { /* Added wrapper for consistent centering and margin like VML .pageHeader */
   width: 100%;
-  max-width: 900px; /* Wider panel for reviewers */
-  background-color: var(--blueprint-panel-bg); /* Use theme variable for semi-transparent background */
-  border: 1.5px solid var(--blueprint-panel-border);
-  border-radius: 15px;
-  box-shadow: 0 6px 20px var(--blueprint-shadow), inset 0 0 12px rgba(0,0,0,0.25); /* Restore box-shadow */
-  padding: 30px 35px;
-  backdrop-filter: blur(3px); /* Restore backdrop-filter */
-  opacity: 0;
-  animation: panelFlyIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+  max-width: 1000px; 
+  margin-bottom: 20px; /* Reduced */
+  text-align: center;
+  z-index: 1;
+  position: relative;
 }
 
-.reviewersTitle {
+.pageTitle { /* Renamed from .reviewersTitle, styles from VML .pageTitle */
   font-family: var(--font-header);
+  font-size: 3.5rem; 
   color: var(--blueprint-accent);
-  font-size: 3.5rem; /* Prominent title */
-  margin-bottom: 30px;
-  text-align: center;
-  letter-spacing: 3px;
+  letter-spacing: 2.5px;
   text-shadow:
     3px 3px 0 var(--dbz-black),
     -1px -1px 0 var(--blueprint-bg),
     1px -1px 0 var(--blueprint-bg),
     -1px 1px 0 var(--blueprint-bg),
     1px 1px 0 var(--blueprint-bg);
+  margin-bottom: 0.1rem; 
   line-height: 1.1;
-  opacity: 0;
-  animation: titleSmash 0.5s ease-out 0.5s forwards;
+  animation: titleSmash 0.5s ease-out 0.2s backwards; /* VML animation */
+}
+/* No pageSubtitle for now, can be added if Reviewers.jsx needs one */
+
+
+/* === MAIN CONTENT PANEL WRAPPER === */
+.contentPanelWrapper { /* Renamed from .reviewersPanel, styled like VML .panel */
+  width: 100%;
+  max-width: 950px; /* Slightly wider for reviewer content, but can be reduced */
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 12px; /* Reduced */
+  box-shadow: 0 4px 15px var(--blueprint-shadow), inset 0 0 10px rgba(0,0,0,0.2); /* Reduced */
+  padding: 20px 25px; /* Reduced */
+  backdrop-filter: blur(3px);
+  animation: panelFlyIn 0.5s ease-out 0.3s forwards; /* Standardized animation */
+  display: flex; /* Added for internal layout control if needed */
+  flex-direction: column; /* Added */
+}
+.contentPanelWrapper:hover { /* Standard hover from VML .panel */
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 6px 20px var(--blueprint-shadow), 0 0 12px var(--blueprint-accent);
 }
 
-/* --- Filter Controls --- */
+
+/* === FILTER SECTION (Compact) === */
 .filterSection {
-  margin-bottom: 30px;
-  padding-bottom: 25px;
+  margin-bottom: 20px; /* Reduced */
+  padding-bottom: 20px; /* Reduced */
   border-bottom: 1.5px solid var(--blueprint-grid-line);
-  opacity: 0;
-  animation: fadeInSlideUp 0.5s ease-out 0.7s forwards;
+  animation: fadeInSlideUp 0.5s ease-out 0.5s forwards; /* Staggered entry */
 }
 .filterControls {
    display: grid;
-   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-   gap: 25px;
+   /* Adjusted for more flexible packing, 200px min might be better for compactness */
+   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+   gap: 15px 18px; /* Reduced gap */
 }
 .filterGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px; /* Reduced */
 }
 .filterLabel {
   font-family: var(--font-accent);
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Reduced */
   font-weight: 700;
-  color: var(--blueprint-text-muted);
+  color: var(--blueprint-text); /* Brighter than muted for clarity */
+  opacity: 0.85;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px; /* Reduced */
 }
 .filterInputContainer {
    position: relative;
-   display: flex; /* For icon alignment */
+   display: flex;
    align-items: center;
 }
 .filterInputIcon {
    position: absolute;
-   left: 12px;
+   left: 10px; /* Reduced */
    color: var(--blueprint-text-muted);
-   font-size: 1rem;
-   pointer-events: none; /* So it doesn't interfere with input click */
+   font-size: 0.9rem; /* Reduced */
+   pointer-events: none;
 }
 
-.filterSelect, .filterInput {
+/* Base for selects and text inputs in filters, aligning with VML .textInputBase */
+.filterControlBase {
   width: 100%;
   font-family: var(--font-body);
-  font-size: 1rem;
-  padding: 10px 15px;
-  background-color: var(--blueprint-input-bg);
-  border: 1px solid var(--blueprint-input-border);
+  font-size: 0.9rem; /* Reduced */
   color: var(--blueprint-text);
-  border-radius: 8px; /* Themed border-radius */
+  background-color: var(--blueprint-input-bg);
+  border: 1.5px solid var(--blueprint-input-border);
+  padding: 8px 12px; /* Reduced */
+  border-radius: 6px; /* Reduced, VML style */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); /* Subtle VML style */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+}
+.filterControlBase::placeholder {
+  color: var(--blueprint-text-muted);
+  opacity: 0.7;
+}
+.filterControlBase:focus {
+  outline: none;
+  border-color: var(--blueprint-accent);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.25), 0 0 0 3px var(--blueprint-input-hover-glow); /* VML style focus */
 }
 
 .filterSelect {
-  padding-left: 15px; /* Default padding */
+  composes: filterControlBase;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23${encodeURIComponent(getComputedStyle(document.documentElement).getPropertyValue('--blueprint-text-muted').trim().substring(1))}'%3E%3Cpath d='M8 11L3 6h10L8 11z'/%3E%3C/svg%3E"); /* SVG for dropdown arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23${encodeURIComponent(getComputedStyle(document.documentElement).getPropertyValue('--blueprint-text-muted').trim().substring(1))}'%3E%3Cpath d='M8 11L3 6h10L8 11z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 12px;
+  background-position: right 10px center; /* Adjusted */
+  background-size: 10px; /* Adjusted */
+  padding-right: 30px; /* Ensure space for arrow */
 }
-/* Remove padding-left style from Reviewers.jsx for selects if icon is added */
-.filterSelectWithIcon {
+.filterSelectWithIcon { /* If an input also has a search/filter icon */
     composes: filterSelect;
-    padding-left: 40px !important; /* Space for icon */
+    padding-left: 32px !important; /* Reduced for icon */
 }
-
 .filterInput {
-    padding-left: 40px; /* Space for icon */
+    composes: filterControlBase;
+    padding-left: 32px; /* Reduced for icon */
 }
-
-.filterSelect:focus, .filterInput:focus {
-  outline: none;
-  border-color: var(--blueprint-accent);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 0 3px rgba(var(--blueprint-accent-rgb), 0.3);
-}
-.filterSelect option {
-    background-color: var(--blueprint-bg); /* Use main bg for options */
+.filterControlBase option { /* For select options */
+    background-color: var(--dbz-dark-blue); /* Darker for dropdown */
     color: var(--blueprint-text);
 }
-.filterInput::placeholder {
-    color: var(--blueprint-text-muted);
-    opacity: 0.8;
-}
 
-.reviewersList {
-  list-style: none;
-  padding: 0;
-  margin-top: 20px; /* Space above list */
-  display: grid; /* Changed to grid for better card layout */
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive cards */
-  gap: 20px;
-}
-
-.reviewerItem {
-  background-color: var(--blueprint-input-bg); /* Slightly darker than panel, or use var(--blueprint-panel-bg) and adjust opacity */
-  border: 1px solid var(--blueprint-input-border);
-  border-radius: 10px;
-  padding: 20px;
+/* Chip Checkbox Styling (Compact) */
+.filterChipsScroll { /* Container for horizontal scrollable chips */
   display: flex;
-  flex-direction: column; /* Stack elements vertically */
-  gap: 15px;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
-  opacity: 0;
-  animation: fadeInSlideUp 0.5s ease-out forwards;
-  /* Stagger animations in JS if needed, or via nth-child if fixed number */
+  gap: 8px; /* Reduced */
+  overflow-x: auto;
+  padding: 5px 0; /* Add some padding for scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--blueprint-accent) var(--blueprint-input-bg);
 }
-.reviewerItem:hover {
-  transform: translateY(-5px) scale(1.02);
-  border-color: var(--blueprint-accent);
-  box-shadow: 0 5px 15px rgba(var(--blueprint-accent-rgb), 0.2);
-}
-
-.fileHeader {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 10px; /* Space between header and description */
-}
-
-.fileIcon {
-  flex-shrink: 0;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-accent);
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: var(--file-icon-text);
-  border-radius: 8px;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-}
-.iconPdf { background-color: var(--file-icon-pdf-bg); }
-.iconDocx { background-color: var(--file-icon-docx-bg); }
-.iconPptx { background-color: var(--file-icon-pptx-bg); }
-.iconDefault { background-color: var(--file-icon-default-bg); }
-
-.fileInfo {
-  flex-grow: 1;
-}
-
-.fileTitle {
-  font-family: var(--font-body);
-  font-weight: 600; /* Bolder title */
-  font-size: 1.15rem;
-  color: var(--blueprint-text);
-  margin: 0 0 5px 0;
-  line-height: 1.3;
-}
-
-.fileDescription {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--blueprint-text-muted);
-  line-height: 1.5;
-  margin: 0;
-  flex-grow: 1; /* Allow description to take space before button */
-}
-
-.downloadButton {
-  /* Themed button style */
-  font-family: var(--font-header);
-  font-size: 0.9rem; /* Slightly smaller for card context */
-  letter-spacing: 1px;
-  color: var(--blueprint-accent-text-dark);
-  background: var(--blueprint-accent);
-  padding: 10px 20px;
-  border-radius: 20px;
-  border: 2px solid var(--dbz-black);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: transform 0.15s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-out;
-  text-decoration: none;
-  display: inline-block; /* For padding and margin */
-  text-align: center;
-  box-shadow: 3px 3px 0 var(--dbz-black);
-  user-select: none;
-  white-space: nowrap;
-  margin-top: auto; /* Push to bottom of card if flex direction column */
-  align-self: flex-start; /* Align to start of cross axis if card is wider */
-}
-
-.downloadButton:hover:not(:disabled) {
-  background: var(--dbz-orange);
-  color: var(--blueprint-text);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 4px 4px 0 var(--dbz-black), 0 0 10px var(--dbz-orange);
-}
-
-.downloadButton:active:not(:disabled) {
-  transform: translateY(1px) scale(1);
-  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .reviewersPanel {
-    padding: 20px 25px;
-  }
-  .reviewersTitle {
-    font-size: 2.8rem;
-  }
-  .filterSection {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--blueprint-bg);
-    padding-top: 8px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--blueprint-panel-border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .filterControls {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    gap: 12px;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
-  }
-  .filterGroup {
-    min-width: 160px;
-    flex: 0 0 auto;
-  }
-  .paginationButton {
-    font-size: 1.1rem;
-    padding: 10px 18px;
-    border-radius: 18px;
-    min-width: 90px;
-    min-height: 40px;
-    margin: 0 2px;
-  }
-  .reviewersList {
-    grid-template-columns: 1fr !important;
-    gap: 14px;
-  }
-  .reviewerItem {
-    padding: 16px 10px;
-    border-radius: 12px;
-    font-size: 1rem;
-    min-width: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  }
-  .fileHeader {
-    gap: 10px;
-    min-height: 48px;
-  }
-  .fileIcon {
-    width: 38px;
-    height: 38px;
-    font-size: 1.1rem;
-  }
-  .downloadButton {
-    font-size: 1rem;
-    padding: 8px 14px;
-    border-radius: 16px;
-    min-width: 70px;
-  }
-  .favoriteButton {
-    font-size: 1.5rem !important;
-    min-width: 36px;
-    min-height: 36px;
-  }
-  .fileTitle {
-    font-size: 1.05rem;
-  }
-  .collapsibleDetails {
-    font-size: 0.98rem;
-    padding: 8px 2px 0 2px;
-  }
-}
-
-@media (max-width: 480px) {
-  .reviewersTitle {
-    font-size: 2.2rem;
-  }
-  .fileTitle {
-    font-size: 1.05rem;
-  }
-  .downloadButton {
-    font-size: 0.8rem;
-    padding: 8px 15px;
-  }
-}
-
-.pdfThumbnailPreview {
-  width: 48px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  background: #fff;
-  margin-right: 12px;
-  display: block;
-}
-
-.badgeNew {
-  background: var(--dbz-yellow);
-  color: var(--dbz-black);
-  font-size: 0.8rem;
-  font-weight: bold;
-  border-radius: 6px;
-  padding: 2px 8px;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.badgeUpdated {
-  background: var(--dbz-blue);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: bold;
-  border-radius: 6px;
-  padding: 2px 8px;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.fileTypeLabel {
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-left: 4px;
-  color: var(--file-icon-text);
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.18);
-  display: inline-block;
-  vertical-align: middle;
-}
+.filterChipsScroll::-webkit-scrollbar { height: 6px; } /* Reduced */
+.filterChipsScroll::-webkit-scrollbar-thumb { background-color: var(--blueprint-accent); border-radius: 3px; }
+.filterChipsScroll::-webkit-scrollbar-track { background-color: var(--blueprint-input-bg); }
 
 .chipCheckbox {
   display: inline-flex;
   align-items: center;
-  background: var(--blueprint-panel-bg);
-  border: 1.5px solid var(--blueprint-accent);
-  border-radius: 16px;
-  padding: 4px 12px;
-  margin: 2px 6px 2px 0;
-  font-size: 0.95rem;
+  gap: 5px; /* Reduced */
+  padding: 5px 10px; /* Reduced */
+  font-size: 0.75rem; /* Reduced */
   font-family: var(--font-body);
-  color: var(--blueprint-accent);
+  color: var(--blueprint-text-muted);
+  background-color: var(--blueprint-input-bg);
+  border: 1px solid var(--blueprint-input-border);
+  border-radius: 15px; /* Pill shape */
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
   user-select: none;
 }
-.chipCheckbox input[type="checkbox"] {
-  accent-color: var(--blueprint-accent);
-  margin-right: 6px;
+.chipCheckbox input[type="checkbox"] { display: none; } /* Hide actual checkbox */
+.chipCheckbox:hover {
+  border-color: var(--blueprint-accent);
+  color: var(--blueprint-text);
 }
 .chipCheckbox.selected {
+  background-color: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  border-color: var(--blueprint-accent);
+  font-weight: 600;
+}
+.chipIcon { /* For icons inside chips if any */
+  font-size: 0.85rem; /* Reduced */
+}
+
+/* Action Buttons in Filter Area (e.g., Clear Filters, Show Favorites) */
+.filterActions {
+  display: flex;
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+  gap: 10px; /* Reduced */
+  margin-top: 15px; /* Reduced */
+  align-items: center;
+}
+
+/* Base Themed Button (from VML) - to be used for various buttons */
+.themedButton {
+  font-family: var(--font-header);
+  font-size: 1rem; /* Base size, can be overridden */
+  letter-spacing: 1px; /* Base spacing */
+  color: var(--blueprint-accent-text-dark);
   background: var(--blueprint-accent);
-  color: var(--dbz-black);
+  padding: 8px 20px; /* Base padding */
+  border-radius: 20px; /* Base radius */
+  border: 2px solid var(--dbz-black);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 2px 2px 0 var(--dbz-black); /* Reduced shadow */
+  user-select: none;
+  white-space: nowrap;
+}
+.themedButton:hover:not(:disabled) {
+  background: var(--dbz-orange);
+  color: var(--blueprint-text);
+  transform: translateY(-2px) scale(1.02); /* Reduced effect */
+  box-shadow: 3px 3px 0 var(--dbz-black), 0 0 10px var(--dbz-orange); /* Reduced effect */
+}
+.themedButton:active:not(:disabled) {
+  transform: translateY(1px) scale(1);
+  box-shadow: 1px 1px 0 var(--dbz-black), inset 0 0 6px rgba(0,0,0,0.25); /* Reduced effect */
+}
+.themedButton:disabled {
+  background: var(--dbz-dark-gray) !important;
+  color: var(--blueprint-text-muted) !important; /* Muted text for disabled */
+  opacity: 0.6; /* Slightly more visible disabled state */
+  cursor: not-allowed;
+  box-shadow: 1px 1px 0 rgba(var(--dbz-black-rgb), 0.5) !important; /* Softer disabled shadow */
+  transform: none !important;
+  border-color: var(--dbz-dark-gray) !important;
+}
+
+/* Secondary Button Style (e.g., for Clear Filters, Refresh) */
+.secondaryButton {
+  composes: themedButton;
+  background: var(--dbz-dark-blue);
+  color: var(--blueprint-text);
+  border-color: var(--blueprint-grid-line-strong); /* Or var(--dbz-dark-blue) */
+  font-size: 0.85rem; /* Smaller for secondary actions */
+  padding: 6px 15px; /* Smaller padding */
+}
+.secondaryButton:hover:not(:disabled) {
+  background: var(--dbz-blue); /* Lighter blue on hover */
+  color: var(--blueprint-text);
   border-color: var(--blueprint-accent);
 }
-.chipCheckbox:hover {
-  background: var(--blueprint-accent);
-  color: var(--dbz-black);
+
+.clearFilterBtn { /* Example usage for a specific button */
+  composes: secondaryButton;
+  /* Add specific icons if needed via children */
 }
-.filterChipsScroll {
+
+.toggleFavoriteButton { /* For "Show Favorites" / "Show All" */
+  composes: secondaryButton;
+  /* Potentially different color or icon */
+}
+
+.refreshButton {
+  composes: secondaryButton;
+  padding: 6px 10px; /* Make it more square for an icon button */
+  font-size: 1rem; /* Icon size if text is removed */
+}
+
+
+/* === REVIEWER LIST === */
+.reviewersList {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0 0; /* Adjusted margin */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Slightly smaller min for cards */
+  gap: 18px; /* Reduced gap */
+}
+
+/* === REVIEWER CARD (.reviewerItem) === */
+.reviewerItem { /* Desktop Compact Styling */
+  background-color: rgba(var(--dbz-dark-blue-rgb), 0.3); /* Slightly more subtle than input-bg */
+  border: 1px solid var(--blueprint-input-border);
+  border-radius: 10px; /* Slightly reduced */
+  padding: 15px; /* Reduced */
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  flex-direction: column;
+  gap: 10px; /* Reduced */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+  animation: fadeInSlideUp 0.4s ease-out forwards; /* Staggered via delay in JSX if needed */
+  /* animation-delay: calc(var(--item-index, 0) * 0.05s); /* Example for stagger if items are indexed */
+}
+.reviewerItem:hover {
+  transform: translateY(-4px) scale(1.015); /* Reduced hover effect */
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 4px 12px rgba(var(--blueprint-accent-rgb), 0.15); /* Reduced hover shadow */
+}
+
+.fileHeader { /* Container for icon, title, actions in card */
+    display: flex;
+    align-items: flex-start; /* Align items to the top for varying text lengths */
+    gap: 12px; /* Reduced */
+    /* margin-bottom: 8px; */ /* Removed, gap on reviewerItem handles it */
+    cursor: pointer; /* To indicate it's clickable for expansion */
+}
+
+.fileIconContainer { /* Wrapper for the file type icon/thumbnail */
+  flex-shrink: 0;
+  width: 60px; /* Reduced, can be smaller if thumbnails are smaller */
+  height: 75px; /* Reduced, adjust for aspect ratio of PdfThumbnail (0.2 scale) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px; /* Reduced */
+  background-color: rgba(var(--dbz-black-rgb), 0.2);
+  overflow: hidden; /* Important for canvas/image inside */
+}
+/* Specific styling for icons if not using thumbnail */
+.fileTypeDisplayIcon {
+    font-size: 2rem; /* Size of FaIcons */
+}
+.iconPdfColor { color: var(--file-icon-pdf-bg); }
+.iconDocxColor { color: var(--file-icon-docx-bg); }
+.iconPptxColor { color: var(--file-icon-pptx-bg); }
+.iconDefaultColor { color: var(--file-icon-text-muted); }
+
+.pdfThumbnailPreview { /* Ensure this makes the canvas responsive within container */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Or scale-down */
+    display: block; /* Remove extra space below canvas */
+}
+.fileIconFallback { /* Fallback icon if PDF thumbnail fails */
+    font-size: 2.5rem; /* Adjust as needed */
+    color: var(--file-icon-pdf-bg);
+}
+
+.fileInfo { /* Contains title and meta */
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px; /* Reduced space between title and meta */
+}
+
+.fileTitle {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.05rem; /* Reduced */
+  color: var(--blueprint-text);
+  line-height: 1.3;
+  margin: 0; /* Reset margin */
+  /* Allow for two lines of text before ellipsis if desired */
+  /* display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; */
+}
+
+.fileMeta { /* For subject, date etc. below title */
+  font-size: 0.75rem; /* Reduced */
+  color: var(--blueprint-text-muted);
+  display: flex;
+  flex-direction: column; /* Stack meta items */
+  gap: 2px; /* Reduced gap */
+}
+.fileMeta span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardActions { /* Wrapper for favorite and access buttons */
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically for compactness */
+  align-items: flex-end; /* Align to the right of the card header */
+  gap: 6px; /* Reduced */
+  margin-left: auto; /* Push to the right */
+  flex-shrink: 0;
+}
+
+.iconButton { /* Base for small icon-only buttons like favorite */
+  composes: themedButton; /* Inherit transitions, cursor etc. */
+  background: transparent;
+  color: var(--blueprint-text-muted);
+  border: none;
+  box-shadow: none;
+  padding: 5px; /* Reduced */
+  font-size: 1.1rem; /* Icon size, reduced */
+  border-radius: 50%; /* Make it circular */
+  width: 32px; /* Fixed size */
+  height: 32px; /* Fixed size */
+}
+.iconButton:hover:not(:disabled) {
+  background: rgba(var(--blueprint-accent-rgb), 0.15);
+  color: var(--blueprint-accent);
+  transform: scale(1.1); /* Simple scale for icon button */
+  box-shadow: none;
+}
+.iconButton:disabled {
+  color: var(--dbz-dark-gray) !important;
+  background: transparent !important;
+  opacity: 0.5;
+}
+
+.favoriteButtonAction { /* Specific for favorite */
+  composes: iconButton;
+}
+.favoriteButtonAction.isFavorite {
+  color: var(--blueprint-accent);
+}
+
+.accessButton { /* The main "Access" button on the card */
+  composes: themedButton;
+  font-size: 0.8rem; /* Reduced */
+  padding: 6px 12px; /* Reduced */
+  letter-spacing: 0.5px;
+  min-width: 70px; /* Ensure some width */
+}
+
+/* Collapsible Details within Card */
+.collapsibleDetails {
+  padding: 10px 0 5px 0; /* Reduced padding, top only, no side padding as content is full width */
+  margin-top: 8px; /* Reduced space from header */
+  border-top: 1px solid var(--blueprint-grid-line);
+  animation: fadeInSlideUp 0.3s ease-out;
+}
+.fileDescription {
+  font-size: 0.8rem; /* Reduced */
+  color: var(--blueprint-text-muted);
+  line-height: 1.5;
+  margin-bottom: 8px; /* Reduced */
+  /* Allow multiple lines but cap height for very long descriptions */
+  max-height: 60px; /* Approx 3-4 lines */
+  overflow-y: auto; /* Add scroll if exceeds max-height */
   scrollbar-width: thin;
 }
-.clearFilterBtn {
-  background: none;
-  border: none;
-  color: var(--dbz-red);
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-left: 8px;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+.detailsFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem; /* Reduced */
+  color: var(--blueprint-text-muted);
+  margin-top: 8px;
 }
-@media (max-width: 600px) {
-  .filterChipsScroll {
-    flex-wrap: wrap;
-    gap: 2px;
-    font-size: 0.92rem;
+.downloadCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tagList { 
+  display: flex; 
+  gap: 4px; 
+  flex-wrap: wrap; 
+}
+.tagItem {
+  background-color: rgba(var(--blueprint-accent-rgb), 0.1);
+  color: var(--blueprint-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+/* === PAGINATION CONTROLS (Compact) === */
+.paginationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Reduced */
+  margin-top: 25px; /* Reduced */
+  padding-top: 15px; /* Reduced */
+  border-top: 1.5px solid var(--blueprint-grid-line);
+}
+.paginationButton {
+  composes: secondaryButton; /* Use the secondary button style */
+  font-size: 0.8rem; /* Further reduce if needed */
+  padding: 5px 12px; /* Further reduce if needed */
+}
+.paginationInfo {
+  font-size: 0.85rem; /* Reduced */
+  color: var(--blueprint-text-muted);
+}
+
+/* === LOADING, ERROR, INFO MESSAGES (Styled Consistently) === */
+.loadingMessage, .infoMessage, .errorMessage {
+  text-align: center;
+  padding: 15px 20px; /* Reduced */
+  margin: 20px auto; /* Centered with some margin */
+  font-family: var(--font-body);
+  border-radius: 8px; /* Consistent border radius */
+  width: 100%;
+  max-width: 600px; /* Max width for messages */
+  animation: fadeInSlideUp 0.4s ease-out;
+}
+.loadingMessage {
+  color: var(--blueprint-accent);
+  font-family: var(--font-header);
+  font-size: 1.2rem; /* Reduced */
+  letter-spacing: 0.8px;
+  background-color: rgba(var(--blueprint-accent-rgb), 0.05);
+  border: 1px solid rgba(var(--blueprint-accent-rgb), 0.2);
+}
+.errorMessage {
+  color: var(--dbz-red);
+  font-weight: 600; /* Bolder error text */
+  background-color: rgba(var(--dbz-red-rgb, 231, 76, 60), 0.1); /* Ensure dbz-red-rgb is defined or use direct rgba */
+  border: 1px solid var(--dbz-red);
+  font-size: 0.9rem; /* Reduced */
+}
+.infoMessage {
+  color: var(--blueprint-text);
+  opacity: 0.85;
+  background-color: rgba(var(--blueprint-text-muted-rgb, 160, 176, 192), 0.05); /* Ensure muted-rgb or use direct */
+  border: 1px solid var(--blueprint-grid-line);
+  font-size: 0.9rem; /* Reduced */
+}
+
+
+/* === RESPONSIVE STYLES === */
+
+/* Medium screens (tablets, larger phones) */
+@media (max-width: 992px) {
+  .contentPanelWrapper {
+    max-width: 95%;
+    padding: 15px 20px; /* Slightly less padding */
   }
-  .chipCheckbox {
-    font-size: 0.9rem;
-    padding: 3px 8px;
+  .reviewersList {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Adjust min card size */
+    gap: 15px;
+  }
+  .filterControls {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px 15px;
   }
 }
 
-/* Collapsible details for mobile cards */
-.collapsibleDetails {
-  animation: fadeInSlideUp 0.3s;
-  background: none;
-  border-radius: 0 0 10px 10px;
-  padding-bottom: 8px;
+@media (max-width: 768px) {
+  .reviewersContainer {
+    padding: 15px 10px 30px 10px;
+  }
+  .pageHeaderWrapper {
+    margin-bottom: 15px;
+  }
+  .pageTitle {
+    font-size: 2.8rem; /* VML uses 3rem, adjust if too big with nowrap */
+    letter-spacing: 2px;
+    white-space: nowrap; /* Try to keep on one line if possible */
+    overflow: hidden; /* Hide overflow if too long */
+    text-overflow: ellipsis; /* Add ... if too long */
+  }
+  .contentPanelWrapper {
+    padding: 12px 15px;
+  }
+  .filterControls {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Further compact */
+    gap: 10px;
+  }
+  .filterLabel { font-size: 0.75rem; letter-spacing: 0.5px; }
+  .filterControlBase, .filterSelect, .filterInput {
+    font-size: 0.85rem;
+    padding: 7px 10px;
+  }
+  .filterSelect { padding-right: 28px; background-size: 9px; }
+  .filterSelectWithIcon, .filterInput { padding-left: 28px; }
+  .filterInputIcon { left: 8px; font-size: 0.8rem; }
+  
+  .chipCheckbox { padding: 4px 8px; font-size: 0.7rem; }
+  .filterActions { gap: 8px; margin-top: 10px; }
+  .themedButton { font-size: 0.9rem; padding: 7px 15px; }
+  .secondaryButton { font-size: 0.75rem; padding: 5px 12px; }
+  .refreshButton { padding: 5px 8px; font-size: 0.9rem; }
+
+  .reviewersList {
+    grid-template-columns: 1fr; /* Stack cards */
+    gap: 12px;
+  }
+  .reviewerItem {
+    padding: 12px;
+    gap: 8px;
+  }
+  .fileIconContainer { width: 50px; height: 60px; }
+  .fileTitle { font-size: 1rem; }
+  .fileMeta { font-size: 0.7rem; }
+  .cardActions { flex-direction: row; gap: 8px; } /* Side-by-side buttons on mobile card */
+  .iconButton { width: 30px; height: 30px; font-size: 1rem; padding: 4px; }
+  .accessButton { font-size: 0.75rem; padding: 5px 10px; min-width: 60px; }
+  
+  .collapsibleDetails { padding: 8px 0 4px 0; margin-top: 6px;}
+  .fileDescription { font-size: 0.75rem; max-height: 45px; /* Approx 3 lines */ }
+  .detailsFooter { font-size: 0.65rem; }
+
+  .paginationControls { gap: 8px; margin-top: 20px; padding-top: 12px; }
+  .paginationButton { font-size: 0.75rem; padding: 4px 10px; }
+  .paginationInfo { font-size: 0.8rem; }
+  
+  .loadingMessage { font-size: 1.1rem; padding: 12px; }
+  .errorMessage, .infoMessage { font-size: 0.85rem; padding: 10px; }
 }
+
+@media (max-width: 480px) {
+  .reviewersContainer {
+    padding: 10px 5px 20px 5px;
+  }
+  .pageTitle {
+    font-size: 2.2rem; /* VML uses 2.5rem, adjust if too big */
+    letter-spacing: 1.5px;
+  }
+  .contentPanelWrapper {
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .filterSection { margin-bottom: 15px; padding-bottom: 15px; }
+  .filterControls { grid-template-columns: 1fr; gap: 12px; } /* Stack all filter inputs */
+  .filterLabel { font-size: 0.7rem; }
+  .filterControlBase, .filterSelect, .filterInput {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+  .filterSelect { padding-right: 25px; background-position: right 8px center; }
+  .filterSelectWithIcon, .filterInput { padding-left: 25px; }
+  .filterInputIcon { left: 7px; font-size: 0.75rem; }
+
+  .chipCheckbox { padding: 3px 7px; font-size: 0.65rem; }
+  .filterChipsScroll { gap: 6px; }
+  .filterChipsScroll::-webkit-scrollbar { height: 5px; }
+  .filterActions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .themedButton, 
+  .secondaryButton, 
+  .clearFilterBtn, 
+  .toggleFavoriteButton, 
+  .refreshButton { 
+    width: 100%; 
+    font-size: 0.7rem; /* Reduced from 0.8rem */
+    padding: 5px 8px;  /* Reduced from 8px 10px */
+    letter-spacing: 0.4px; /* Slightly reduced */
+  }
+
+  .filterActions .refreshButton { /* Specific for icon-only refresh button in filter actions */
+    padding: 5px; /* Make more square for the icon */
+  }
+
+  /* Adjust icon sizes within filter action buttons */
+  .filterActions .clearFilterBtn svg,
+  .filterActions .toggleFavoriteButton svg {
+    font-size: 1em; /* Icon size relative to button font-size (0.7rem) */
+    /* The inline marginRight: '5px' from JSX will still apply */
+  }
+  .filterActions .refreshButton svg {
+    font-size: 1.1em; /* Slightly larger icon for the icon-only button */
+  }
+
+  .reviewerItem {
+    padding: 10px;
+    border-radius: 8px;
+  }
+  .fileHeader { gap: 10px; }
+  .fileIconContainer { width: 40px; height: 50px; border-radius: 4px; }
+  .fileTypeDisplayIcon { font-size: 1.5rem; }
+  .fileIconFallback { font-size: 2rem; }
+  .fileTitle { font-size: 0.9rem; }
+  .fileMeta { font-size: 0.65rem; }
+  .cardActions { gap: 6px; }
+  .iconButton { width: 26px; height: 26px; font-size: 0.9rem; padding: 3px; }
+  .accessButton { font-size: 0.7rem; padding: 4px 8px; min-width: 50px; }
+
+  .collapsibleDetails { margin-top: 5px; padding: 6px 0 3px 0;}
+  .fileDescription { font-size: 0.7rem; max-height: 36px; /* Approx 2-3 lines */ }
+  .detailsFooter { font-size: 0.6rem; gap: 6px; flex-direction: column; align-items: flex-start; }
+  .tagList { gap: 3px; }
+  .tagItem {padding: 1px 4px; font-size: 0.6rem; }
+
+  .paginationControls { flex-direction: column; gap: 8px; margin-top: 15px; padding-top: 10px; }
+  .paginationButton { width: 60%; /* Make pagination buttons wider when stacked */ }
+
+  .loadingMessage { font-size: 1rem; }
+  .errorMessage, .infoMessage { font-size: 0.8rem; }
+}
+
+/* Ensure any original styles below this are either integrated or intentionally removed */
+/* ... (The original .reviewersList, .reviewerItem etc. are now replaced by the above) ... */
+/* Remove or refactor original .downloadButton, .favoriteButton if they are fully replaced by .accessButton and .iconButton */
+/* Original .pdfThumbnailPreview is likely okay but verify its usage within .fileIconContainer */
+/* Original responsive queries should be merged or replaced by the new ones */
+
+/* Remove old icon classes if new fileTypeDisplayIcon system is used */
+/* .iconPdf, .iconDocx, .iconPptx, .iconDefault { ... } */ 
+
+/* Classes like .badgeNew, .badgeUpdated, .fileTypeLabel might be deprecated or need new styling if still used in JSX */
+/* Ensure .collapsibleDetails original styles are merged or replaced */
