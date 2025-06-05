@@ -50,20 +50,20 @@
     radial-gradient(circle at 90% 80%, rgba(255, 222, 89, 0.07) 0%, transparent 30%); /* Direct RGB for accent-secondary */
   color: var(--blueprint-text);
   font-family: var(--font-primary);
-  padding: 20px;
+  padding: 15px;
   overflow-y: auto; 
 }
 
 .signupPanel {
   width: 100%;
-  max-width: 800px; 
+  max-width: 700px; 
   background-color: var(--blueprint-panel-bg);
   border: 1px solid var(--blueprint-panel-border);
   border-radius: 12px;
-  padding: 30px 35px;
+  padding: 25px 30px;
   box-shadow: var(--blueprint-panel-shadow);
   animation: panelFadeIn 0.6s ease-out forwards;
-  margin: 20px 0; 
+  margin: 10px 0; 
 }
 
 @keyframes panelFadeIn {
@@ -74,9 +74,9 @@
 .pageTitle {
   font-family: var(--font-display);
   color: var(--blueprint-accent);
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   letter-spacing: 1.5px;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   text-align: center;
   text-shadow: 0 0 5px rgba(var(--blueprint-accent-rgb), 0.5), 0 0 10px rgba(var(--blueprint-accent-rgb), 0.3);
 }
@@ -84,7 +84,7 @@
 .signupFormGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr); 
-  gap: 20px;
+  gap: 15px;
 }
 
 .inputGroup {
@@ -98,9 +98,9 @@
 
 .inputGroup label {
   font-family: var(--font-header);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--blueprint-text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -108,7 +108,7 @@
 .inputField, .selectField {
   width: 100%;
   font-family: var(--font-primary);
-  font-size: 1rem;
+  font-size: 0.95rem;
   padding: 10px 12px;
   background-color: var(--blueprint-input-bg);
   border: 1px solid var(--blueprint-input-border);
@@ -146,15 +146,15 @@
 
 /* Password Requirements */
 .passwordRequirements {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--blueprint-text-muted);
-  margin-top: 10px;
-  padding-left: 15px;
+  margin-top: 8px;
+  padding-left: 12px;
   border-left: 2px solid var(--blueprint-input-border);
 }
 
 .passwordRequirements p {
-  margin: 0 0 5px 0;
+  margin: 0 0 4px 0;
   font-weight: 600;
 }
 
@@ -165,7 +165,7 @@
 }
 
 .passwordRequirements li {
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   transition: color 0.3s ease;
 }
 
@@ -204,29 +204,29 @@
   background-color: rgba(var(--blueprint-success-rgb), 0.1);
   border: 1px solid rgba(var(--blueprint-success-rgb), 0.5);
   color: var(--blueprint-success);
-  padding: 25px;
+  padding: 20px;
   border-radius: 8px;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 }
 
 .successIcon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: var(--blueprint-success);
 }
 
 .successTitle {
   font-family: var(--font-header);
   color: var(--blueprint-text);
-  font-size: 1.6rem;
-  margin-bottom: 8px;
+  font-size: 1.4rem;
+  margin-bottom: 6px;
 }
 
 .successText {
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.5;
   color: var(--blueprint-text-muted);
 }
 
@@ -246,15 +246,15 @@
   color: var(--blueprint-button-text);
   border: none;
   border-radius: 6px;
-  padding: 14px 20px;
+  padding: 12px 18px;
   font-family: var(--font-header);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, transform 0.1s ease;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 .signupButton:hover:not(:disabled) {
@@ -290,50 +290,104 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .signupPageWrapper {
+    padding: 12px;
+  }
   .signupPanel {
-    padding: 25px 30px;
-    max-width: 600px;
+    padding: 20px 25px;
+    max-width: 500px;
   }
   .pageTitle {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 18px;
   }
   .signupFormGrid {
     grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .inputGroup label {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
+  .inputField, .selectField {
+    font-size: 0.9rem;
+    padding: 9px 11px;
+  }
+  .passwordRequirements {
+    font-size: 0.75rem;
+    margin-top: 6px;
+    padding-left: 10px;
+  }
+  .successMessagePanel {
+    padding: 18px;
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .signupPageWrapper {
-    padding: 15px;
+    padding: 10px;
   }
   .signupPanel {
-    padding: 20px 15px;
-    margin: 10px 0;
+    padding: 18px 20px;
+    margin: 5px 0;
   }
   .pageTitle {
     font-size: 2rem;
+    margin-bottom: 15px;
+  }
+  .signupFormGrid {
+    gap: 10px;
   }
   .inputField, .selectField {
-    padding: 10px 12px;
-    font-size: 0.95rem;
+    padding: 8px 10px;
+    font-size: 0.9rem;
   }
   .signupButton {
-    padding: 12px 15px;
-    font-size: 1rem;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    margin-top: 12px;
   }
   .successMessagePanel {
     flex-direction: column;
     text-align: center;
-    padding: 20px;
+    padding: 15px;
   }
   .successIcon {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    margin-bottom: 8px;
   }
   .successTitle {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
   }
   .successText {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .passwordRequirements {
+    font-size: 0.7rem;
+    margin-top: 5px;
+    padding-left: 8px;
+  }
+  .passwordRequirements li {
+    margin-bottom: 2px;
+  }
+}
+
+@media (max-width: 360px) {
+  .signupPanel {
+    padding: 15px 18px;
+  }
+  .pageTitle {
+    font-size: 1.8rem;
+  }
+  .inputField, .selectField {
+    padding: 7px 9px;
+    font-size: 0.85rem;
+  }
+  .signupButton {
+    padding: 9px 12px;
     font-size: 0.9rem;
   }
 }

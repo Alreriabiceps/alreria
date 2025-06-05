@@ -139,7 +139,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* --- Buttons (General Blueprint Style) --- */
@@ -148,10 +148,10 @@
   color: var(--blueprint-button-text);
   border: none;
   border-radius: 6px;
-  padding: 12px 25px;
+  padding: 8px 20px;
   font-family: var(--font-header);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: transform 0.15s ease-out, background-color 0.2s ease, box-shadow 0.2s ease;
   text-transform: uppercase;
@@ -185,8 +185,10 @@
 
 .answerButton {
   /* specific styles if needed, composes gameButton */
-  font-size: 1rem;
-  padding: 10px 20px;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  min-width: 60px;
+  flex: 0 0 auto;
   opacity: 0;
   animation: fadeInSlideUp 0.5s ease-out forwards;
   animation-delay: 1.2s; /* Stagger answer buttons if .answersContainer itself isn't animated */
@@ -278,22 +280,23 @@
   transform: translateX(-50%);
   width: auto;
   white-space: nowrap;
-  padding: 8px 15px;
-  background-color: rgba(var(--blueprint-panel-bg-opaque-rgb, 20, 30, 40), 0.85);
+  padding: 6px 12px;
+  background-color: rgba(var(--blueprint-panel-bg-opaque-rgb, 20, 30, 40), 0.9);
   color: var(--blueprint-accent-secondary);
   font-family: var(--font-header);
-  font-size: 0.9rem;
-  border-radius: 20px;
+  font-size: 0.8rem;
+  border-radius: 15px;
   border: 1px solid var(--blueprint-accent-secondary);
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  z-index: 10;
+  z-index: 5;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   opacity: 0;
   animation: fadeInSlideUp 0.5s ease-out 0.2s forwards;
-  text-align: left;
+  text-align: center;
+  pointer-events: none;
 }
 
 .musicIcon {
@@ -388,15 +391,242 @@
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .contentWrapper { padding: 10px; }
-  .pageTitle { font-size: clamp(2.5rem, 12vw, 4rem); margin-bottom: 15px;}
-  .securityPanel { padding: 20px; max-width: 90%; }
-  .securityTitle { font-size: 1.3rem; }
-  .securityQuestion { font-size: 1rem; }
-  .gameButton { padding: 10px 20px; font-size: 1rem; }
-  .launchButton { padding: 12px 30px; font-size: 1.1rem; }
-  .playAnthemButton { margin-bottom: 20px; }
-  .musicPlayingMessage { font-size: 0.8rem; padding: 6px 10px; gap: 5px; }
+  .startPageWrapper { 
+    padding: 15px;
+  }
+  .contentWrapper { 
+    padding: 10px;
+  }
+  .pageTitle { 
+    font-size: clamp(2.2rem, 12vw, 3.5rem); 
+    margin-bottom: 15px;
+    letter-spacing: 1.5px;
+  }
+  .securityPanel { 
+    padding: 18px 20px; 
+    max-width: 95%; 
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+  .securityTitle { 
+    font-size: 1.2rem; 
+    margin-bottom: 12px;
+  }
+  .securityQuestion { 
+    font-size: 0.95rem; 
+    margin-bottom: 15px;
+  }
+  .gameButton { 
+    padding: 7px 14px; 
+    font-size: 0.85rem; 
+    min-height: 40px; /* Better touch target */
+  }
+  .launchButton { 
+    padding: 10px 24px; 
+    font-size: 0.9rem; 
+    min-height: 44px; /* Better touch target */
+  }
+  .playAnthemButton { 
+    margin-bottom: 18px; 
+  }
+  .musicPlayingMessage { 
+    font-size: 0.7rem; 
+    padding: 5px 10px; 
+    gap: 4px;
+  }
+  .muteButton {
+    top: 15px;
+    right: 15px;
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-height: 32px; /* Better touch target */
+  }
+  .feedbackMessage {
+    font-size: 1rem;
+    margin-top: 15px;
+    padding: 10px 12px;
+  }
+  .answersContainer {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .startPageWrapper { 
+    padding: 12px;
+  }
+  .contentWrapper { 
+    padding: 8px;
+  }
+  .pageTitle { 
+    font-size: clamp(2rem, 15vw, 3rem); 
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .securityPanel { 
+    padding: 15px 18px; 
+    max-width: 98%; 
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+  .securityTitle { 
+    font-size: 1.1rem; 
+    margin-bottom: 10px;
+  }
+  .securityQuestion { 
+    font-size: 0.9rem; 
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .gameButton { 
+    padding: 6px 12px; 
+    font-size: 0.8rem; 
+    min-height: 38px;
+    letter-spacing: 0.5px;
+  }
+  .launchButton { 
+    padding: 8px 20px; 
+    font-size: 0.85rem; 
+    min-height: 42px;
+  }
+  .playAnthemButton { 
+    margin-bottom: 15px;
+    font-size: 0.8rem;
+  }
+  .musicPlayingMessage { 
+    font-size: 0.65rem; 
+    padding: 4px 8px; 
+    gap: 3px;
+    border-radius: 12px;
+    top: 15px;
+  }
+  .muteButton {
+    top: 12px;
+    right: 12px;
+    padding: 5px 7px;
+    font-size: 0.7rem;
+    min-height: 30px;
+  }
+  .feedbackMessage {
+    font-size: 0.9rem;
+    margin-top: 12px;
+    padding: 8px 10px;
+  }
+  .answersContainer {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .answerButton {
+    min-width: 50px;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .startPageWrapper { 
+    padding: 10px;
+  }
+  .contentWrapper { 
+    padding: 5px;
+  }
+  .pageTitle { 
+    font-size: clamp(1.8rem, 18vw, 2.5rem); 
+    margin-bottom: 10px;
+  }
+  .securityPanel { 
+    padding: 12px 15px; 
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .securityTitle { 
+    font-size: 1rem; 
+    margin-bottom: 8px;
+  }
+  .securityQuestion { 
+    font-size: 0.85rem; 
+    margin-bottom: 10px;
+  }
+  .gameButton { 
+    padding: 5px 10px; 
+    font-size: 0.75rem; 
+    min-height: 36px;
+  }
+  .launchButton { 
+    padding: 7px 16px; 
+    font-size: 0.8rem; 
+    min-height: 38px;
+  }
+  .playAnthemButton { 
+    margin-bottom: 12px;
+  }
+  .musicPlayingMessage { 
+    font-size: 0.6rem; 
+    padding: 3px 6px; 
+    gap: 2px;
+    top: 12px;
+  }
+  .muteButton {
+    top: 10px;
+    right: 10px;
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    min-height: 28px;
+  }
+  .feedbackMessage {
+    font-size: 0.85rem;
+    margin-top: 10px;
+    padding: 6px 8px;
+  }
+  .answersContainer {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .answerButton {
+    min-width: 45px;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .startPageWrapper {
+    padding: 8px;
+  }
+  .pageTitle { 
+    font-size: clamp(1.5rem, 8vw, 2.2rem); 
+    margin-bottom: 8px;
+  }
+  .securityPanel { 
+    padding: 10px 15px; 
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+  .securityTitle { 
+    font-size: 0.95rem; 
+    margin-bottom: 6px;
+  }
+  .securityQuestion { 
+    font-size: 0.8rem; 
+    margin-bottom: 8px;
+  }
+  .gameButton { 
+    padding: 6px 12px; 
+    font-size: 0.8rem; 
+    min-height: 36px;
+  }
+  .playAnthemButton { 
+    margin-bottom: 10px;
+  }
+  .feedbackMessage {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    padding: 5px 8px;
+  }
+  .answersContainer {
+    gap: 5px;
+  }
 }
 
 /* --- Keyframe Animations (Add if not present, or reuse) --- */
