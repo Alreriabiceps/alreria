@@ -16,6 +16,20 @@ const Settings = () => {
     email: '',
     role: ''
   });
+  const [systemSettings, setSystemSettings] = useState({
+    enableRegistration: true,
+    enableNotifications: true,
+    maxQuestionsPerTest: 50,
+    defaultTestDuration: 60,
+    enableAI: true,
+    enableBulkOperations: true
+  });
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    testReminders: true,
+    performanceAlerts: true,
+    systemUpdates: false
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -145,10 +159,67 @@ const Settings = () => {
     }
   };
 
+  const handleSystemSettingsSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/system-settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(systemSettings),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update system settings');
+      }
+
+      setSuccess('System settings updated successfully');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackupExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/backup/export`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Backup failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gleas-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      setSuccess('Backup exported successfully');
+    } catch (err) {
+      setError('Backup export failed');
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-6">
+        <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-primary">Settings</h1>
             <div className="text-sm text-base-content/70">
@@ -195,9 +266,33 @@ const Settings = () => {
                     </a>
                   </li>
                   <li>
-                    <a>
+                    <a
+                      className={activeTab === 'notifications' ? 'active' : ''}
+                      onClick={() => setActiveTab('notifications')}
+                    >
                       <MdNotifications className="w-4 h-4" />
                       Notifications
+                    </a>
+                  </li>
+                  <li className="menu-title mt-4">
+                    <span>System</span>
+                  </li>
+                  <li>
+                    <a
+                      className={activeTab === 'system' ? 'active' : ''}
+                      onClick={() => setActiveTab('system')}
+                    >
+                      <MdSave className="w-4 h-4" />
+                      Configuration
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      className={activeTab === 'backup' ? 'active' : ''}
+                      onClick={() => setActiveTab('backup')}
+                    >
+                      <MdSave className="w-4 h-4" />
+                      Backup & Restore
                     </a>
                   </li>
                 </ul>
@@ -395,6 +490,226 @@ const Settings = () => {
                         </button>
                       </div>
                     </form>
+                  </>
+                )}
+
+                {activeTab === 'notifications' && (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-lg">
+                        <MdNotifications className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="card-title text-lg">Notification Preferences</h2>
+                        <p className="text-sm text-base-content/70">Manage how you receive notifications</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 max-w-md">
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">Email Notifications</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={notificationSettings.emailNotifications}
+                            onChange={(e) => setNotificationSettings(prev => ({
+                              ...prev, 
+                              emailNotifications: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">Test Reminders</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={notificationSettings.testReminders}
+                            onChange={(e) => setNotificationSettings(prev => ({
+                              ...prev, 
+                              testReminders: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">Performance Alerts</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={notificationSettings.performanceAlerts}
+                            onChange={(e) => setNotificationSettings(prev => ({
+                              ...prev, 
+                              performanceAlerts: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">System Updates</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={notificationSettings.systemUpdates}
+                            onChange={(e) => setNotificationSettings(prev => ({
+                              ...prev, 
+                              systemUpdates: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <button className="btn btn-primary btn-sm gap-2">
+                        <MdSave className="w-4 h-4" />
+                        Save Preferences
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'system' && (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-lg">
+                        <MdSave className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="card-title text-lg">System Configuration</h2>
+                        <p className="text-sm text-base-content/70">Configure system-wide settings</p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSystemSettingsSubmit} className="space-y-4 max-w-md">
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">Enable Student Registration</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={systemSettings.enableRegistration}
+                            onChange={(e) => setSystemSettings(prev => ({
+                              ...prev, 
+                              enableRegistration: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="cursor-pointer label">
+                          <span className="label-text">Enable AI Features</span>
+                          <input 
+                            type="checkbox" 
+                            className="toggle toggle-primary"
+                            checked={systemSettings.enableAI}
+                            onChange={(e) => setSystemSettings(prev => ({
+                              ...prev, 
+                              enableAI: e.target.checked
+                            }))}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text font-medium">Max Questions Per Test</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          className="input input-bordered input-sm w-full bg-base-100"
+                          value={systemSettings.maxQuestionsPerTest}
+                          onChange={(e) => setSystemSettings(prev => ({
+                            ...prev, 
+                            maxQuestionsPerTest: parseInt(e.target.value)
+                          }))}
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text font-medium">Default Test Duration (minutes)</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="5"
+                          max="180"
+                          className="input input-bordered input-sm w-full bg-base-100"
+                          value={systemSettings.defaultTestDuration}
+                          onChange={(e) => setSystemSettings(prev => ({
+                            ...prev, 
+                            defaultTestDuration: parseInt(e.target.value)
+                          }))}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary btn-sm gap-2"
+                        disabled={isLoading}
+                      >
+                        <MdSave className="w-4 h-4" />
+                        {isLoading ? 'Saving...' : 'Save Configuration'}
+                      </button>
+                    </form>
+                  </>
+                )}
+
+                {activeTab === 'backup' && (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-lg">
+                        <MdSave className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="card-title text-lg">Backup & Restore</h2>
+                        <p className="text-sm text-base-content/70">Manage your data backups</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 max-w-md">
+                      <div className="card bg-base-200 p-4">
+                        <h3 className="font-semibold mb-2">Export Data</h3>
+                        <p className="text-sm text-base-content/70 mb-3">
+                          Download a complete backup of your system data including students, questions, and settings.
+                        </p>
+                        <button 
+                          className="btn btn-primary btn-sm"
+                          onClick={handleBackupExport}
+                        >
+                          📦 Export Backup
+                        </button>
+                      </div>
+
+                      <div className="card bg-base-200 p-4">
+                        <h3 className="font-semibold mb-2">Import Data</h3>
+                        <p className="text-sm text-base-content/70 mb-3">
+                          Restore your system from a backup file.
+                        </p>
+                        <input 
+                          type="file" 
+                          accept=".json"
+                          className="file-input file-input-bordered file-input-sm w-full"
+                        />
+                        <button className="btn btn-warning btn-sm mt-2">
+                          ⚠️ Import Backup
+                        </button>
+                      </div>
+
+                      <div className="alert alert-warning">
+                        <span className="text-sm">
+                          ⚠️ Importing a backup will overwrite all existing data. Please ensure you have a current backup before proceeding.
+                        </span>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>

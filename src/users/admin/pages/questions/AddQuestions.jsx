@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { MdAdd, MdDelete, MdSave } from "react-icons/md";
-import { FaRegLightbulb, FaFileAlt, FaComments } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { MdAdd, MdDelete, MdSave, MdAnalytics, MdViewList, MdQuiz, MdSchedule, MdBookmark, MdBarChart, MdAutorenew, MdCloud, MdCloudDone, MdWarning, MdInfo, MdCheckCircle, MdError, MdClear } from "react-icons/md";
+import { FaRegLightbulb, FaFileAlt, FaComments, FaChartPie, FaHistory } from 'react-icons/fa';
 import { useGuideMode } from '../../../../contexts/GuideModeContext';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const BLOOMS_LEVELS = [
   "Remembering",
@@ -25,7 +26,18 @@ const AddQuestions = () => {
     { questionText: "", questionType: "multiple_choice", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }
   ]);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Dashboard & Analytics States
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [recentQuestions, setRecentQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Auto-save States
+  const [autoSaveStatus, setAutoSaveStatus] = useState('saved'); // 'saved', 'saving', 'unsaved'
+  const [lastSaved, setLastSaved] = useState(null);
+  const [hasDraft, setHasDraft] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiGenerationMethod, setAIGenerationMethod] = useState(AI_GENERATION_METHODS.TOPIC);
   const [aiSubject, setAISubject] = useState("");
@@ -53,54 +65,248 @@ const AddQuestions = () => {
   const [chatAIError, setChatAIError] = useState("");
   const [chatAIGeneratedQuestions, setChatAIGeneratedQuestions] = useState([]);
   const [chatAINumQuestions, setChatAINumQuestions] = useState(2);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const { guideMode } = useGuideMode();
 
   const backendurl = import.meta.env.VITE_BACKEND_URL;
 
+  // Constants for colors and styling
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
+  
+  // Auto-save functionality
+  const saveToLocalStorage = useCallback((data) => {
+    try {
+      localStorage.setItem('addQuestions_draft', JSON.stringify({
+        ...data,
+        timestamp: Date.now()
+      }));
+      setHasDraft(true);
+      setLastSaved(new Date());
+      setAutoSaveStatus('saved');
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+    }
+  }, []);
+
+  const loadFromLocalStorage = useCallback(() => {
+    try {
+      const draft = localStorage.getItem('addQuestions_draft');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        setQuestions(parsed.questions || questions);
+        setSelectedSubject(parsed.selectedSubject || "");
+        setHasDraft(true);
+        setLastSaved(new Date(parsed.timestamp));
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to load draft:', error);
+    }
+    return false;
+  }, [questions]);
+
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem('addQuestions_draft');
+    setHasDraft(false);
+    setLastSaved(null);
+  }, []);
+
+  // Enhanced question change handler with auto-validation and auto-save
+  const handleQuestionChange = useCallback((index, field, value) => {
+    const updatedQuestions = [...questions];
+    if (field === "choices") {
+      updatedQuestions[index].choices[value.choiceIndex] = value.choiceValue;
+    } else if (field === "questionType") {
+      updatedQuestions[index].questionType = value;
+      if (value === "true_false") {
+        updatedQuestions[index].choices = ["True", "False"];
+      } else {
+        updatedQuestions[index].choices = ["", "", "", ""];
+      }
+      updatedQuestions[index].correctAnswer = ""; // Reset correct answer
+    } else {
+      updatedQuestions[index][field] = value;
+    }
+    
+    setQuestions(updatedQuestions);
+    setCurrentQuestionIndex(index);
+    setAutoSaveStatus('unsaved');
+    
+    // Auto-save after 2 seconds of inactivity
+    setTimeout(() => {
+      setAutoSaveStatus('saving');
+      saveToLocalStorage({
+        questions: updatedQuestions,
+        selectedSubject
+      });
+    }, 2000);
+  }, [questions, selectedSubject, saveToLocalStorage]);
+
+  // Question quality scoring
+  const calculateQuestionQuality = useCallback((question) => {
+    let score = 0;
+    let feedback = [];
+
+    // Check question text length and clarity
+    if (question.questionText.length > 20) score += 20;
+    else feedback.push("Question text could be more detailed");
+
+    // Check choices quality
+    const validChoices = question.choices.filter(c => c.trim().length > 0);
+    if (validChoices.length >= 3) score += 20;
+    else feedback.push("Need at least 3 valid choices");
+
+    // Check for duplicate choices
+    if (new Set(validChoices).size === validChoices.length) score += 15;
+    else feedback.push("Duplicate choices detected");
+
+    // Check correct answer selection
+    if (question.correctAnswer) score += 20;
+    else feedback.push("No correct answer selected");
+
+    // Check Bloom's level assignment
+    if (question.bloomsLevel) score += 15;
+    else feedback.push("Bloom's taxonomy level not assigned");
+
+    // Check for question clarity (basic grammar)
+    if (question.questionText.includes('?')) score += 10;
+    else feedback.push("Consider ending with a question mark");
+
+    return { score, feedback, grade: score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'needs_improvement' };
+  }, []);
+
+  // Duplicate detection
+  const findSimilarQuestions = useCallback((newQuestion) => {
+    return recentQuestions.filter(q => {
+      const similarity = calculateSimilarity(q.questionText, newQuestion.questionText);
+      return similarity > 0.7; // 70% similarity threshold
+    });
+  }, [recentQuestions]);
+
+  const calculateSimilarity = (str1, str2) => {
+    const words1 = str1.toLowerCase().split(' ');
+    const words2 = str2.toLowerCase().split(' ');
+    const commonWords = words1.filter(word => words2.includes(word));
+    return commonWords.length / Math.max(words1.length, words2.length);
+  };
+
+  // Statistics calculation
+  const stats = useMemo(() => {
+    const totalQuestions = questions.length;
+    const completedQuestions = questions.filter(q => 
+      q.questionText && q.correctAnswer && q.bloomsLevel && 
+      q.choices.every(c => c.trim().length > 0)
+    ).length;
+    
+    const bySubject = subjects.map(subject => ({
+      name: subject.subject,
+      count: recentQuestions.filter(q => q.subject?._id === subject._id).length
+    }));
+
+    const byBloom = BLOOMS_LEVELS.map(level => ({
+      name: level,
+      count: questions.filter(q => q.bloomsLevel === level).length
+    }));
+
+    const qualityScores = questions.map(q => calculateQuestionQuality(q));
+    const avgQuality = qualityScores.length > 0 ? 
+      qualityScores.reduce((sum, q) => sum + q.score, 0) / qualityScores.length : 0;
+
+    return {
+      total: totalQuestions,
+      completed: completedQuestions,
+      progress: totalQuestions > 0 ? (completedQuestions / totalQuestions) * 100 : 0,
+      bySubject: bySubject.filter(s => s.count > 0),
+      byBloom: byBloom.filter(b => b.count > 0),
+      recentlyAdded: recentQuestions.length,
+      averageQuality: Math.round(avgQuality),
+      qualityScores
+    };
+  }, [questions, subjects, recentQuestions, calculateQuestionQuality]);
+
   useEffect(() => {
-    const fetchSubjects = async () => {
+    const fetchData = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('No authentication token found');
         }
 
-        const res = await fetch(`${backendurl}/api/subjects`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        // Fetch subjects
+        const subjectsRes = await fetch(`${backendurl}/api/subjects`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) {
-          throw new Error("Failed to fetch subjects");
+        if (!subjectsRes.ok) throw new Error("Failed to fetch subjects");
+        const subjectsData = await subjectsRes.json();
+        setSubjects(subjectsData);
+
+        // Fetch recent questions for analytics
+        const questionsRes = await fetch(`${backendurl}/api/questions`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (questionsRes.ok) {
+          const questionsData = await questionsRes.json();
+          setRecentQuestions(questionsData.slice(0, 50)); // Last 50 questions
         }
-        const data = await res.json();
-        setSubjects(data);
+
+        // Load draft if exists
+        loadFromLocalStorage();
       } catch (err) {
-        console.error("Failed to fetch subjects", err);
+        console.error("Failed to fetch data", err);
+        setError(err.message);
         if (err.message.includes('token') || err.message.includes('authentication')) {
           window.location.href = '/admin/login';
         }
+      } finally {
+        setLoading(false);
       }
     };
-    fetchSubjects();
-  }, [backendurl]);
+    fetchData();
+  }, [backendurl, loadFromLocalStorage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setIsSubmitting(true);
 
-    // Ensure every question has a non-empty bloomsLevel
-    const hasEmptyFields = questions.some(
-      (q) =>
-        !q.questionText ||
-        q.choices.some(choice => !choice) ||
-        !q.correctAnswer ||
-        !q.bloomsLevel
-    );
+    // Advanced validation
+    const validationErrors = [];
+    
+    if (!selectedSubject) {
+      validationErrors.push("Please select a subject.");
+    }
 
-    if (hasEmptyFields) {
-      setError("Please fill in all fields for each question, including Bloom's Taxonomy Level.");
+    questions.forEach((q, index) => {
+      if (!q.questionText.trim()) {
+        validationErrors.push(`Question ${index + 1}: Question text is required.`);
+      }
+      if (q.choices.some(choice => !choice.trim())) {
+        validationErrors.push(`Question ${index + 1}: All choices must be filled.`);
+      }
+      if (!q.correctAnswer) {
+        validationErrors.push(`Question ${index + 1}: Please select a correct answer.`);
+      }
+      if (!q.bloomsLevel) {
+        validationErrors.push(`Question ${index + 1}: Bloom's taxonomy level is required.`);
+      }
+
+      // Check for duplicate detection
+      const similarQuestions = findSimilarQuestions(q);
+      if (similarQuestions.length > 0) {
+        validationErrors.push(`Question ${index + 1}: Similar question already exists.`);
+      }
+
+      // Quality check
+      const quality = calculateQuestionQuality(q);
+      if (quality.score < 50) {
+        validationErrors.push(`Question ${index + 1}: Quality score too low (${quality.score}/100).`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      setError(`Validation failed:\n${validationErrors.join('\n')}`);
       setIsSubmitting(false);
       return;
     }
@@ -114,7 +320,6 @@ const AddQuestions = () => {
         bloomsLevel: q.bloomsLevel
       })),
     };
-    console.log("Submitting questions:", JSON.stringify(formattedData, null, 2));
 
     try {
       const token = localStorage.getItem('token');
@@ -131,34 +336,21 @@ const AddQuestions = () => {
         body: JSON.stringify(formattedData),
       });
 
-      if (!response.ok) throw new Error("Failed to submit");
+      if (!response.ok) throw new Error("Failed to submit questions");
 
-      alert("Questions submitted successfully!");
+      setSuccess(`Successfully submitted ${questions.length} questions!`);
       setQuestions([{ questionText: "", questionType: "multiple_choice", choices: ["", "", "", ""], correctAnswer: "", bloomsLevel: "" }]);
       setSelectedSubject("");
+      clearDraft();
+      
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => setSuccess(""), 5000);
     } catch (err) {
       console.error(err);
-      setError("An error occurred while submitting questions.");
+      setError("An error occurred while submitting questions: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleQuestionChange = (index, field, value) => {
-    const updatedQuestions = [...questions];
-    if (field === "choices") {
-      updatedQuestions[index].choices[value.choiceIndex] = value.choiceValue;
-    } else if (field === "questionType") {
-      updatedQuestions[index].questionType = value;
-      if (value === "true_false") {
-        updatedQuestions[index].choices = ["True", "False"];
-      } else {
-        updatedQuestions[index].choices = ["", "", "", ""];
-      }
-    } else {
-      updatedQuestions[index][field] = value;
-    }
-    setQuestions(updatedQuestions);
   };
 
   const handleAddQuestion = () => {
@@ -332,283 +524,470 @@ const AddQuestions = () => {
     setAINumQuestions(2);
   };
 
-  // File AI Modal handler
-  const handleFileAIGenerate = async (e) => {
-    e.preventDefault();
-    setFileAIError("");
-    setFileAILoading(true);
-    setFileExtractedText("");
-    setFileAIQuestions([]);
-    try {
-      if (!file) throw new Error("No file selected");
-      if (!fileAISubject || !fileAIBloomsLevel) throw new Error("Please select subject and Bloom's level");
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('subjectId', fileAISubject);
-      formData.append('bloomsLevel', fileAIBloomsLevel);
-      formData.append('numQuestions', fileAINumQuestions);
-      formData.append('questionType', aiQuestionType);
-      if (fileAICustomPrompt) formData.append('customPrompt', fileAICustomPrompt);
-      const res = await fetch(`${backendurl}/api/questions/generate-questions-from-file`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-      if (!res.ok) throw new Error("Failed to generate questions from file");
-      const data = await res.json();
-      if (data.extractedText) setFileExtractedText(data.extractedText.slice(0, 3000));
-      // Ensure the generated questions match the selected question type
-      const processedQuestions = (data.questions || data).map(q => {
-        if (aiQuestionType === 'true_false') {
-          let correct = (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False';
-          return {
-            ...q,
-            choices: ["True", "False"],
-            correctAnswer: correct
-          };
-        }
-        return q;
-      });
-      setFileAIQuestions(processedQuestions);
-    } catch (err) {
-      setFileAIError(err.message || "Error generating questions from file");
-    } finally {
-      setFileAILoading(false);
-    }
-  };
-
-  // Chat AI Generate Handler
-  const handleChatAIGenerate = async (e) => {
-    e.preventDefault();
-    setChatAIError("");
-    setChatAILoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-      if (!chatAIPrompt) {
-        setChatAIError("Please fill all required fields.");
-        setChatAILoading(false);
-        return;
-      }
-      const res = await fetch(`${backendurl}/api/generate-questions-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          subjectId: aiSubject,
-          prompt: chatAIPrompt,
-          numQuestions: chatAINumQuestions
-        })
-      });
-      if (!res.ok) throw new Error("Failed to generate questions");
-      const data = await res.json();
-      // Ensure the generated questions match the selected question type
-      const processedQuestions = (data.questions || data).map(q => {
-        if (aiQuestionType === 'true_false') {
-          let correct = (q.correctAnswer === true || q.correctAnswer === 'True') ? 'True' : 'False';
-          return {
-            ...q,
-            choices: ["True", "False"],
-            correctAnswer: correct
-          };
-        }
-        return q;
-      });
-      setChatAIGeneratedQuestions(processedQuestions);
-    } catch (err) {
-      setChatAIError(err.message || "Error generating questions");
-    } finally {
-      setChatAILoading(false);
-    }
-  };
-
-  // Add chat AI generated questions to main questions list
-  const handleAddChatAIGenerated = () => {
-    setSelectedSubject(aiSubject);
-    if (chatAIGeneratedQuestions.length > 0) {
-      setQuestions([
-        ...chatAIGeneratedQuestions.map(q => ({
-          questionText: q.questionText || "",
-          choices: q.choices || ["", "", "", ""],
-          correctAnswer: q.correctAnswer || "",
-          bloomsLevel: q.bloomsLevel || ""
-        }))
-      ]);
-    }
-    setChatAIGeneratedQuestions([]);
-    setShowChatAIModal(false);
-    setChatAIPrompt("");
-    setChatAIError("");
-    setChatAINumQuestions(2);
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <span className="loading loading-spinner loading-lg"></span>
+          <p className="mt-2 text-base-content/70">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-6">
-          {guideMode && (
-            <details className="mb-6 bg-base-200 border border-primary rounded p-3">
-              <summary className="cursor-pointer font-medium text-base text-primary mb-1">How to use the Add Questions page?</summary>
-              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                <li>You can manually add questions, generate them with AI, or upload a file for AI-based question generation.</li>
-                <li>To add questions manually, select a subject, fill in the question, choices, correct answer, and Bloom's Taxonomy level for each question.</li>
-                <li>To use AI, click <b>Generate with AI</b> and follow the instructions in the modal.</li>
-                <li>To generate questions from a file, click <b>Upload File for AI</b> and follow the instructions in the modal.</li>
-                <li>Review all questions before saving. You can edit or remove any question before submitting.</li>
-              </ol>
-            </details>
+    <div className="container mx-auto px-2 sm:px-4 py-4 max-w-7xl">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Question Creator</h1>
+          <p className="text-base-content/70">Create and manage questions with AI assistance</p>
+          
+          {/* Auto-save Status */}
+          <div className="flex items-center gap-2 mt-2">
+            {autoSaveStatus === 'saving' && (
+              <div className="flex items-center gap-1 text-warning">
+                <MdAutorenew className="w-4 h-4 animate-spin" />
+                <span className="text-xs">Saving draft...</span>
+              </div>
+            )}
+            {autoSaveStatus === 'saved' && lastSaved && (
+              <div className="flex items-center gap-1 text-success">
+                <MdCloudDone className="w-4 h-4" />
+                <span className="text-xs">Saved {lastSaved.toLocaleTimeString()}</span>
+              </div>
+            )}
+            {autoSaveStatus === 'unsaved' && (
+              <div className="flex items-center gap-1 text-warning">
+                <MdCloud className="w-4 h-4" />
+                <span className="text-xs">Unsaved changes</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          {hasDraft && (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={clearDraft}
+            >
+              <MdClear className="w-4 h-4" />
+              Clear Draft
+            </button>
           )}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-primary">Add Questions</h1>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowAIModal(true)}
-                className="btn btn-accent btn-sm gap-2"
-              >
-                Generate with AI
-              </button>
-              <button
-                onClick={handleAddQuestion}
-                className="btn btn-primary btn-sm gap-2"
-              >
-                <MdAdd className="w-5 h-5" />
-                Add Question
-              </button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => setShowAIModal(true)}
+          >
+            <FaRegLightbulb className="w-4 h-4" />
+            AI Generate
+          </button>
+        </div>
+      </div>
+
+      {/* Guide Mode */}
+      {guideMode && (
+        <div className="alert alert-info mb-6">
+          <MdInfo />
+          <div>
+            <h4 className="font-semibold">Question Creator Guide</h4>
+            <p className="text-sm">Use the dashboard to monitor your progress, create questions manually, or leverage AI for quick generation. All changes are auto-saved as drafts.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Alerts */}
+      {error && (
+        <div className="alert alert-error mb-4">
+          <MdError />
+          <span className="whitespace-pre-line">{error}</span>
+          <button onClick={() => setError('')} className="btn btn-ghost btn-xs">
+            <MdClear />
+          </button>
+        </div>
+      )}
+
+      {success && (
+        <div className="alert alert-success mb-4">
+          <MdCheckCircle />
+          <span>{success}</span>
+          <button onClick={() => setSuccess('')} className="btn btn-ghost btn-xs">
+            <MdClear />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="tabs tabs-boxed mb-6 bg-base-200">
+        <button
+          className={`tab tab-lg ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          <MdAnalytics className="w-4 h-4 mr-2" />
+          Dashboard
+        </button>
+        <button
+          className={`tab tab-lg ${activeTab === 'create' ? 'tab-active' : ''}`}
+          onClick={() => setActiveTab('create')}
+        >
+          <MdViewList className="w-4 h-4 mr-2" />
+          Create Questions ({questions.length})
+        </button>
+      </div>
+
+      {/* Dashboard Tab */}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="stat bg-base-200 rounded-lg p-4">
+              <div className="stat-figure text-primary">
+                <MdQuiz className="w-8 h-8" />
+              </div>
+              <div className="stat-title">Current Questions</div>
+              <div className="stat-value text-primary">{stats.total}</div>
+              <div className="stat-desc">{stats.completed} completed</div>
+            </div>
+            <div className="stat bg-base-200 rounded-lg p-4">
+              <div className="stat-figure text-secondary">
+                <MdSchedule className="w-8 h-8" />
+              </div>
+              <div className="stat-title">Progress</div>
+              <div className="stat-value text-secondary">{Math.round(stats.progress)}%</div>
+              <div className="stat-desc">Completion rate</div>
+            </div>
+            <div className="stat bg-base-200 rounded-lg p-4">
+              <div className="stat-figure text-accent">
+                <MdBookmark className="w-8 h-8" />
+              </div>
+              <div className="stat-title">Quality Score</div>
+              <div className="stat-value text-accent">{stats.averageQuality}</div>
+              <div className="stat-desc">Average quality</div>
+            </div>
+            <div className="stat bg-base-200 rounded-lg p-4">
+              <div className="stat-figure text-info">
+                <MdBarChart className="w-8 h-8" />
+              </div>
+              <div className="stat-title">Database Total</div>
+              <div className="stat-value text-info">{stats.recentlyAdded}</div>
+              <div className="stat-desc">Questions in system</div>
             </div>
           </div>
 
-          {error && (
-            <div className="alert alert-error mb-6">
-              <span>{error}</span>
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Bloom's Taxonomy Distribution */}
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h3 className="card-title">Current Questions by Bloom's Level</h3>
+                {stats.byBloom.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={stats.byBloom}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                      >
+                        {stats.byBloom.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-base-content/50">
+                    No questions created yet
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Question Quality Scores */}
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h3 className="card-title">Question Quality Analysis</h3>
+                <div className="space-y-3">
+                  {stats.qualityScores.map((score, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="w-16 text-xs">Q{index + 1}</span>
+                      <div className="flex-1 bg-base-300 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            score.grade === 'excellent' ? 'bg-success' :
+                            score.grade === 'good' ? 'bg-warning' : 'bg-error'
+                          }`}
+                          style={{ width: `${score.score}%` }}
+                        ></div>
+                      </div>
+                      <span className="w-12 text-xs text-right">{score.score}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Database Questions */}
+          {recentQuestions.length > 0 && (
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h3 className="card-title">Recent Questions in Database</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {recentQuestions.slice(0, 6).map(question => (
+                    <div key={question._id} className="card bg-base-200 shadow-sm">
+                      <div className="card-body p-4">
+                        <h4 className="font-medium text-sm line-clamp-2 mb-2">{question.questionText}</h4>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          <span className="badge badge-xs badge-outline">
+                            {question.subject?.subject || 'Unknown'}
+                          </span>
+                          <span className="badge badge-xs badge-primary">
+                            {question.bloomsLevel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-base-content/70">
+                          {question.choices?.length || 0} choices
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">Select Subject</span>
-              </label>
-              <select
-                className="select select-bordered w-full bg-base-100"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-              >
-                <option value="">-- Choose a Subject --</option>
-                {subjects.map((subject) => (
-                  <option key={subject._id} value={subject._id}>
-                    {subject.subject}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-4">
-              {questions.map((q, index) => (
-                <div
-                  key={index}
-                  className="card bg-base-100 p-4 rounded-lg"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Question {index + 1}</h3>
-                    {questions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveQuestion(index)}
-                        className="btn btn-ghost btn-sm text-error"
-                      >
-                        <MdDelete className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="form-control mb-4">
-                    <textarea
-                      placeholder="Enter your question"
-                      value={q.questionText}
-                      onChange={(e) => handleQuestionChange(index, "questionText", e.target.value)}
-                      className="textarea textarea-bordered w-full bg-base-100"
-                      rows="3"
-                    />
-                  </div>
-
-                  <div className="form-control mb-4">
-                    <label className="label">
-                      <span className="label-text font-medium">Question Type</span>
-                    </label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={q.questionType}
-                      onChange={(e) => handleQuestionChange(index, "questionType", e.target.value)}
-                    >
-                      <option value="multiple_choice">Multiple Choice</option>
-                      <option value="true_false">True or False</option>
-                    </select>
-                  </div>
-
-                  <div className="form-control mb-4">
-                    <label className="label">
-                      <span className="label-text font-medium">Bloom's Taxonomy Level</span>
-                    </label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={q.bloomsLevel}
-                      onChange={(e) => handleQuestionChange(index, "bloomsLevel", e.target.value)}
-                    >
-                      <option value="">-- Select Level --</option>
-                      {BLOOMS_LEVELS.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {q.choices.map((choice, choiceIndex) => (
-                      <div key={choiceIndex} className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name={`correct-answer-${index}`}
-                          className="radio radio-primary"
-                          checked={q.correctAnswer === choice}
-                          onChange={() => handleQuestionChange(index, "correctAnswer", choice)}
-                        />
-                        <input
-                          type="text"
-                          placeholder={`Choice ${choiceIndex + 1}`}
-                          value={choice}
-                          onChange={(e) =>
-                            handleQuestionChange(index, "choices", {
-                              choiceIndex,
-                              choiceValue: e.target.value,
-                            })
-                          }
-                          className="input input-bordered w-full bg-base-100"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+      {/* Create Questions Tab */}
+      {activeTab === 'create' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Select Subject</span>
+            </label>
+            <select
+              className="select select-bordered w-full bg-base-100"
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+            >
+              <option value="">-- Choose a Subject --</option>
+              {subjects.map((subject) => (
+                <option key={subject._id} value={subject._id}>
+                  {subject.subject}
+                </option>
               ))}
-            </div>
+            </select>
+          </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="btn btn-primary gap-2"
-                disabled={isSubmitting}
-              >
-                <MdSave className="w-5 h-5" />
-                {isSubmitting ? "Submitting..." : "Save Questions"}
-              </button>
-            </div>
-          </form>
+          {selectedSubject && (
+            <>
+              {/* Question Cards */}
+              <div className="space-y-6">
+                {questions.map((question, index) => {
+                  const quality = calculateQuestionQuality(question);
+                  const similarQuestions = findSimilarQuestions(question);
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`card p-4 sm:p-6 transition-all border-2 ${
+                        currentQuestionIndex === index ? 'bg-primary/5 border-primary/20' : 
+                        quality.grade === 'excellent' ? 'bg-success/5 border-success/20' :
+                        quality.grade === 'good' ? 'bg-warning/5 border-warning/20' :
+                        'bg-error/5 border-error/20'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="badge badge-primary">
+                            Question {index + 1}
+                          </div>
+                          <div className={`badge ${
+                            quality.grade === 'excellent' ? 'badge-success' :
+                            quality.grade === 'good' ? 'badge-warning' : 'badge-error'
+                          }`}>
+                            Quality: {quality.score}/100
+                          </div>
+                          {similarQuestions.length > 0 && (
+                            <div className="badge badge-warning">
+                              <MdWarning className="w-3 h-3 mr-1" />
+                              Similar Found
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          {questions.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm text-error"
+                              onClick={() => handleRemoveQuestion(index)}
+                            >
+                              <MdDelete className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
 
-          {/* Unified AI Modal */}
+                      {/* Quality Feedback */}
+                      {quality.feedback.length > 0 && (
+                        <div className="alert alert-warning mb-4 py-2">
+                          <MdWarning className="w-4 h-4" />
+                          <div>
+                            <ul className="text-xs list-disc list-inside">
+                              {quality.feedback.map((fb, idx) => (
+                                <li key={idx}>{fb}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Question Content */}
+                      <div className="space-y-4">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium">Question Text</span>
+                          </label>
+                          <textarea
+                            className="textarea textarea-bordered h-20 bg-base-100"
+                            placeholder="Enter your question here..."
+                            value={question.questionText}
+                            onChange={(e) => handleQuestionChange(index, "questionText", e.target.value)}
+                            onFocus={() => setCurrentQuestionIndex(index)}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="form-control">
+                            <label className="label">
+                              <span className="label-text font-medium">Question Type</span>
+                            </label>
+                            <select
+                              className="select select-bordered bg-base-100"
+                              value={question.questionType}
+                              onChange={(e) => handleQuestionChange(index, "questionType", e.target.value)}
+                            >
+                              <option value="multiple_choice">Multiple Choice</option>
+                              <option value="true_false">True/False</option>
+                            </select>
+                          </div>
+
+                          <div className="form-control">
+                            <label className="label">
+                              <span className="label-text font-medium">Bloom's Taxonomy Level</span>
+                            </label>
+                            <select
+                              className="select select-bordered bg-base-100"
+                              value={question.bloomsLevel}
+                              onChange={(e) => handleQuestionChange(index, "bloomsLevel", e.target.value)}
+                            >
+                              <option value="">Select Level</option>
+                              {BLOOMS_LEVELS.map((level) => (
+                                <option key={level} value={level}>
+                                  {level}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Answer Choices */}
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium">Answer Choices</span>
+                          </label>
+                          <div className={`grid ${question.questionType === "true_false" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"} gap-3`}>
+                            {question.choices.map((choice, choiceIndex) => (
+                              <div key={choiceIndex} className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className="badge badge-outline">
+                                    {String.fromCharCode(65 + choiceIndex)}
+                                  </span>
+                                  <input
+                                    type="text"
+                                    className="input input-bordered flex-1 bg-base-100"
+                                    placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
+                                    value={choice}
+                                    onChange={(e) =>
+                                      handleQuestionChange(index, "choices", {
+                                        choiceIndex,
+                                        choiceValue: e.target.value,
+                                      })
+                                    }
+                                    disabled={question.questionType === "true_false"}
+                                  />
+                                  <input
+                                    type="radio"
+                                    name={`correct-${index}`}
+                                    className="radio radio-primary"
+                                    checked={question.correctAnswer === choice}
+                                    onChange={() => handleQuestionChange(index, "correctAnswer", choice)}
+                                    disabled={!choice}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="label">
+                            <span className="label-text-alt text-base-content/70">
+                              Select the radio button next to the correct answer
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3 mt-6">
+                {/* AI Generation Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-accent gap-2 flex-1"
+                    onClick={() => setShowAIModal(true)}
+                  >
+                    🤖 Generate with AI
+                  </button>
+                  
+                  <button
+                    type="button"
+                    className="btn btn-outline gap-2"
+                    onClick={handleAddQuestion}
+                  >
+                    <MdAdd className="w-4 h-4" />
+                    Add Manual Question
+                  </button>
+                </div>
+
+                {/* Save Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="submit"
+                    className="btn btn-primary gap-2 flex-1"
+                    disabled={isSubmitting}
+                  >
+                    <MdSave className="w-4 h-4" />
+                    {isSubmitting ? "Submitting..." : "Submit All Questions"}
+                  </button>
+                </div>
+              </div>
+            </>
+                    )}
+        </form>
+      )}
+
+      {/* Unified AI Modal */}
           {showAIModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
               <div className="absolute inset-0 backdrop-blur-sm bg-black/40 -z-10"></div>
@@ -772,19 +1151,6 @@ const AddQuestions = () => {
                             rows={2}
                           />
                         </div>
-                        <div className="form-control">
-                          <label className="label font-semibold">Bloom's Taxonomy Level</label>
-                          <select
-                            className="select select-bordered w-full bg-base-100"
-                            value={aiBloomsLevel}
-                            onChange={e => setAIBloomsLevel(e.target.value)}
-                          >
-                            <option value="">-- Select Level --</option>
-                            {BLOOMS_LEVELS.map(level => (
-                              <option key={level} value={level}>{level}</option>
-                            ))}
-                          </select>
-                        </div>
                       </>
                     )}
 
@@ -933,362 +1299,8 @@ const AddQuestions = () => {
               </div>
             </div>
           )}
-
-          {/* File AI Modal */}
-          {showFileAIModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 backdrop-blur-sm bg-black/20 -z-10"></div>
-              <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-lg relative overflow-y-auto max-h-[80vh]">
-                <button
-                  className="absolute top-2 right-2 btn btn-ghost btn-sm"
-                  onClick={() => {
-                    setShowFileAIModal(false);
-                    setFile(null);
-                    setFileExtractedText("");
-                    setFileAIQuestions([]);
-                    setFileAIError("");
-                  }}
-                >
-                  ✕
-                </button>
-                <h2 className="text-lg font-bold mb-4">Generate Questions from File</h2>
-                <details className="mb-4">
-                  <summary className="cursor-pointer font-medium text-primary">How to use this feature?</summary>
-                  <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                    <li>Click <b>Upload File for AI</b> and select a .docx, .pdf, or .pptx file from your computer.</li>
-                    <li>Select the subject for your questions.</li>
-                    <li>Choose the Bloom's Taxonomy level that matches the type of questions you want.</li>
-                    <li>Set how many questions you want to generate (1–15).</li>
-                    <li>(Optional) Add custom instructions to guide the AI (for example, "Focus on chapter 2").</li>
-                    <li>Click <b>Generate</b>. The AI will extract text from your file and create multiple-choice questions for you to review and edit before saving.</li>
-                  </ol>
-                </details>
-                <form className="space-y-4" onSubmit={handleFileAIGenerate}>
-                  <div className="form-control">
-                    <label className="label">Subject</label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={fileAISubject}
-                      onChange={e => setFileAISubject(e.target.value)}
-                    >
-                      <option value="">-- Select Subject --</option>
-                      {subjects.map((subject) => (
-                        <option key={subject._id} value={subject._id}>{subject.subject}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control">
-                    <label className="label">Bloom's Taxonomy Level</label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={fileAIBloomsLevel}
-                      onChange={e => setFileAIBloomsLevel(e.target.value)}
-                    >
-                      <option value="">-- Select Level --</option>
-                      {BLOOMS_LEVELS.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control">
-                    <label className="label">How many questions? (1-15)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={15}
-                      className="input input-bordered w-full bg-base-100"
-                      value={fileAINumQuestions}
-                      onChange={e => setFileAINumQuestions(Math.max(1, Math.min(15, Number(e.target.value))))}
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">Custom Instructions (optional)</label>
-                    <textarea
-                      className="textarea textarea-bordered w-full bg-base-100"
-                      value={fileAICustomPrompt}
-                      onChange={e => setFileAICustomPrompt(e.target.value)}
-                      placeholder="e.g. Focus on chapter 2, or generate questions about memory management"
-                      rows={2}
-                    />
-                  </div>
-                  {file && (
-                    <div className="form-control">
-                      <label className="label">Selected File</label>
-                      <div className="p-2 bg-base-200 rounded">{file.name}</div>
-                    </div>
-                  )}
-                  {fileAIError && <div className="alert alert-error py-2">{fileAIError}</div>}
-                  <button
-                    type="submit"
-                    className="btn btn-accent w-full"
-                    disabled={fileAILoading || !file || !fileAISubject || !fileAIBloomsLevel}
-                  >
-                    {fileAILoading ? "Generating..." : "Generate"}
-                  </button>
-                </form>
-                {/* Show extracted text preview (optional) */}
-                {fileExtractedText && (
-                  <div className="form-control mt-4">
-                    <label className="label">Extracted Text (preview)</label>
-                    <textarea
-                      className="textarea textarea-bordered w-full bg-base-100"
-                      value={fileExtractedText.slice(0, 3000)}
-                      rows="4"
-                      readOnly
-                    />
-                  </div>
-                )}
-                {/* Show generated questions for review/edit */}
-                {fileAIQuestions.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-semibold mb-2">Generated Questions</h3>
-                    {fileAIQuestions.map((q, idx) => {
-                      const choices = Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""];
-                      return (
-                        <div key={idx} className="card bg-base-200 p-4 mb-3">
-                          <div className="form-control mb-2">
-                            <label className="label">Question Text</label>
-                            <input
-                              className="input input-bordered w-full bg-base-100"
-                              value={q.questionText}
-                              onChange={e => {
-                                const updated = [...fileAIQuestions];
-                                updated[idx].questionText = e.target.value;
-                                setFileAIQuestions(updated);
-                              }}
-                            />
-                          </div>
-                          <div className="form-control mb-2">
-                            <label className="label">Bloom's Taxonomy Level</label>
-                            <select
-                              className="select select-bordered w-full bg-base-100"
-                              value={q.bloomsLevel || fileAIBloomsLevel}
-                              onChange={e => {
-                                const updated = [...fileAIQuestions];
-                                updated[idx].bloomsLevel = e.target.value;
-                                setFileAIQuestions(updated);
-                              }}
-                            >
-                              <option value="">-- Select Level --</option>
-                              {BLOOMS_LEVELS.map(level => (
-                                <option key={level} value={level}>{level}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                            {choices.map((choice, cidx) => (
-                              <div key={cidx} className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name={`file-ai-correct-${idx}`}
-                                  className="radio radio-primary"
-                                  checked={q.correctAnswer === choice}
-                                  onChange={() => {
-                                    const updated = [...fileAIQuestions];
-                                    updated[idx].correctAnswer = choice;
-                                    setFileAIQuestions(updated);
-                                  }}
-                                />
-                                <input
-                                  className="input input-bordered w-full bg-base-100"
-                                  value={choice}
-                                  onChange={e => {
-                                    const updated = [...fileAIQuestions];
-                                    updated[idx].choices = [...choices];
-                                    updated[idx].choices[cidx] = e.target.value;
-                                    setFileAIQuestions(updated);
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <button
-                      className="btn btn-primary w-full mt-2"
-                      onClick={() => {
-                        setSelectedSubject(fileAISubject);
-                        setQuestions([
-                          ...fileAIQuestions.map(q => ({
-                            questionText: q.questionText || "",
-                            choices: q.choices || ["", "", "", ""],
-                            correctAnswer: q.correctAnswer || "",
-                            bloomsLevel: q.bloomsLevel || fileAIBloomsLevel || ""
-                          }))
-                        ]);
-                        setShowFileAIModal(false);
-                        setFile(null);
-                        setFileExtractedText("");
-                        setFileAIQuestions([]);
-                        setFileAIError("");
-                      }}
-                    >
-                      Add to Questions
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Chat AI Modal */}
-          {showChatAIModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 backdrop-blur-sm bg-black/20 -z-10"></div>
-              <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-lg relative overflow-y-auto max-h-[80vh]">
-                <button
-                  className="absolute top-2 right-2 btn btn-ghost btn-sm"
-                  onClick={() => {
-                    setShowChatAIModal(false);
-                    setChatAIGeneratedQuestions([]);
-                    setChatAIError("");
-                  }}
-                >
-                  ✕
-                </button>
-                <h2 className="text-lg font-bold mb-4">Chat AI Question Generator</h2>
-                <details className="mb-4">
-                  <summary className="cursor-pointer font-medium text-primary">How to use this feature?</summary>
-                  <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                    <li>Select the subject for your questions.</li>
-                    <li>Write your prompt in natural language. For example:
-                      <ul className="list-disc list-inside ml-4 mt-1">
-                        <li>"Generate questions about photosynthesis focusing on the light-dependent reactions"</li>
-                        <li>"Create questions testing understanding of Newton's laws with real-world examples"</li>
-                        <li>"Make questions about the water cycle suitable for middle school students"</li>
-                      </ul>
-                    </li>
-                    <li>Set how many questions you want to generate (1–15).</li>
-                    <li>Click <b>Generate</b>. The AI will create questions based on your prompt.</li>
-                  </ol>
-                </details>
-                <form onSubmit={handleChatAIGenerate} className="space-y-4">
-                  <div className="form-control">
-                    <label className="label">Subject</label>
-                    <select
-                      className="select select-bordered w-full bg-base-100"
-                      value={aiSubject}
-                      onChange={e => setAISubject(e.target.value)}
-                    >
-                      <option value="">-- Select Subject --</option>
-                      {subjects.map((subject) => (
-                        <option key={subject._id} value={subject._id}>{subject.subject}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control">
-                    <label className="label">Your Prompt</label>
-                    <textarea
-                      className="textarea textarea-bordered w-full bg-base-100"
-                      value={chatAIPrompt}
-                      onChange={e => setChatAIPrompt(e.target.value)}
-                      placeholder="Describe what kind of questions you want to generate..."
-                      rows={4}
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">How many questions? (1-15)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={15}
-                      className="input input-bordered w-full bg-base-100"
-                      value={chatAINumQuestions}
-                      onChange={e => setChatAINumQuestions(Math.max(1, Math.min(15, Number(e.target.value))))}
-                    />
-                  </div>
-                  {chatAIError && <div className="alert alert-error py-2">{chatAIError}</div>}
-                  <button
-                    type="submit"
-                    className="btn btn-info w-full"
-                    disabled={chatAILoading}
-                  >
-                    {chatAILoading ? "Generating..." : "Generate"}
-                  </button>
-                </form>
-                {/* Show generated questions for review/edit */}
-                {chatAIGeneratedQuestions.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-semibold mb-2">Generated Questions</h3>
-                    {chatAIGeneratedQuestions.map((q, idx) => {
-                      const choices = Array.isArray(q.choices) && q.choices.length === 4 ? q.choices : ["", "", "", ""];
-                      return (
-                        <div key={idx} className="card bg-base-200 p-4 mb-3">
-                          <div className="form-control mb-2">
-                            <label className="label">Question Text</label>
-                            <input
-                              className="input input-bordered w-full bg-base-100"
-                              value={q.questionText}
-                              onChange={e => {
-                                const updated = [...chatAIGeneratedQuestions];
-                                updated[idx].questionText = e.target.value;
-                                setChatAIGeneratedQuestions(updated);
-                              }}
-                            />
-                          </div>
-                          <div className="form-control mb-2">
-                            <label className="label">Bloom's Taxonomy Level</label>
-                            <select
-                              className="select select-bordered w-full bg-base-100"
-                              value={q.bloomsLevel}
-                              onChange={e => {
-                                const updated = [...chatAIGeneratedQuestions];
-                                updated[idx].bloomsLevel = e.target.value;
-                                setChatAIGeneratedQuestions(updated);
-                              }}
-                            >
-                              <option value="">-- Select Level --</option>
-                              {BLOOMS_LEVELS.map(level => (
-                                <option key={level} value={level}>{level}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                            {choices.map((choice, cidx) => (
-                              <div key={cidx} className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name={`chat-ai-correct-${idx}`}
-                                  className="radio radio-primary"
-                                  checked={q.correctAnswer === choice}
-                                  onChange={() => {
-                                    const updated = [...chatAIGeneratedQuestions];
-                                    updated[idx].correctAnswer = choice;
-                                    setChatAIGeneratedQuestions(updated);
-                                  }}
-                                />
-                                <input
-                                  className="input input-bordered w-full bg-base-100"
-                                  value={choice}
-                                  onChange={e => {
-                                    const updated = [...chatAIGeneratedQuestions];
-                                    updated[idx].choices = [...choices];
-                                    updated[idx].choices[cidx] = e.target.value;
-                                    setChatAIGeneratedQuestions(updated);
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <button
-                      className="btn btn-primary w-full mt-2"
-                      onClick={handleAddChatAIGenerated}
-                    >
-                      Add to Questions
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default AddQuestions;

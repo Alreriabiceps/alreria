@@ -158,9 +158,9 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-base-200 rounded-lg shadow-lg p-6">
+          <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
             <div className="flex items-center justify-center h-64">
               <span className="loading loading-spinner loading-lg"></span>
             </div>
@@ -172,9 +172,9 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-base-200 rounded-lg shadow-lg p-6">
+          <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
             <div className="alert alert-error">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M12 17a9 9 0 100-18 9 9 0 000 18z" />
@@ -188,13 +188,59 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-2 sm:p-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-primary mb-3 sm:mb-4">Admin Dashboard</h1>
+        <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 sm:mb-6">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-primary mb-4 sm:mb-6">Admin Dashboard</h1>
+              <p className="text-sm text-base-content/70">Welcome back! Here's what's happening today.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="badge badge-success gap-1">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                Live
+              </div>
+              <span className="text-xs text-base-content/70">
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <button 
+              onClick={() => navigate('/admin/addquestion')}
+              className="btn btn-outline btn-sm gap-2 h-auto p-3 flex-col"
+            >
+              <MdQuiz className="w-4 h-4" />
+              <span className="text-xs">Add Questions</span>
+            </button>
+            <button 
+              onClick={() => navigate('/admin/addstudent')}
+              className="btn btn-outline btn-sm gap-2 h-auto p-3 flex-col"
+            >
+              <MdPeople className="w-4 h-4" />
+              <span className="text-xs">Add Student</span>
+            </button>
+            <button 
+              onClick={() => navigate('/admin/subjects')}
+              className="btn btn-outline btn-sm gap-2 h-auto p-3 flex-col"
+            >
+              <MdBook className="w-4 h-4" />
+              <span className="text-xs">Manage Subjects</span>
+            </button>
+            <button 
+              onClick={() => navigate('/admin/weekschedule')}
+              className="btn btn-outline btn-sm gap-2 h-auto p-3 flex-col"
+            >
+              <MdCalendarToday className="w-4 h-4" />
+              <span className="text-xs">Schedule Test</span>
+            </button>
+          </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
             {statCards.map((stat, index) => (
               <div
                 key={index}
@@ -285,6 +331,15 @@ const AdminDashboard = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3">
                   <h2 className="text-base sm:text-lg font-semibold">Top Students</h2>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => window.location.href = '/admin/reports'}
+                      className="btn btn-primary btn-xs gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      View Analytics
+                    </button>
                     <span className="text-xs text-base-content/70">
                       Active Players: {stats.activePlayers}
                     </span>

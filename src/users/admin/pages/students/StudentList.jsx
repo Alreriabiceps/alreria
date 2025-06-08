@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd, MdVisibility, MdClose } from "react-icons/md";
+import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd, MdVisibility, MdClose, MdCheck } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const COLUMN_OPTIONS = [
@@ -21,162 +22,257 @@ const COLUMN_DEFAULTS = [
 ];
 
 const StudentList = () => {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
-  const [error, setError] = useState(null);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStrand, setFilterStrand] = useState("");
-  const [filterYearLevel, setFilterYearLevel] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [studentsPerPage] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
-  const { guideMode } = useGuideMode();
-  const [visibleColumns, setVisibleColumns] = useState(() => {
-    const saved = localStorage.getItem('studentListVisibleColumns');
-    return saved ? JSON.parse(saved) : COLUMN_DEFAULTS;
-  });
-  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editStudent, setEditStudent] = useState(null);
+  const [filterGrade, setFilterGrade] = useState("");
+  const [filterTrack, setFilterTrack] = useState("");
+  const [filterSection, setFilterSection] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [visibleColumns, setVisibleColumns] = useState(COLUMN_DEFAULTS);
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+  const { guideMode } = useGuideMode();
 
-  // Helper for select/deselect all
-  const allSelected = visibleColumns.length === COLUMN_OPTIONS.length;
-  const noneSelected = visibleColumns.length === 0;
-  const handleSelectAll = () => setVisibleColumns(COLUMN_OPTIONS.map(col => col.key));
-  const handleDeselectAll = () => setVisibleColumns([]);
+  const backendurl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      setError(null);
-      setIsLoading(true);
-      try {
-        const backendurl = import.meta.env.VITE_BACKEND_URL;
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found. Please login again.');
-        }
-        const response = await fetch(`${backendurl}/api/students`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message ||
-            `Network response was not ok (status: ${response.status})`
-          );
-        }
-        const data = await response.json();
-        setStudents(data.sort((a, b) => a.lastName.localeCompare(b.lastName)));
-      } catch (err) {
-        console.error("Failed to fetch students:", err);
-        setError(err.message);
-        // If token is invalid, redirect to login
-        if (err.message.includes('token') || err.message.includes('authentication')) {
-          window.location.href = '/admin/login';
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchStudents();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('studentListVisibleColumns', JSON.stringify(visibleColumns));
-  }, [visibleColumns]);
+    filterStudents();
+  }, [students, searchTerm, filterGrade, filterTrack, filterSection]);
 
-  const filteredStudents = students.filter((student) => {
-    const searchLower = searchTerm.toLowerCase();
-    const searchMatch =
-      (student.firstName?.toLowerCase().includes(searchLower) ?? false) ||
-      (student.lastName?.toLowerCase().includes(searchLower) ?? false) ||
-      student.studentId?.toString().includes(searchTerm);
+  // Close column dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showColumnDropdown && !event.target.closest('.relative')) {
+        setShowColumnDropdown(false);
+      }
+    };
 
-    const strandMatch = !filterStrand || student.strand === filterStrand;
-    const yearLevelMatch =
-      !filterYearLevel || student.yearLevel === filterYearLevel;
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showColumnDropdown]);
 
-    return searchMatch && strandMatch && yearLevelMatch;
-  });
-
-  const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(
-    indexOfFirstStudent,
-    indexOfLastStudent
-  );
-
-  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Delete handler
-  const handleDelete = async (studentId) => {
-    if (!window.confirm("Are you sure you want to delete this student?")) return;
+  const fetchStudents = async () => {
     try {
-      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      setLoading(true);
+      setError("");
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendurl}/api/students/${studentId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${backendurl}/api/admin/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      if (!response.ok) throw new Error('Failed to delete student');
-      setStudents(students => students.filter(s => s.studentId !== studentId));
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch students');
+      }
+
+      const data = await response.json();
+      console.log('Student data received:', data[0]); // Debug: see student structure
+      setStudents(data);
     } catch (err) {
-      alert(err.message);
+      console.error('Error fetching students:', err);
+      setError(err.message || 'Failed to load students');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Edit handlers
-  const openEditModal = (student) => {
-    setEditStudent(student);
-    setEditForm({ ...student });
-    setEditError("");
-    setEditModalOpen(true);
+  const filterStudents = () => {
+    let filtered = students;
+
+    if (searchTerm) {
+      filtered = filtered.filter(student =>
+        student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.studentId.toString().includes(searchTerm) ||
+        (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    if (filterGrade) {
+      filtered = filtered.filter(student => 
+        student.yearLevel === filterGrade || 
+        student.grade === filterGrade ||
+        (student.yearLevel && student.yearLevel.includes(filterGrade))
+      );
+    }
+
+    if (filterTrack) {
+      filtered = filtered.filter(student => student.track === filterTrack);
+    }
+
+    if (filterSection) {
+      filtered = filtered.filter(student => student.section === filterSection);
+    }
+
+    setFilteredStudents(filtered);
   };
-  const closeEditModal = () => {
-    setEditModalOpen(false);
-    setEditStudent(null);
-    setEditForm({});
-    setEditError("");
+
+  const handleEditStudent = (student) => {
+    setEditingStudent(student._id);
+    setEditForm({
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      grade: student.grade,
+      section: student.section,
+      track: student.track,
+      yearLevel: student.yearLevel
+    });
   };
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm(f => ({ ...f, [name]: value }));
-  };
-  const handleEditSave = async () => {
-    setEditLoading(true);
-    setEditError("");
+
+  const handleSaveEdit = async () => {
     try {
-      const backendurl = import.meta.env.VITE_BACKEND_URL;
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendurl}/api/students/${editStudent.studentId}`, {
+      const response = await fetch(`${backendurl}/api/admin/students/${editingStudent}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(editForm)
       });
+
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to update student');
+        throw new Error('Failed to update student');
       }
-      // Update the list
-      setStudents(students => students.map(s => s.studentId === editStudent.studentId ? { ...s, ...editForm } : s));
-      closeEditModal();
+
+      await fetchStudents();
+      setEditingStudent(null);
+      setEditForm({});
     } catch (err) {
-      setEditError(err.message);
-    } finally {
-      setEditLoading(false);
+      console.error('Error updating student:', err);
+      setError(err.message || 'Failed to update student');
     }
   };
+
+  const handleDeleteStudent = async (studentId) => {
+    if (!window.confirm('Are you sure you want to delete this student?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendurl}/api/admin/students/${studentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete student');
+      }
+
+      await fetchStudents();
+    } catch (err) {
+      console.error('Error deleting student:', err);
+      setError(err.message || 'Failed to delete student');
+    }
+  };
+
+  const handleSelectStudent = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleSelectAllStudents = () => {
+    if (selectedStudents.length === filteredStudents.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(filteredStudents.map(student => student._id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStudents.length === 0) {
+      alert('No students selected');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedStudents.length} students?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendurl}/api/admin/students/bulk-delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ studentIds: selectedStudents })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete students');
+      }
+
+      await fetchStudents();
+      setSelectedStudents([]);
+    } catch (err) {
+      console.error('Error deleting students:', err);
+      setError(err.message || 'Failed to delete students');
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterGrade("");
+    setFilterTrack("");
+    setFilterSection("");
+  };
+
+  const getUniqueValues = (key) => {
+    const values = students.map(student => student[key]).filter(value => value !== null && value !== undefined && value !== '');
+    const uniqueValues = [...new Set(values)];
+    console.log(`Unique values for ${key}:`, uniqueValues); // Debug
+    return uniqueValues;
+  };
+
+  const toggleColumn = (columnKey) => {
+    setVisibleColumns(prev => 
+      prev.includes(columnKey) 
+        ? prev.filter(col => col !== columnKey)
+        : [...prev, columnKey]
+    );
+  };
+
+  const isColumnVisible = (columnKey) => {
+    return visibleColumns.includes(columnKey);
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center items-center py-8">
+            <div className="loading loading-spinner loading-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -191,65 +287,60 @@ const StudentList = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-primary">Student List</h1>
-            <div className="flex gap-2">
-              <div className="relative group">
+        <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">Student List</h1>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="relative">
                 <button
-                  className="btn btn-secondary btn-sm gap-2"
+                  className="btn btn-secondary btn-sm gap-2 w-full sm:w-auto"
+                  onClick={() => setShowColumnDropdown(!showColumnDropdown)}
                   aria-label="Show/Hide Columns"
                   title="Show/Hide Columns"
-                  onClick={() => setShowColumnDropdown(v => !v)}
                 >
-                  <MdVisibility className="w-5 h-5" />
-                  Columns
+                  <MdVisibility className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">Columns</span>
+                  <span className="sm:hidden">Cols</span>
                 </button>
+                
                 {showColumnDropdown && (
-                  <div className="absolute right-0 mt-2 bg-base-100 border border-base-300 rounded shadow-lg z-50 p-4 min-w-[220px] w-max animate-fade-in">
-                    <div className="font-semibold mb-2 text-base-content">Column Visibility</div>
-                    <div className="flex gap-2 mb-2">
-                      <button
-                        className="btn btn-xs btn-outline"
-                        onClick={handleSelectAll}
-                        disabled={allSelected}
-                      >
-                        Select All
-                      </button>
-                      <button
-                        className="btn btn-xs btn-outline"
-                        onClick={handleDeselectAll}
-                        disabled={noneSelected}
-                      >
-                        Deselect All
-                      </button>
-                    </div>
-                    <div className="max-h-56 overflow-y-auto pr-1">
-                      {COLUMN_OPTIONS.map(col => (
-                        <label key={col.key} className="flex items-center gap-2 cursor-pointer mb-1 px-1 py-1 rounded hover:bg-base-200">
-                          <input
-                            type="checkbox"
-                            checked={visibleColumns.includes(col.key)}
-                            onChange={e => {
-                              setVisibleColumns(v =>
-                                e.target.checked
-                                  ? [...v, col.key]
-                                  : v.filter(k => k !== col.key)
-                              );
-                            }}
-                          />
-                          <span className="text-base-content">{col.label}</span>
-                        </label>
-                      ))}
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-lg shadow-lg border z-50">
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm mb-3">Toggle Columns</h3>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {COLUMN_OPTIONS.map(column => (
+                          <label key={column.key} className="flex items-center gap-2 cursor-pointer hover:bg-base-200 p-1 rounded">
+                            <input
+                              type="checkbox"
+                              className="checkbox checkbox-xs"
+                              checked={isColumnVisible(column.key)}
+                              onChange={() => toggleColumn(column.key)}
+                            />
+                            <span className="text-sm">{column.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="pt-3 mt-3 border-t">
+                        <button 
+                          className="btn btn-xs btn-outline w-full"
+                          onClick={() => setShowColumnDropdown(false)}
+                        >
+                          Close
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
-              <button className="btn btn-primary btn-sm gap-2">
-                <MdAdd className="w-5 h-5" />
-                Add Student
+              <button 
+                className="btn btn-primary btn-sm gap-2 w-full sm:w-auto"
+                onClick={() => navigate('/admin/addstudent')}
+              >
+                <MdAdd className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Add Student</span>
+                <span className="sm:hidden">Add</span>
               </button>
             </div>
           </div>
@@ -266,127 +357,303 @@ const StudentList = () => {
             </details>
           )}
 
-          {/* Search and Filter Section */}
-          <div className="card bg-base-100 p-6 rounded-lg mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Search</span>
-                </label>
-                <div className="relative">
+          {/* Search and Filters */}
+          <div className="card bg-base-100 p-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="form-control flex-1">
+                <div className="input-group">
+                  <span className="bg-base-200">
+                    <MdSearch className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </span>
                   <input
                     type="text"
-                    placeholder="Search by name or ID..."
-                    className="input input-bordered w-full pl-10 bg-base-100"
+                    placeholder="Search students..."
+                    className="input input-bordered flex-1 bg-base-100"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50" />
                 </div>
               </div>
+              
+              <button
+                className="btn btn-outline btn-sm gap-2"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <MdFilterList className="w-4 h-4" />
+                Filters
+              </button>
+            </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Strand</span>
-                </label>
-                <div className="relative">
+            {showFilters && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-base-200 rounded-lg">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Grade</span>
+                  </label>
                   <select
-                    className="select select-bordered w-full pl-10 bg-base-100"
-                    value={filterStrand}
-                    onChange={(e) => setFilterStrand(e.target.value)}
+                    className="select select-bordered select-sm bg-base-100"
+                    value={filterGrade}
+                    onChange={(e) => setFilterGrade(e.target.value)}
                   >
-                    <option value="">All Strands</option>
-                    <option value="ABM">ABM</option>
-                    <option value="STEM">STEM</option>
-                    <option value="HUMSS">HUMSS</option>
-                    <option value="GAS">GAS</option>
-                    <option value="TVL-ICT">TVL-ICT</option>
-                    <option value="TVL-HE">TVL-HE</option>
+                    <option value="">All Grades</option>
+                    {getUniqueValues('yearLevel').map(grade => (
+                      <option key={grade} value={grade}>{grade}</option>
+                    ))}
                   </select>
-                  <MdFilterList className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50" />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Track</span>
+                  </label>
+                  <select
+                    className="select select-bordered select-sm bg-base-100"
+                    value={filterTrack}
+                    onChange={(e) => setFilterTrack(e.target.value)}
+                  >
+                    <option value="">All Tracks</option>
+                    {getUniqueValues('track').map(track => (
+                      <option key={track} value={track}>{track}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Section</span>
+                  </label>
+                  <select
+                    className="select select-bordered select-sm bg-base-100"
+                    value={filterSection}
+                    onChange={(e) => setFilterSection(e.target.value)}
+                  >
+                    <option value="">All Sections</option>
+                    {getUniqueValues('section').map(section => (
+                      <option key={section} value={section}>{section}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Actions</span>
+                  </label>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={clearFilters}
+                  >
+                    Clear All
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Year Level</span>
-                </label>
-                <div className="relative">
-                  <select
-                    className="select select-bordered w-full pl-10 bg-base-100"
-                    value={filterYearLevel}
-                    onChange={(e) => setFilterYearLevel(e.target.value)}
+          {/* Bulk Actions */}
+          {selectedStudents.length > 0 && (
+            <div className="card bg-base-100 p-4 mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <span className="font-medium">{selectedStudents.length} students selected</span>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-error btn-sm gap-2"
+                    onClick={handleBulkDelete}
                   >
-                    <option value="">All Year Levels</option>
-                    <option value="Grade 11">Grade 11</option>
-                    <option value="Grade 12">Grade 12</option>
-                  </select>
-                  <MdFilterList className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50" />
+                    <MdDelete className="w-4 h-4" />
+                    Delete Selected
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Table Section */}
-          <div className="card bg-base-100 p-6 rounded-lg">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-8">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
-              </div>
-            ) : currentStudents.length === 0 ? (
+          {/* Students Table */}
+          <div className="card bg-base-100 p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <h2 className="text-lg font-semibold">
+                Students List ({filteredStudents.length} of {students.length})
+              </h2>
+            </div>
+
+            {filteredStudents.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-base-content/70">No students found</p>
+                <p className="text-base-content/70">No students found matching your criteria.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="table w-full">
+                <table className="table table-zebra w-full">
                   <thead>
                     <tr>
-                      {COLUMN_OPTIONS.filter(col => visibleColumns.includes(col.key)).map(col => (
-                        <th key={col.key}>{col.label}</th>
-                      ))}
-                      <th className="text-right">Actions</th>
+                      <th>
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm"
+                          checked={selectedStudents.length === filteredStudents.length}
+                          onChange={handleSelectAllStudents}
+                        />
+                      </th>
+                      <th>Student ID</th>
+                      {isColumnVisible('firstName') && <th>First Name</th>}
+                      {isColumnVisible('lastName') && <th>Last Name</th>}
+                      {isColumnVisible('email') && <th className="hidden lg:table-cell">Email</th>}
+                      {isColumnVisible('track') && <th className="hidden sm:table-cell">Track</th>}
+                      {isColumnVisible('section') && <th className="hidden lg:table-cell">Section</th>}
+                      {isColumnVisible('yearLevel') && <th className="hidden sm:table-cell">Year Level</th>}
+                      {isColumnVisible('isActive') && <th className="hidden lg:table-cell">Status</th>}
+                      {isColumnVisible('totalPoints') && <th className="hidden lg:table-cell">Points</th>}
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentStudents.map((student) => (
-                      <tr key={student._id} className="hover">
-                        {COLUMN_OPTIONS.filter(col => visibleColumns.includes(col.key)).map(col => {
-                          switch (col.key) {
-                            case 'firstName':
-                              return <td key="firstName">{student.firstName}</td>;
-                            case 'middleName':
-                              return <td key="middleName">{student.middleName}</td>;
-                            case 'lastName':
-                              return <td key="lastName">{student.lastName}</td>;
-                            case 'email':
-                              return <td key="email">{student.email}</td>;
-                            case 'studentId':
-                              return <td key="studentId">{student.studentId}</td>;
-                            case 'track':
-                              return <td key="track">{student.track}</td>;
-                            case 'section':
-                              return <td key="section">{student.section}</td>;
-                            case 'yearLevel':
-                              return <td key="yearLevel">{student.yearLevel}</td>;
-                            case 'isActive':
-                              return <td key="isActive">{student.isActive ? 'Active' : 'Inactive'}</td>;
-                            case 'lastLogin':
-                              return <td key="lastLogin">{student.lastLogin ? new Date(student.lastLogin).toLocaleString() : '-'}</td>;
-                            case 'totalPoints':
-                              return <td key="totalPoints">{student.totalPoints ?? 0}</td>;
-                            default:
-                              return null;
-                          }
-                        })}
-                        <td className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(student)}>
-                              <MdEdit className="w-5 h-5" />
-                            </button>
-                            <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDelete(student.studentId)}>
-                              <MdDelete className="w-5 h-5" />
-                            </button>
+                    {filteredStudents.map((student) => (
+                      <tr key={student._id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="checkbox checkbox-sm"
+                            checked={selectedStudents.includes(student._id)}
+                            onChange={() => handleSelectStudent(student._id)}
+                          />
+                        </td>
+                        <td className="font-mono">{student.studentId}</td>
+                        
+                        {isColumnVisible('firstName') && (
+                          <td>
+                            {editingStudent === student._id ? (
+                              <input
+                                type="text"
+                                className="input input-xs input-bordered"
+                                value={editForm.firstName}
+                                onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
+                                placeholder="First Name"
+                              />
+                            ) : (
+                              student.firstName
+                            )}
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('lastName') && (
+                          <td>
+                            {editingStudent === student._id ? (
+                              <input
+                                type="text"
+                                className="input input-xs input-bordered"
+                                value={editForm.lastName}
+                                onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
+                                placeholder="Last Name"
+                              />
+                            ) : (
+                              student.lastName
+                            )}
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('email') && (
+                          <td className="hidden lg:table-cell">
+                            <span className="text-xs">{student.email}</span>
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('track') && (
+                          <td className="hidden sm:table-cell">
+                            {editingStudent === student._id ? (
+                              <select
+                                className="select select-xs select-bordered"
+                                value={editForm.track}
+                                onChange={(e) => setEditForm({...editForm, track: e.target.value})}
+                              >
+                                <option value="Academic Track">Academic Track</option>
+                                <option value="Technical-Professional Track">Technical-Professional Track</option>
+                              </select>
+                            ) : (
+                              <span className="text-xs">{student.track}</span>
+                            )}
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('section') && (
+                          <td className="hidden lg:table-cell">
+                            {editingStudent === student._id ? (
+                              <input
+                                type="text"
+                                className="input input-xs input-bordered"
+                                value={editForm.section}
+                                onChange={(e) => setEditForm({...editForm, section: e.target.value})}
+                              />
+                            ) : (
+                              student.section
+                            )}
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('yearLevel') && (
+                          <td className="hidden sm:table-cell">
+                            {editingStudent === student._id ? (
+                              <select
+                                className="select select-xs select-bordered"
+                                value={editForm.yearLevel || editForm.grade}
+                                onChange={(e) => setEditForm({...editForm, yearLevel: e.target.value, grade: e.target.value})}
+                              >
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                              </select>
+                            ) : (
+                              student.yearLevel
+                            )}
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('isActive') && (
+                          <td className="hidden lg:table-cell">
+                            <span className={`badge badge-xs ${student.isActive ? 'badge-success' : 'badge-error'}`}>
+                              {student.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        )}
+                        
+                        {isColumnVisible('totalPoints') && (
+                          <td className="hidden lg:table-cell">
+                            <span className="font-mono text-xs">{student.totalPoints || 0}</span>
+                          </td>
+                        )}
+                        
+                        <td>
+                          <div className="flex gap-1">
+                            {editingStudent === student._id ? (
+                              <>
+                                <button
+                                  className="btn btn-success btn-xs"
+                                  onClick={handleSaveEdit}
+                                >
+                                  <MdCheck className="w-3 h-3" />
+                                </button>
+                                <button
+                                  className="btn btn-ghost btn-xs"
+                                  onClick={() => setEditingStudent(null)}
+                                >
+                                  <MdClose className="w-3 h-3" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  className="btn btn-ghost btn-xs"
+                                  onClick={() => handleEditStudent(student)}
+                                >
+                                  <MdEdit className="w-3 h-3" />
+                                </button>
+                                <button
+                                  className="btn btn-ghost btn-xs text-error"
+                                  onClick={() => handleDeleteStudent(student._id)}
+                                >
+                                  <MdDelete className="w-3 h-3" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -395,70 +662,9 @@ const StudentList = () => {
                 </table>
               </div>
             )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-6">
-                <button
-                  className="btn btn-sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                <div className="join">
-                  {[...Array(totalPages)].map((_, index) => (
-                    <button
-                      key={index}
-                      className={`join-item btn btn-sm ${currentPage === index + 1 ? "btn-active" : ""
-                        }`}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  className="btn btn-sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
-
-      {/* Edit Modal */}
-      {editModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
-            <button className="absolute top-2 right-2 btn btn-ghost btn-sm" onClick={closeEditModal}>
-              <MdClose className="w-5 h-5" />
-            </button>
-            <h2 className="text-xl font-bold mb-4">Edit Student</h2>
-            {editError && <div className="alert alert-error mb-2"><span>{editError}</span></div>}
-            <form onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
-              <div className="grid grid-cols-1 gap-3">
-                <input type="text" name="firstName" value={editForm.firstName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="First Name" required />
-                <input type="text" name="middleName" value={editForm.middleName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Middle Name" />
-                <input type="text" name="lastName" value={editForm.lastName || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Last Name" required />
-                <input type="email" name="email" value={editForm.email || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Email" required />
-                <input type="text" name="studentId" value={editForm.studentId || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Student ID" required disabled />
-                <input type="text" name="track" value={editForm.track || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Track" required />
-                <input type="text" name="section" value={editForm.section || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Section" required />
-                <input type="text" name="yearLevel" value={editForm.yearLevel || ''} onChange={handleEditChange} className="input input-bordered" placeholder="Year Level" required />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" className="btn btn-ghost" onClick={closeEditModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save'}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

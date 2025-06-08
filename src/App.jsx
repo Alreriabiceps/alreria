@@ -40,6 +40,8 @@ import QuestionList from "./users/admin/pages/questions/QuestionList.jsx";
 import WeekSchedule from "./users/admin/pages/weeks/WeekSchedule.jsx";
 import CurrentSchedules from "./users/admin/pages/weeks/CurrentSchedules";
 import ReviewerLinks from "./users/admin/pages/reviewer/ReviewerLinks.jsx";
+import Analytics from "./users/admin/pages/reports/Analytics.jsx";
+import StudentPerformanceDetail from "./users/admin/pages/reports/StudentPerformanceDetail.jsx";
 
 const App = () => {
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
@@ -104,6 +106,8 @@ const App = () => {
               <Route path="addstudent" element={<AddStudents />} />
               <Route path="studentlist" element={<StudentList />} />
               <Route path="reviewer-links" element={<ReviewerLinks />} />
+              <Route path="reports" element={<Analytics />} />
+              <Route path="reports/student/:studentId" element={<StudentPerformanceDetail />} />
             </Route>
 
             {/* Redirect root to appropriate dashboard */}
