@@ -576,13 +576,13 @@ const AddQuestions = () => {
               Clear Draft
             </button>
           )}
-          <button
+              <button
             className="btn btn-primary btn-sm"
-            onClick={() => setShowAIModal(true)}
-          >
+                onClick={() => setShowAIModal(true)}
+              >
             <FaRegLightbulb className="w-4 h-4" />
             AI Generate
-          </button>
+              </button>
         </div>
       </div>
 
@@ -620,7 +620,7 @@ const AddQuestions = () => {
 
       {/* Navigation Tabs */}
       <div className="tabs tabs-boxed mb-6 bg-base-200">
-        <button
+              <button
           className={`tab tab-lg ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
@@ -630,10 +630,10 @@ const AddQuestions = () => {
         <button
           className={`tab tab-lg ${activeTab === 'create' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('create')}
-        >
+              >
           <MdViewList className="w-4 h-4 mr-2" />
           Create Questions ({questions.length})
-        </button>
+              </button>
       </div>
 
       {/* Dashboard Tab */}
@@ -704,8 +704,8 @@ const AddQuestions = () => {
                 ) : (
                   <div className="text-center py-8 text-base-content/50">
                     No questions created yet
-                  </div>
-                )}
+            </div>
+          )}
               </div>
             </div>
 
@@ -767,24 +767,24 @@ const AddQuestions = () => {
 
       {/* Create Questions Tab */}
       {activeTab === 'create' && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Select Subject</span>
-            </label>
-            <select
-              className="select select-bordered w-full bg-base-100"
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-            >
-              <option value="">-- Choose a Subject --</option>
-              {subjects.map((subject) => (
-                <option key={subject._id} value={subject._id}>
-                  {subject.subject}
-                </option>
-              ))}
-            </select>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Select Subject</span>
+              </label>
+              <select
+                className="select select-bordered w-full bg-base-100"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+              >
+                <option value="">-- Choose a Subject --</option>
+                {subjects.map((subject) => (
+                  <option key={subject._id} value={subject._id}>
+                    {subject.subject}
+                  </option>
+                ))}
+              </select>
+            </div>
 
           {selectedSubject && (
             <>
@@ -795,15 +795,15 @@ const AddQuestions = () => {
                   const similarQuestions = findSimilarQuestions(question);
                   
                   return (
-                    <div 
-                      key={index} 
+                <div
+                  key={index}
                       className={`card p-4 sm:p-6 transition-all border-2 ${
                         currentQuestionIndex === index ? 'bg-primary/5 border-primary/20' : 
                         quality.grade === 'excellent' ? 'bg-success/5 border-success/20' :
                         quality.grade === 'good' ? 'bg-warning/5 border-warning/20' :
                         'bg-error/5 border-error/20'
                       }`}
-                    >
+                >
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                         <div className="flex items-center gap-3">
                           <div className="badge badge-primary">
@@ -824,17 +824,17 @@ const AddQuestions = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          {questions.length > 1 && (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm text-error"
+                    {questions.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm text-error"
                               onClick={() => handleRemoveQuestion(index)}
-                            >
+                      >
                               <MdDelete className="w-4 h-4" />
-                            </button>
-                          )}
+                      </button>
+                    )}
                         </div>
-                      </div>
+                  </div>
 
                       {/* Quality Feedback */}
                       {quality.feedback.length > 0 && (
@@ -856,48 +856,48 @@ const AddQuestions = () => {
                           <label className="label">
                             <span className="label-text font-medium">Question Text</span>
                           </label>
-                          <textarea
+                    <textarea
                             className="textarea textarea-bordered h-20 bg-base-100"
                             placeholder="Enter your question here..."
                             value={question.questionText}
-                            onChange={(e) => handleQuestionChange(index, "questionText", e.target.value)}
+                      onChange={(e) => handleQuestionChange(index, "questionText", e.target.value)}
                             onFocus={() => setCurrentQuestionIndex(index)}
-                          />
-                        </div>
+                    />
+                  </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="form-control">
-                            <label className="label">
-                              <span className="label-text font-medium">Question Type</span>
-                            </label>
-                            <select
+                    <label className="label">
+                      <span className="label-text font-medium">Question Type</span>
+                    </label>
+                    <select
                               className="select select-bordered bg-base-100"
                               value={question.questionType}
-                              onChange={(e) => handleQuestionChange(index, "questionType", e.target.value)}
-                            >
-                              <option value="multiple_choice">Multiple Choice</option>
+                      onChange={(e) => handleQuestionChange(index, "questionType", e.target.value)}
+                    >
+                      <option value="multiple_choice">Multiple Choice</option>
                               <option value="true_false">True/False</option>
-                            </select>
-                          </div>
+                    </select>
+                  </div>
 
                           <div className="form-control">
-                            <label className="label">
-                              <span className="label-text font-medium">Bloom's Taxonomy Level</span>
-                            </label>
-                            <select
+                    <label className="label">
+                      <span className="label-text font-medium">Bloom's Taxonomy Level</span>
+                    </label>
+                    <select
                               className="select select-bordered bg-base-100"
                               value={question.bloomsLevel}
-                              onChange={(e) => handleQuestionChange(index, "bloomsLevel", e.target.value)}
-                            >
+                      onChange={(e) => handleQuestionChange(index, "bloomsLevel", e.target.value)}
+                    >
                               <option value="">Select Level</option>
                               {BLOOMS_LEVELS.map((level) => (
                                 <option key={level} value={level}>
                                   {level}
                                 </option>
-                              ))}
-                            </select>
+                      ))}
+                    </select>
                           </div>
-                        </div>
+                  </div>
 
                         {/* Answer Choices */}
                         <div className="form-control">
@@ -911,17 +911,17 @@ const AddQuestions = () => {
                                   <span className="badge badge-outline">
                                     {String.fromCharCode(65 + choiceIndex)}
                                   </span>
-                                  <input
-                                    type="text"
+                        <input
+                          type="text"
                                     className="input input-bordered flex-1 bg-base-100"
                                     placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
-                                    value={choice}
-                                    onChange={(e) =>
-                                      handleQuestionChange(index, "choices", {
-                                        choiceIndex,
-                                        choiceValue: e.target.value,
-                                      })
-                                    }
+                          value={choice}
+                          onChange={(e) =>
+                            handleQuestionChange(index, "choices", {
+                              choiceIndex,
+                              choiceValue: e.target.value,
+                            })
+                          }
                                     disabled={question.questionType === "true_false"}
                                   />
                                   <input
@@ -933,20 +933,20 @@ const AddQuestions = () => {
                                     disabled={!choice}
                                   />
                                 </div>
-                              </div>
-                            ))}
-                          </div>
+                      </div>
+                    ))}
+                  </div>
                           <div className="label">
                             <span className="label-text-alt text-base-content/70">
                               Select the radio button next to the correct answer
                             </span>
-                          </div>
+                </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
+            </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 mt-6">
@@ -972,22 +972,22 @@ const AddQuestions = () => {
 
                 {/* Save Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="submit"
+              <button
+                type="submit"
                     className="btn btn-primary gap-2 flex-1"
-                    disabled={isSubmitting}
-                  >
+                disabled={isSubmitting}
+              >
                     <MdSave className="w-4 h-4" />
                     {isSubmitting ? "Submitting..." : "Submit All Questions"}
-                  </button>
-                </div>
+              </button>
+            </div>
               </div>
             </>
                     )}
-        </form>
+          </form>
       )}
 
-      {/* Unified AI Modal */}
+          {/* Unified AI Modal */}
           {showAIModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
               <div className="absolute inset-0 backdrop-blur-sm bg-black/40 -z-10"></div>
@@ -1299,8 +1299,8 @@ const AddQuestions = () => {
               </div>
             </div>
           )}
-      </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default AddQuestions;

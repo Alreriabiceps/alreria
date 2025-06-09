@@ -188,7 +188,7 @@ const CurrentSchedules = () => {
   // Enhanced filtering and sorting
   const filteredAndSortedSchedules = useMemo(() => {
     let filtered = schedules.filter(schedule => {
-      const weekMatch = !selectedWeek || schedule.weekNumber === parseInt(selectedWeek);
+    const weekMatch = !selectedWeek || schedule.weekNumber === parseInt(selectedWeek);
       const subjectMatch = !selectedSubject || schedule.subjectId?._id === selectedSubject;
       const statusMatch = statusFilter === 'all' || 
         (statusFilter === 'active' && schedule.isActive) ||
@@ -198,7 +198,7 @@ const CurrentSchedules = () => {
         schedule.weekNumber.toString().includes(searchTerm);
       
       return weekMatch && subjectMatch && statusMatch && searchMatch;
-    });
+  });
 
     // Add computed fields for sorting
     filtered = filtered.map(schedule => ({
@@ -443,7 +443,7 @@ const CurrentSchedules = () => {
       setSchedules(prev => {
         const updated = prev.map(schedule =>
           schedule._id === scheduleId ? updatedSchedule : schedule
-        );
+      );
         saveToLocalStorage({ schedules: updated });
         return updated;
       });
@@ -580,7 +580,7 @@ const CurrentSchedules = () => {
   };
 
   if (isLoading) {
-    return (
+  return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <span className="loading loading-spinner loading-lg"></span>
@@ -854,27 +854,27 @@ const CurrentSchedules = () => {
                  
                  {showFilters && (
                    <div className="flex flex-wrap gap-2">
-                     <select 
+                <select
                        className="select select-bordered select-sm"
-                       value={selectedWeek}
-                       onChange={(e) => setSelectedWeek(e.target.value)}
-                     >
-                       <option value="">All Weeks</option>
-                       {[...Array(52)].map((_, i) => (
+                  value={selectedWeek}
+                  onChange={(e) => setSelectedWeek(e.target.value)}
+                >
+                  <option value="">All Weeks</option>
+                  {[...Array(52)].map((_, i) => (
                          <option key={i + 1} value={i + 1}>Week {i + 1}</option>
-                       ))}
-                     </select>
+                  ))}
+                </select>
                      
-                     <select 
+                <select
                        className="select select-bordered select-sm"
-                       value={selectedSubject}
-                       onChange={(e) => setSelectedSubject(e.target.value)}
-                     >
-                       <option value="">All Subjects</option>
-                       {subjects.map((subject) => (
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map((subject) => (
                          <option key={subject._id} value={subject._id}>{subject.subject}</option>
-                       ))}
-                     </select>
+                  ))}
+                </select>
                      
                      <select 
                        className="select select-bordered select-sm"
@@ -923,9 +923,9 @@ const CurrentSchedules = () => {
                      </div>
                    </div>
                  )}
-               </div>
-             </div>
-           </div>
+              </div>
+            </div>
+          </div>
 
            {/* Bulk Operations */}
            {selectedSchedules.length > 0 && (
@@ -998,7 +998,7 @@ const CurrentSchedules = () => {
                          <div>
                            <h3 className="font-medium text-sm">Week {schedule.weekNumber}</h3>
                            <p className="text-xs text-base-content/70">{schedule.subjectName}</p>
-                         </div>
+            </div>
                        </div>
                        
                        <div className="dropdown dropdown-end">
@@ -1026,16 +1026,16 @@ const CurrentSchedules = () => {
                              </button>
                            </li>
                          </ul>
-                       </div>
+            </div>
                      </div>
                      
                      <div className="flex flex-wrap gap-1 mb-3">
                        <div className={`badge badge-sm ${schedule.isActive ? 'badge-success' : 'badge-error'}`}>
                          {schedule.isActive ? 'Active' : 'Inactive'}
-                       </div>
+            </div>
                        <div className="badge badge-primary badge-sm">
                          {schedule.questionCount} questions
-                       </div>
+            </div>
                      </div>
                      
                      <div className="text-xs text-base-content/60">
@@ -1051,10 +1051,10 @@ const CurrentSchedules = () => {
            {viewMode === 'table' && (
              <div className="card bg-base-100 shadow">
                <div className="card-body p-0">
-                 <div className="overflow-x-auto">
-                   <table className="table w-full">
-                     <thead>
-                       <tr>
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
                          <th>
                            <label>
                              <input 
@@ -1065,17 +1065,17 @@ const CurrentSchedules = () => {
                              />
                            </label>
                          </th>
-                         <th>Week</th>
-                         <th>Subject</th>
-                         <th>Questions</th>
-                         <th>Status</th>
+                    <th>Week</th>
+                    <th>Subject</th>
+                    <th>Questions</th>
+                    <th>Status</th>
                          <th>Created</th>
-                         <th>Actions</th>
-                       </tr>
-                     </thead>
-                     <tbody>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
                        {filteredAndSortedSchedules.map((schedule) => (
-                         <tr key={schedule._id}>
+                      <tr key={schedule._id}>
                            <th>
                              <label>
                                <input 
@@ -1101,11 +1101,11 @@ const CurrentSchedules = () => {
                            <td>
                              <div className="badge badge-primary">{schedule.questionCount}</div>
                            </td>
-                           <td>
+                        <td>
                              <div className={`badge ${schedule.isActive ? 'badge-success' : 'badge-error'}`}>
-                               {schedule.isActive ? 'Active' : 'Inactive'}
+                            {schedule.isActive ? 'Active' : 'Inactive'}
                              </div>
-                           </td>
+                        </td>
                            <td>
                              <div className="text-sm text-base-content/70">
                                {schedule.createdAt ? new Date(schedule.createdAt).toLocaleDateString() : 'Unknown'}
@@ -1113,34 +1113,34 @@ const CurrentSchedules = () => {
                            </td>
                            <td>
                              <div className="flex gap-2">
-                               <button
-                                 onClick={() => handleToggleActive(schedule._id)}
+                          <button
+                            onClick={() => handleToggleActive(schedule._id)}
                                  className={`btn btn-sm ${schedule.isActive ? 'btn-warning' : 'btn-success'}`}
-                               >
+                          >
                                  {schedule.isActive ? <MdPause className="w-4 h-4" /> : <MdPlayArrow className="w-4 h-4" />}
-                               </button>
-                               <button
-                                 onClick={() => handleEditSchedule(schedule)}
+                          </button>
+                          <button
+                            onClick={() => handleEditSchedule(schedule)}
                                  className="btn btn-ghost btn-sm"
-                               >
-                                 <MdEdit className="w-4 h-4" />
-                               </button>
-                               <button
-                                 onClick={() => handleDeleteSchedule(schedule._id)}
+                          >
+                            <MdEdit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSchedule(schedule._id)}
                                  className="btn btn-ghost btn-sm text-error"
-                               >
-                                 <MdDelete className="w-4 h-4" />
-                               </button>
+                          >
+                            <MdDelete className="w-4 h-4" />
+                          </button>
                              </div>
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
+                        </td>
+                      </tr>
+                  ))}
+                </tbody>
+              </table>
                  </div>
                </div>
-             </div>
-           )}
+            </div>
+          )}
 
            {filteredAndSortedSchedules.length === 0 && (
              <div className="text-center py-12">
@@ -1158,9 +1158,9 @@ const CurrentSchedules = () => {
                  <MdCalendarToday className="w-4 h-4" />
                  Create Schedule
                </button>
-             </div>
+        </div>
            )}
-         </div>
+      </div>
        )}
 
                      {/* Enhanced Edit Modal */}
@@ -1181,60 +1181,60 @@ const CurrentSchedules = () => {
           <form onSubmit={handleUpdateSchedule} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
-                <label className="label">
+              <label className="label">
                   <span className="label-text font-medium flex items-center gap-2">
                     <MdCalendarToday className="w-4 h-4" />
                     Week Number
                   </span>
-                </label>
-                <input
-                  type="number"
-                  className="input input-bordered w-full bg-base-100"
-                  value={editWeekNumber}
-                  onChange={(e) => setEditWeekNumber(e.target.value)}
-                  min="1"
-                  max="52"
-                  required
+              </label>
+              <input
+                type="number"
+                className="input input-bordered w-full bg-base-100"
+                value={editWeekNumber}
+                onChange={(e) => setEditWeekNumber(e.target.value)}
+                min="1"
+                max="52"
+                required
                   placeholder="1-52"
-                />
+              />
                 <label className="label">
                   <span className="label-text-alt text-base-content/50">Academic week number (1-52)</span>
                 </label>
-              </div>
+            </div>
               
               <div className="form-control">
-                <label className="label">
+              <label className="label">
                   <span className="label-text font-medium flex items-center gap-2">
                     <MdBookmark className="w-4 h-4" />
                     Subject
                   </span>
-                </label>
-                <select
-                  className="select select-bordered w-full bg-base-100"
-                  value={editSubject}
-                  onChange={(e) => setEditSubject(e.target.value)}
+              </label>
+              <select
+                className="select select-bordered w-full bg-base-100"
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
                   required
-                >
-                  <option value="">-- Select a Subject --</option>
-                  {subjects.map((subject) => (
-                    <option key={subject._id} value={subject._id}>
-                      {subject.subject}
-                    </option>
-                  ))}
-                </select>
+              >
+                <option value="">-- Select a Subject --</option>
+                {subjects.map((subject) => (
+                  <option key={subject._id} value={subject._id}>
+                    {subject.subject}
+                  </option>
+                ))}
+              </select>
                 <label className="label">
                   <span className="label-text-alt text-base-content/50">Choose the subject for this week</span>
                 </label>
-              </div>
+            </div>
             </div>
             <div className="form-control">
               <div className="flex items-center justify-between">
-                <label className="label">
+              <label className="label">
                   <span className="label-text font-medium flex items-center gap-2">
                     <MdQuiz className="w-4 h-4" />
                     Questions ({editQuestions.length} selected)
                   </span>
-                </label>
+              </label>
                 <div className="text-sm text-base-content/70">
                   {availableQuestions.length} available
                 </div>
@@ -1250,39 +1250,39 @@ const CurrentSchedules = () => {
               <div className="bg-base-100 rounded-lg p-4 max-h-96 overflow-y-auto border">
                 {currentQuestions.length > 0 ? (
                   <div className="space-y-3">
-                    {currentQuestions.map((question) => (
-                      <div
-                        key={question._id}
+                {currentQuestions.map((question) => (
+                  <div
+                    key={question._id}
                         className={`card bg-base-200 hover:bg-base-300 transition-colors ${
                           editQuestions.includes(question._id) ? 'ring-2 ring-primary' : ''
                         }`}
-                      >
+                  >
                         <div className="card-body p-4">
                           <div className="flex items-start gap-3">
-                            <input
-                              type="checkbox"
-                              className="checkbox checkbox-primary mt-1"
-                              checked={editQuestions.includes(question._id)}
-                              onChange={() => handleQuestionSelect(question._id)}
-                            />
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary mt-1"
+                      checked={editQuestions.includes(question._id)}
+                      onChange={() => handleQuestionSelect(question._id)}
+                    />
                             <div className="flex-1">
                               <p className="font-medium text-sm mb-2">{question.questionText}</p>
                               <div className="flex flex-wrap gap-1">
                                 {question.choices && question.choices.map((choice, index) => (
-                                  <span
-                                    key={index}
+                          <span
+                            key={index}
                                     className={`badge badge-sm ${choice === question.correctAnswer
                                       ? "badge-success"
                                       : "badge-outline"
-                                      }`}
-                                  >
-                                    {choice}
-                                    {choice === question.correctAnswer && (
+                              }`}
+                          >
+                            {choice}
+                            {choice === question.correctAnswer && (
                                       <MdCheck className="inline-block ml-1 w-3 h-3" />
-                                    )}
-                                  </span>
-                                ))}
-                              </div>
+                            )}
+                          </span>
+                        ))}
+                      </div>
                               
                               {question.bloomsTaxonomy && (
                                 <div className="mt-2">
@@ -1293,9 +1293,9 @@ const CurrentSchedules = () => {
                               )}
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                    </div>
+                  </div>
+                ))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-base-content/50">

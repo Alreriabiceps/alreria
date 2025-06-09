@@ -132,7 +132,7 @@ const QuestionList = () => {
             headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
+            },
         body: JSON.stringify(editForm)
       });
 
@@ -371,7 +371,7 @@ const QuestionList = () => {
             <p className="text-sm">Use filters to find questions, bulk operations for efficiency, and analytics to understand your question distribution.</p>
           </div>
         </div>
-      )}
+          )}
 
       {/* Alerts */}
           {error && (
@@ -406,7 +406,7 @@ const QuestionList = () => {
         <button
           className={`tab tab-lg ${activeTab === 'list' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('list')}
-        >
+            >
           <MdViewList className="w-4 h-4 mr-2" />
           Questions ({filteredQuestions.length})
         </button>
@@ -546,7 +546,7 @@ const QuestionList = () => {
                         placeholder="Search questions..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                            />
                       <button className="btn btn-square">
                         <MdSearch className="w-5 h-5" />
                       </button>
@@ -835,14 +835,14 @@ const QuestionList = () => {
                               className="btn btn-ghost btn-xs"
                               onClick={() => setPreviewQuestion(question)}
                               title="Preview"
-                            >
+                          >
                               <MdVisibility className="w-4 h-4" />
                           </button>
                           <button
                               className="btn btn-ghost btn-xs text-error"
                             onClick={() => handleDeleteQuestion(question._id)}
                               title="Delete"
-                            >
+                          >
                               <MdDelete className="w-4 h-4" />
                             </button>
                           </div>
@@ -911,7 +911,7 @@ const QuestionList = () => {
                 <h5 className="font-medium mb-2">Choices:</h5>
                       <div className="space-y-2">
                   {previewQuestion.choices?.map((choice, idx) => (
-                    <div 
+                          <div
                       key={idx}
                       className={`flex items-center gap-3 p-3 rounded-lg ${
                         choice === previewQuestion.correctAnswer 

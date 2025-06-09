@@ -24,8 +24,9 @@ import {
   MdLogout,
   MdChevronLeft,
   MdChevronRight,
-  MdNotifications,
-  MdHelp,
+  MdAccountCircle,
+  MdAutoAwesome,
+  MdBolt,
 } from "react-icons/md";
 
 const SideMenu = () => {
@@ -40,6 +41,7 @@ const SideMenu = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -73,55 +75,112 @@ const SideMenu = () => {
       title: "Dashboard",
       path: "/admin/dashboard",
       icon: <MdDashboard />,
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-gradient-to-r from-blue-500/10 to-blue-600/10",
+      hoverColor: "hover:from-blue-500/20 hover:to-blue-600/20",
+      textColor: "text-blue-600 dark:text-blue-400",
+      badge: "overview",
     },
     {
       title: "Content Management",
       icon: <MdBook />,
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+      color: "from-emerald-500 to-emerald-600",
+      bgColor: "bg-gradient-to-r from-emerald-500/10 to-emerald-600/10",
+      hoverColor: "hover:from-emerald-500/20 hover:to-emerald-600/20",
+      textColor: "text-emerald-600 dark:text-emerald-400",
+      badge: "content",
       items: [
-        { title: "Subjects", path: "/admin/subjects", icon: <MdBook /> },
-        { title: "Add Questions", path: "/admin/addquestions", icon: <MdAddCircle /> },
-        { title: "Question List", path: "/admin/questionlist", icon: <MdQuiz /> },
-        { title: "Reviewer Links", path: "/admin/reviewer-links", icon: <MdLink /> },
+        { 
+          title: "Subjects", 
+          path: "/admin/subjects", 
+          icon: <MdBook />,
+          description: "Manage academic subjects"
+        },
+        {
+          title: "Add Questions",
+          path: "/admin/addquestions",
+          icon: <MdAddCircle />,
+          description: "Create new questions"
+        },
+        {
+          title: "Question Bank", 
+          path: "/admin/questionlist",
+          icon: <MdQuiz />,
+          description: "View all questions"
+        },
+        {
+          title: "Reviewer Links",
+          path: "/admin/reviewer-links",
+          icon: <MdLink />,
+          description: "External study materials"
+        },
       ],
     },
     {
       title: "Weekly Tests",
       icon: <MdCalendarToday />,
-      color: "text-purple-500",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-gradient-to-r from-purple-500/10 to-purple-600/10",
+      hoverColor: "hover:from-purple-500/20 hover:to-purple-600/20",
+      textColor: "text-purple-600 dark:text-purple-400",
+      badge: "schedule",
       items: [
-        { title: "Create Schedule", path: "/admin/weeks/schedule", icon: <MdAddCircle /> },
-        { title: "Current Schedules", path: "/admin/weeks/current", icon: <MdCalendarToday /> },
+        {
+          title: "Create Schedule",
+          path: "/admin/weeks/schedule",
+          icon: <MdAddCircle />,
+          description: "Plan weekly assessments"
+        },
+        {
+          title: "Active Schedules", 
+          path: "/admin/weeks/current",
+          icon: <MdCalendarToday />,
+          description: "Current test schedules"
+        },
       ],
     },
     {
       title: "Student Management",
       icon: <MdPeople />,
-      color: "text-orange-500",
-      bgColor: "bg-orange-50 dark:bg-orange-900/20",
+      color: "from-orange-500 to-orange-600",
+      bgColor: "bg-gradient-to-r from-orange-500/10 to-orange-600/10",
+      hoverColor: "hover:from-orange-500/20 hover:to-orange-600/20",
+      textColor: "text-orange-600 dark:text-orange-400",
+      badge: "students",
       items: [
-        { title: "Add Student", path: "/admin/addstudent", icon: <MdAddCircle /> },
-        { title: "Student List", path: "/admin/studentlist", icon: <MdPeople /> },
-        { title: "Bulk Operations", path: "/admin/students/bulk", icon: <MdCloudUpload /> },
+        {
+          title: "Add Student",
+          path: "/admin/addstudent",
+          icon: <MdAddCircle />,
+          description: "Register new students"
+        },
+        {
+          title: "Student Directory", 
+          path: "/admin/studentlist",
+          icon: <MdPeople />,
+          description: "Manage student accounts"
+        },
       ],
     },
     {
       title: "Analytics & Reports",
       path: "/admin/reports",
       icon: <MdBarChart />,
-      color: "text-indigo-500",
-      bgColor: "bg-indigo-50 dark:bg-indigo-900/20",
+      color: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-gradient-to-r from-indigo-500/10 to-indigo-600/10",
+      hoverColor: "hover:from-indigo-500/20 hover:to-indigo-600/20",
+      textColor: "text-indigo-600 dark:text-indigo-400",
+      badge: "insights",
     },
     {
       title: "Settings",
       path: "/admin/settings",
       icon: <MdSettings />,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50 dark:bg-gray-900/20",
+      color: "from-gray-500 to-gray-600",
+      bgColor: "bg-gradient-to-r from-gray-500/10 to-gray-600/10",
+      hoverColor: "hover:from-gray-500/20 hover:to-gray-600/20",
+      textColor: "text-gray-600 dark:text-gray-400",
+      badge: "config",
     },
   ];
 
@@ -130,22 +189,31 @@ const SideMenu = () => {
       title: "Dashboard", 
       path: "/student/dashboard", 
       icon: <MdDashboard />,
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-gradient-to-r from-blue-500/10 to-blue-600/10",
+      hoverColor: "hover:from-blue-500/20 hover:to-blue-600/20",
+      textColor: "text-blue-600 dark:text-blue-400",
+      badge: "home",
     },
     { 
       title: "Weekly Tests", 
       path: "/student/weeklytest", 
       icon: <MdQuiz />,
-      color: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-gradient-to-r from-green-500/10 to-green-600/10",
+      hoverColor: "hover:from-green-500/20 hover:to-green-600/20",
+      textColor: "text-green-600 dark:text-green-400",
+      badge: "tests",
     },
     {
       title: "Leaderboard",
       path: "/student/leaderboard",
       icon: <MdLeaderboard />,
-      color: "text-yellow-500",
-      bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+      color: "from-yellow-500 to-yellow-600",
+      bgColor: "bg-gradient-to-r from-yellow-500/10 to-yellow-600/10",
+      hoverColor: "hover:from-yellow-500/20 hover:to-yellow-600/20",
+      textColor: "text-yellow-600 dark:text-yellow-400",
+      badge: "ranks",
     },
   ];
 
@@ -173,161 +241,249 @@ const SideMenu = () => {
   }, [location.pathname]);
 
   const SidebarContent = ({ isMobile = false }) => (
-    <div className={`flex flex-col h-full ${isMobile ? 'w-full' : ''}`}>
+    <div className={`flex flex-col h-full ${isMobile ? 'w-full' : ''} relative overflow-hidden min-h-screen`}>
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-8 right-3 w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full blur-2xl"></div>
+        <div className="absolute bottom-16 left-3 w-16 h-16 bg-gradient-to-br from-accent to-info rounded-full blur-2xl"></div>
+      </div>
+
       {/* Header */}
-      <div className={`flex items-center justify-between p-4 border-b border-base-300 ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
+      <div className={`relative z-10 flex items-center justify-between p-3 border-b border-base-300/50 backdrop-blur-sm ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
         <div className={`flex items-center gap-3 ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">A</span>
+          <div className="relative group">
+            <div className="w-9 h-9 bg-gradient-to-br from-primary via-secondary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 transition-all duration-300 group-hover:scale-105">
+              <MdAutoAwesome className="text-white text-lg animate-pulse" />
+            </div>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-secondary rounded-xl opacity-20 blur animate-pulse"></div>
           </div>
           {(!isCollapsed || isMobile) && (
             <div className="flex flex-col">
-              <span className="font-bold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <span className="font-black text-lg bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-tight">
                 AGILA
               </span>
-              <span className="text-xs text-base-content/60 -mt-1">Learning Platform</span>
+              <span className="text-xs text-base-content/50 font-medium tracking-wider uppercase -mt-0.5">
+                Learning Hub
+              </span>
             </div>
           )}
         </div>
         {!isMobile && (
           <button
             onClick={toggleCollapse}
-            className="p-2 rounded-lg hover:bg-base-300 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-base-300/60 transition-all duration-300 hover:scale-105 active:scale-95"
             aria-label="Toggle sidebar"
           >
-            {isCollapsed ? <MdChevronRight className="w-5 h-5" /> : <MdChevronLeft className="w-5 h-5" />}
+            {isCollapsed ? 
+              <MdChevronRight className="w-4 h-4 text-base-content/70" /> : 
+              <MdChevronLeft className="w-4 h-4 text-base-content/70" />
+            }
           </button>
         )}
       </div>
 
-      {/* User Info */}
-      <div className={`p-4 border-b border-base-300 ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
+        {/* User Info */}
+      <div className={`relative z-10 p-3 border-b border-base-300/50 ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
         <div className={`flex items-center gap-3 ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
           <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent to-secondary rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              {user?.firstName && user?.lastName ? `${user.firstName[0]}${user.lastName[0]}` : 'A'}
+            <div className="w-10 h-10 bg-gradient-to-br from-accent via-secondary to-primary rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105">
+            {user?.firstName && user?.lastName ? `${user.firstName[0]}${user.lastName[0]}` : 'A'}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-base-100"></div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-gradient-to-br from-success to-green-400 rounded-full border-2 border-base-100 shadow-md animate-pulse"></div>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-accent to-primary rounded-xl opacity-20 blur animate-pulse"></div>
           </div>
           {(!isCollapsed || isMobile) && (
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base-content truncate">
-                {user?.firstName} {user?.lastName}
+              <div className="font-bold text-sm text-base-content truncate leading-tight">
+              {user?.firstName} {user?.lastName}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-base-content/70 capitalize">{user?.role}</span>
-                <span className="px-2 py-0.5 bg-success/20 text-success text-xs rounded-full">Online</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-xs text-base-content/60 capitalize font-medium">{user?.role}</span>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-success/20 to-green-400/20 text-success text-xs rounded-full border border-success/20">
+                  <div className="w-1 h-1 bg-success rounded-full animate-pulse"></div>
+                  <span className="font-medium text-xs">Online</span>
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto">
+        {/* Navigation */}
+      <nav className="flex-1 p-3 overflow-y-auto relative z-10 scrollbar-thin scrollbar-thumb-base-300 scrollbar-track-transparent flex-grow">
         <ul className="space-y-2">
-          {menuItems.map((item, idx) => (
-            <li key={idx}>
-              {item.items ? (
+            {menuItems.map((item, idx) => (
+              <li key={idx}>
+                {item.items ? (
                 <div className="space-y-1">
                   <button
                     onClick={() => !isCollapsed && toggleSection(item.title)}
-                    className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all duration-200 group
+                    onMouseEnter={() => setHoveredItem(item.title)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    className={`group relative flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all duration-300 overflow-hidden
                       ${isPathInSection(item.items) 
-                        ? `${item.bgColor} ${item.color} shadow-sm` 
-                        : 'hover:bg-base-300/50'}
+                        ? `${item.bgColor} ${item.textColor} shadow-md shadow-black/5 scale-102` 
+                        : `hover:bg-base-300/50 ${item.hoverColor}`}
                       ${isCollapsed && !isMobile ? 'justify-center' : ''}
                     `}
                   >
-                    <span className={`text-xl ${isPathInSection(item.items) ? item.color : 'text-base-content/70'} group-hover:scale-110 transition-transform`}>
-                      {item.icon}
-                    </span>
-                    {(!isCollapsed || isMobile) && (
-                      <>
-                        <span className="font-medium flex-1">{item.title}</span>
-                        <span className={`transition-transform duration-200 ${expandedSections[item.title] ? 'rotate-180' : ''}`}>
-                          <MdExpandMore className="w-5 h-5" />
-                        </span>
-                      </>
+                    {/* Background Gradient on Hover */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                    
+                    <div className="relative z-10 flex items-center gap-3 w-full">
+                      <span className={`text-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
+                        ${isPathInSection(item.items) ? item.textColor : 'text-base-content/70'}`}>
+                        {item.icon}
+                      </span>
+                      {(!isCollapsed || isMobile) && (
+                        <>
+                          <div className="flex-1">
+                            <span className="font-semibold text-sm">{item.title}</span>
+                            {item.badge && (
+                              <div className="mt-0.5">
+                                <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full bg-gradient-to-r ${item.color} text-white/90`}>
+                                  {item.badge}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <span className={`transition-all duration-300 ${expandedSections[item.title] ? 'rotate-180' : ''}`}>
+                            <MdExpandMore className="w-4 h-4" />
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && !isMobile && hoveredItem === item.title && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-base-content text-base-100 text-xs rounded-md shadow-xl z-50 whitespace-nowrap">
+                        {item.title}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-2 border-transparent border-r-base-content"></div>
+                      </div>
                     )}
                   </button>
+                  
                   {(!isCollapsed || isMobile) && (
-                    <div className={`overflow-hidden transition-all duration-300 ${expandedSections[item.title] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                      <ul className="ml-4 pl-4 border-l-2 border-base-300 space-y-1">
-                        {item.items.map((subItem, subIdx) => (
-                          <li key={subIdx}>
-                            <button
-                              onClick={() => handleNavigation(subItem.path)}
-                              className={`flex items-center gap-3 w-full text-left p-2.5 rounded-lg transition-all duration-200 group
-                                ${isActive(subItem.path)
-                                  ? 'bg-primary text-primary-content shadow-md translate-x-1'
-                                  : 'hover:bg-base-300/50 hover:translate-x-1'}
+                    <div className={`overflow-hidden transition-all duration-400 ${expandedSections[item.title] ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <ul className="ml-4 space-y-1 relative">
+                        {/* Connecting Line */}
+                        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-base-300 via-base-300/50 to-transparent"></div>
+                        
+                      {item.items.map((subItem, subIdx) => (
+                          <li key={subIdx} className="relative">
+                          <button
+                            onClick={() => handleNavigation(subItem.path)}
+                              onMouseEnter={() => setHoveredItem(subItem.path)}
+                              onMouseLeave={() => setHoveredItem(null)}
+                              className={`group relative flex items-center gap-3 w-full text-left p-2.5 rounded-lg transition-all duration-300 overflow-hidden
+                              ${isActive(subItem.path)
+                                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md shadow-primary/25 translate-x-1'
+                                  : 'hover:bg-base-300/60 hover:translate-x-1'}
                               `}
                             >
-                              <span className={`text-lg ${isActive(subItem.path) ? 'text-primary-content' : 'text-base-content/60'} group-hover:scale-110 transition-transform`}>
+                              {/* Active Indicator */}
+                              <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-gradient-to-b from-primary to-secondary rounded-r-full transition-all duration-300
+                                ${isActive(subItem.path) ? 'opacity-100 -translate-x-2' : 'opacity-0'}`}></div>
+                              
+                              <span className={`text-sm transition-all duration-300 group-hover:scale-110
+                                ${isActive(subItem.path) ? 'text-white' : 'text-base-content/60'}`}>
                                 {subItem.icon}
                               </span>
-                              <span className="text-sm font-medium">{subItem.title}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                              <div className="flex-1">
+                                <span className={`font-medium text-xs transition-colors duration-300
+                                  ${isActive(subItem.path) ? 'text-white' : 'text-base-content'}`}>
+                                  {subItem.title}
+                                </span>
+                                {subItem.description && (
+                                  <p className={`text-xs mt-0.5 transition-colors duration-300 leading-tight
+                                    ${isActive(subItem.path) ? 'text-white/80' : 'text-base-content/50'}`}>
+                                    {subItem.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Tooltip */}
+                              {hoveredItem === subItem.path && (
+                                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-base-content text-base-100 text-xs rounded-md shadow-xl z-50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  {subItem.description || subItem.title}
+                                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-2 border-transparent border-r-base-content"></div>
+                                </div>
+                              )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                     </div>
                   )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => handleNavigation(item.path)}
-                  className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all duration-200 group
-                    ${isActive(item.path)
-                      ? `${item.bgColor} ${item.color} shadow-md scale-105`
-                      : 'hover:bg-base-300/50 hover:scale-102'}
+                ) : (
+                  <button
+                    onClick={() => handleNavigation(item.path)}
+                  onMouseEnter={() => setHoveredItem(item.title)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`group relative flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all duration-300 overflow-hidden
+                      ${isActive(item.path)
+                      ? `${item.bgColor} ${item.textColor} shadow-md shadow-black/5 scale-102`
+                      : `hover:bg-base-300/50 ${item.hoverColor}`}
                     ${isCollapsed && !isMobile ? 'justify-center' : ''}
                   `}
                 >
-                  <span className={`text-xl ${isActive(item.path) ? item.color : 'text-base-content/70'} group-hover:scale-110 transition-transform`}>
-                    {item.icon}
-                  </span>
-                  {(!isCollapsed || isMobile) && (
-                    <span className="font-medium">{item.title}</span>
-                  )}
-                  {isActive(item.path) && (!isCollapsed || isMobile) && (
-                    <div className="ml-auto w-2 h-2 bg-current rounded-full"></div>
-                  )}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
+                  {/* Background Gradient */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                  
+                  <div className="relative z-10 flex items-center gap-3 w-full">
+                    <span className={`text-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
+                      ${isActive(item.path) ? item.textColor : 'text-base-content/70'}`}>
+                      {item.icon}
+                    </span>
+                    {(!isCollapsed || isMobile) && (
+                      <div className="flex-1">
+                        <span className="font-semibold text-sm">{item.title}</span>
+                        {item.badge && (
+                          <div className="mt-0.5">
+                            <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-full bg-gradient-to-r ${item.color} text-white/90`}>
+                              {item.badge}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {isActive(item.path) && (!isCollapsed || isMobile) && (
+                      <div className="w-2 h-2 bg-gradient-to-r from-primary to-secondary rounded-full shadow-md animate-pulse"></div>
+                    )}
+                  </div>
 
-      {/* Bottom Section */}
-      <div className={`p-4 border-t border-base-300 space-y-3 ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
-        {/* Quick Actions */}
-        {(!isCollapsed || isMobile) && (
-          <div className="flex gap-2">
-            <button className="flex-1 p-2 rounded-lg bg-info/10 hover:bg-info/20 text-info transition-colors">
-              <MdNotifications className="w-5 h-5 mx-auto" />
-            </button>
-            <button className="flex-1 p-2 rounded-lg bg-warning/10 hover:bg-warning/20 text-warning transition-colors">
-              <MdHelp className="w-5 h-5 mx-auto" />
-            </button>
-          </div>
-        )}
+                  {/* Tooltip for collapsed state */}
+                  {isCollapsed && !isMobile && hoveredItem === item.title && (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-base-content text-base-100 text-xs rounded-md shadow-xl z-50 whitespace-nowrap">
+                      {item.title}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-2 border-transparent border-r-base-content"></div>
+                    </div>
+                  )}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
 
+      {/* Bottom Section - Fixed at Bottom */}
+      <div className={`relative z-10 p-3 border-t border-base-300/50 space-y-3 backdrop-blur-sm mt-auto flex-shrink-0 ${isCollapsed && !isMobile ? 'px-2' : ''}`}>
         {/* Theme Toggle */}
         <div className={`flex items-center gap-3 ${isCollapsed && !isMobile ? 'justify-center' : 'justify-between'}`}>
           {(!isCollapsed || isMobile) && (
-            <span className="text-sm font-medium text-base-content/70">Theme</span>
+            <span className="text-xs font-semibold text-base-content/70">Theme</span>
           )}
           <button
             onClick={toggleTheme}
-            className={`relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50
-              ${theme === 'dark' ? 'bg-primary' : 'bg-base-300'}`}
+            className={`group relative w-12 h-6 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-primary/20 hover:scale-105 active:scale-95
+              ${theme === 'dark' 
+                ? 'bg-gradient-to-r from-primary to-secondary shadow-md shadow-primary/25' 
+                : 'bg-gradient-to-r from-base-300 to-base-400 shadow-md shadow-gray-300/25'}`}
             aria-label="Toggle theme"
           >
             <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center transition-transform duration-300
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center transition-all duration-500 group-hover:scale-110
                 ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`}
             >
               {theme === 'light' ? 
@@ -338,15 +494,16 @@ const SideMenu = () => {
           </button>
         </div>
 
-        {/* Logout Button */}
+        {/* Sign Out Button */}
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 w-full text-left p-3 text-error hover:bg-error/10 rounded-xl transition-all duration-200 group
+          className={`group relative flex items-center gap-3 w-full text-left p-2.5 text-error hover:bg-gradient-to-r hover:from-error/10 hover:to-red-500/10 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden
             ${isCollapsed && !isMobile ? 'justify-center' : ''}`}
         >
-          <MdLogout className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <div className="absolute inset-0 bg-gradient-to-r from-error to-red-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+          <MdLogout className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12 relative z-10" />
           {(!isCollapsed || isMobile) && (
-            <span className="font-medium">Logout</span>
+            <span className="font-semibold text-sm relative z-10">Sign Out</span>
           )}
         </button>
       </div>
@@ -356,36 +513,43 @@ const SideMenu = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className={`drawer-side transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-72'}`}>
+      <div className={`drawer-side transition-all duration-500 ease-out ${isCollapsed ? 'w-16' : 'w-64'}`}>
         <label htmlFor="my-drawer-2" className="drawer-overlay"></label>
-        <aside className={`hidden lg:flex min-h-screen bg-base-100 text-base-content flex-col shadow-2xl border-r border-base-300/50 backdrop-blur-sm transition-all duration-300
-          ${isCollapsed ? 'w-20' : 'w-72'}`}>
+        <aside className={`hidden lg:flex min-h-screen bg-base-100/95 text-base-content flex-col shadow-2xl border-r border-base-300/30 backdrop-blur-xl relative transition-all duration-500 ease-out
+          ${isCollapsed ? 'w-16' : 'w-64'}`}>
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-base-100 via-base-100/98 to-base-200/50 pointer-events-none"></div>
           <SidebarContent />
-        </aside>
+      </aside>
       </div>
 
       {/* Mobile Menu Toggle Button */}
       <button
         onClick={toggleMobileMenu}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl bg-base-100 text-base-content shadow-lg border border-base-300 hover:scale-105 transition-transform"
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl bg-base-100/90 text-base-content shadow-xl border border-base-300/50 hover:scale-110 active:scale-95 transition-all duration-300 backdrop-blur-xl"
         aria-label="Toggle mobile menu"
       >
-        {isMobileMenuOpen ? <MdClose className="w-6 h-6" /> : <MdMenu className="w-6 h-6" />}
+        <div className="relative">
+          {isMobileMenuOpen ? <MdClose className="w-5 h-5" /> : <MdMenu className="w-5 h-5" />}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 hover:opacity-20 rounded-full transition-opacity duration-300"></div>
+        </div>
       </button>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300" 
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-md z-40 transition-all duration-500" 
           onClick={toggleMobileMenu}
         />
       )}
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 w-80 bg-base-100 text-base-content shadow-2xl border-r border-base-300/50 backdrop-blur-sm transform transition-transform duration-300 ease-out z-50
+        className={`lg:hidden fixed inset-y-0 left-0 w-64 bg-base-100/95 text-base-content shadow-2xl border-r border-base-300/30 backdrop-blur-xl transform transition-all duration-500 ease-out z-50 relative
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-      >
+                    >
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-base-100 via-base-100/98 to-base-200/50 pointer-events-none"></div>
         <SidebarContent isMobile={true} />
       </div>
     </>

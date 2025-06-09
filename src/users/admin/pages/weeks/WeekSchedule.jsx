@@ -175,7 +175,7 @@ const WeekSchedule = () => {
   const [expandedQuestions, setExpandedQuestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  const [activeTab, setActiveTab] = useState("questions");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [showPreview, setShowPreview] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
 

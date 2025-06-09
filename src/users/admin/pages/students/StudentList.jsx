@@ -1,58 +1,142 @@
-import React, { useState, useEffect } from "react";
-import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd, MdVisibility, MdClose, MdCheck } from "react-icons/md";
+import React, { useState, useEffect, useMemo } from "react";
+import { MdSearch, MdFilterList, MdEdit, MdDelete, MdAdd, MdVisibility, MdClose, MdCheck, MdViewList, MdSort, MdFileDownload, MdRefresh, MdArrowUpward, MdArrowDownward } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
 const COLUMN_OPTIONS = [
-  { key: 'firstName', label: 'First Name' },
-  { key: 'middleName', label: 'Middle Name' },
-  { key: 'lastName', label: 'Last Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'studentId', label: 'Student ID' },
-  { key: 'track', label: 'Track' },
-  { key: 'section', label: 'Section' },
-  { key: 'yearLevel', label: 'Year Level' },
-  { key: 'isActive', label: 'Status' },
-  { key: 'lastLogin', label: 'Last Login' },
-  { key: 'totalPoints', label: 'Total Points' },
+  { key: 'firstName', label: 'First Name', sortable: true },
+  { key: 'middleName', label: 'Middle Name', sortable: true },
+  { key: 'lastName', label: 'Last Name', sortable: true },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'studentId', label: 'Student ID', sortable: true },
+  { key: 'track', label: 'Track', sortable: true },
+  { key: 'section', label: 'Section', sortable: true },
+  { key: 'yearLevel', label: 'Year Level', sortable: true },
+  { key: 'isActive', label: 'Status', sortable: true },
+  { key: 'lastLogin', label: 'Last Login', sortable: true },
+  { key: 'totalPoints', label: 'Total Points', sortable: true },
+  { key: 'createdAt', label: 'Created Date', sortable: true },
 ];
 
 const COLUMN_DEFAULTS = [
   'firstName', 'lastName', 'email', 'studentId', 'track', 'section', 'yearLevel', 'isActive', 'totalPoints'
 ];
 
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
 const StudentList = () => {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGrade, setFilterGrade] = useState("");
   const [filterTrack, setFilterTrack] = useState("");
   const [filterSection, setFilterSection] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [visibleColumns, setVisibleColumns] = useState(COLUMN_DEFAULTS);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+  const [viewMode, setViewMode] = useState('table');
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [isExporting, setIsExporting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { guideMode } = useGuideMode();
 
-  const backendurl = import.meta.env.VITE_BACKEND_URL;
+        const backendurl = import.meta.env.VITE_BACKEND_URL;
+
+  // Memoized filtered and sorted students
+  const filteredAndSortedStudents = useMemo(() => {
+    let filtered = students;
+
+    // Apply filters
+    if (searchTerm) {
+      filtered = filtered.filter(student =>
+        student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.studentId.toString().includes(searchTerm) ||
+        (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (student.section && student.section.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    if (filterGrade) {
+      filtered = filtered.filter(student => 
+        student.yearLevel === filterGrade || 
+        student.grade === filterGrade ||
+        (student.yearLevel && student.yearLevel.includes(filterGrade))
+      );
+    }
+
+    if (filterTrack) {
+      filtered = filtered.filter(student => student.track === filterTrack);
+    }
+
+    if (filterSection) {
+      filtered = filtered.filter(student => student.section === filterSection);
+    }
+
+    if (filterStatus) {
+      filtered = filtered.filter(student => 
+        filterStatus === 'active' ? student.isActive : !student.isActive
+      );
+    }
+
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle different data types
+        if (sortConfig.key === 'totalPoints') {
+          aValue = parseInt(aValue) || 0;
+          bValue = parseInt(bValue) || 0;
+        } else if (sortConfig.key === 'createdAt' || sortConfig.key === 'lastLogin') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [students, searchTerm, filterGrade, filterTrack, filterSection, filterStatus, sortConfig]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedStudents.length / itemsPerPage);
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedStudents.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedStudents, currentPage, itemsPerPage]);
 
   useEffect(() => {
     fetchStudents();
   }, []);
 
   useEffect(() => {
-    filterStudents();
-  }, [students, searchTerm, filterGrade, filterTrack, filterSection]);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchTerm, filterGrade, filterTrack, filterSection, filterStatus]);
 
   // Close column dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showColumnDropdown && !event.target.closest('.relative')) {
+      if (showColumnDropdown && !event.target.closest('.column-dropdown')) {
         setShowColumnDropdown(false);
       }
     };
@@ -63,9 +147,10 @@ const StudentList = () => {
     };
   }, [showColumnDropdown]);
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (showRefresh = false) => {
     try {
-      setLoading(true);
+      setLoading(!showRefresh);
+      setRefreshing(showRefresh);
       setError("");
       const token = localStorage.getItem('token');
       if (!token) {
@@ -90,38 +175,16 @@ const StudentList = () => {
       setError(err.message || 'Failed to load students');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const filterStudents = () => {
-    let filtered = students;
-
-    if (searchTerm) {
-      filtered = filtered.filter(student =>
-        student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.studentId.toString().includes(searchTerm) ||
-        (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
-
-    if (filterGrade) {
-      filtered = filtered.filter(student => 
-        student.yearLevel === filterGrade || 
-        student.grade === filterGrade ||
-        (student.yearLevel && student.yearLevel.includes(filterGrade))
-      );
-    }
-
-    if (filterTrack) {
-      filtered = filtered.filter(student => student.track === filterTrack);
-    }
-
-    if (filterSection) {
-      filtered = filtered.filter(student => student.section === filterSection);
-    }
-
-    setFilteredStudents(filtered);
+    setSortConfig({ key, direction });
   };
 
   const handleEditStudent = (student) => {
@@ -196,10 +259,10 @@ const StudentList = () => {
   };
 
   const handleSelectAllStudents = () => {
-    if (selectedStudents.length === filteredStudents.length) {
+    if (selectedStudents.length === paginatedStudents.length) {
       setSelectedStudents([]);
     } else {
-      setSelectedStudents(filteredStudents.map(student => student._id));
+      setSelectedStudents(paginatedStudents.map(student => student._id));
     }
   };
 
@@ -236,17 +299,79 @@ const StudentList = () => {
     }
   };
 
+  const handleBulkStatusChange = async (status) => {
+    if (selectedStudents.length === 0) {
+      alert('No students selected');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendurl}/api/admin/students/bulk-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ studentIds: selectedStudents, isActive: status })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update student status');
+      }
+
+      await fetchStudents();
+      setSelectedStudents([]);
+    } catch (err) {
+      console.error('Error updating student status:', err);
+      setError(err.message || 'Failed to update student status');
+    }
+  };
+
+  const exportToCSV = () => {
+    setIsExporting(true);
+    
+    try {
+      const headers = visibleColumns.map(col => 
+        COLUMN_OPTIONS.find(option => option.key === col)?.label || col
+      );
+      
+      const csvContent = [
+        headers.join(','),
+        ...filteredAndSortedStudents.map(student => 
+          visibleColumns.map(col => {
+            let value = student[col] || '';
+            if (col === 'isActive') value = value ? 'Active' : 'Inactive';
+            return `"${value}"`; // Wrap in quotes to handle commas
+          }).join(',')
+        )
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `students_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const clearFilters = () => {
     setSearchTerm("");
     setFilterGrade("");
     setFilterTrack("");
     setFilterSection("");
+    setFilterStatus("");
+    setSortConfig({ key: '', direction: '' });
   };
 
   const getUniqueValues = (key) => {
     const values = students.map(student => student[key]).filter(value => value !== null && value !== undefined && value !== '');
     const uniqueValues = [...new Set(values)];
-    console.log(`Unique values for ${key}:`, uniqueValues); // Debug
     return uniqueValues;
   };
 
@@ -262,11 +387,82 @@ const StudentList = () => {
     return visibleColumns.includes(columnKey);
   };
 
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) return <MdSort className="w-3 h-3 opacity-50" />;
+    return sortConfig.direction === 'asc' ? 
+      <MdArrowUpward className="w-3 h-3 text-primary" /> : 
+      <MdArrowDownward className="w-3 h-3 text-primary" />;
+  };
+
+  // Student Card Component for mobile view
+  const StudentCard = ({ student }) => (
+    <div className="card bg-base-100 p-4 mb-4 border">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            className="checkbox checkbox-sm"
+            checked={selectedStudents.includes(student._id)}
+            onChange={() => handleSelectStudent(student._id)}
+          />
+          <div className="badge badge-primary text-xs">{student.studentId}</div>
+          <span className={`badge badge-xs ${student.isActive ? 'badge-success' : 'badge-error'}`}>
+            {student.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          <button
+            className="btn btn-ghost btn-xs"
+            onClick={() => handleEditStudent(student)}
+          >
+            <MdEdit className="w-3 h-3" />
+          </button>
+          <button
+            className="btn btn-ghost btn-xs text-error"
+            onClick={() => handleDeleteStudent(student._id)}
+          >
+            <MdDelete className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <div>
+          <h3 className="font-semibold text-sm">{student.firstName} {student.lastName}</h3>
+          <p className="text-xs text-base-content/70">{student.email}</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span className="font-medium">Track:</span>
+            <br />
+            <span className="text-base-content/70">{student.track}</span>
+          </div>
+          <div>
+            <span className="font-medium">Section:</span>
+            <br />
+            <span className="text-base-content/70">{student.section}</span>
+          </div>
+          <div>
+            <span className="font-medium">Year Level:</span>
+            <br />
+            <span className="text-base-content/70">{student.yearLevel}</span>
+          </div>
+          <div>
+            <span className="font-medium">Points:</span>
+            <br />
+            <span className="text-base-content/70 font-mono">{student.totalPoints || 0}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-center items-center py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-center items-center py-12">
             <div className="loading loading-spinner loading-lg"></div>
           </div>
         </div>
@@ -276,10 +472,16 @@ const StudentList = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto">
           <div className="alert alert-error">
             <span>{error}</span>
+            <button 
+              className="btn btn-sm"
+              onClick={() => fetchStudents()}
+            >
+              Retry
+            </button>
           </div>
         </div>
       </div>
@@ -287,79 +489,127 @@ const StudentList = () => {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+    <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-primary">Student List</h1>
+        <div className="bg-base-200 rounded-lg shadow-lg p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">Student List</h1>
+              <p className="text-xs sm:text-sm text-base-content/70 mt-1">
+                Manage student accounts and information ({students.length} total)
+              </p>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <div className="relative">
+              {/* View Mode Toggle (Mobile) */}
+              <div className="flex sm:hidden">
                 <button
-                  className="btn btn-secondary btn-sm gap-2 w-full sm:w-auto"
-                  onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                  aria-label="Show/Hide Columns"
-                  title="Show/Hide Columns"
+                  className={`btn btn-sm flex-1 ${viewMode === 'table' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setViewMode('table')}
                 >
-                  <MdVisibility className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">Columns</span>
-                  <span className="sm:hidden">Cols</span>
+                  Table
                 </button>
-                
-                {showColumnDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-64 bg-base-100 rounded-lg shadow-lg border z-50">
-                    <div className="p-3">
-                      <h3 className="font-medium text-sm mb-3">Toggle Columns</h3>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {COLUMN_OPTIONS.map(column => (
-                          <label key={column.key} className="flex items-center gap-2 cursor-pointer hover:bg-base-200 p-1 rounded">
-                            <input
-                              type="checkbox"
-                              className="checkbox checkbox-xs"
-                              checked={isColumnVisible(column.key)}
-                              onChange={() => toggleColumn(column.key)}
+                <button
+                  className={`btn btn-sm flex-1 ${viewMode === 'cards' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setViewMode('cards')}
+                >
+                  Cards
+                </button>
+              </div>
+              
+            <div className="flex gap-2">
+                <button
+                  className="btn btn-ghost btn-sm gap-1"
+                  onClick={() => fetchStudents(true)}
+                  disabled={refreshing}
+                >
+                  <MdRefresh className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+
+                      <button
+                  className="btn btn-info btn-sm gap-1"
+                  onClick={exportToCSV}
+                  disabled={isExporting || filteredAndSortedStudents.length === 0}
+                >
+                  <MdFileDownload className="w-3 h-3" />
+                  <span className="text-xs">
+                    {isExporting ? 'Exporting...' : 'Export CSV'}
+                  </span>
+                      </button>
+
+                <div className="relative column-dropdown">
+                      <button
+                    className="btn btn-secondary btn-sm gap-1 sm:gap-2 flex-1 sm:flex-none"
+                    onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                    aria-label="Show/Hide Columns"
+                    title="Show/Hide Columns"
+                  >
+                    <MdVisibility className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">Columns</span>
+                      </button>
+                  
+                  {showColumnDropdown && (
+                    <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-base-100 rounded-lg shadow-lg border z-50 max-h-80 overflow-y-auto">
+                      <div className="p-3">
+                        <h3 className="font-medium text-sm mb-3">Toggle Columns</h3>
+                        <div className="space-y-2">
+                          {COLUMN_OPTIONS.map(column => (
+                            <label key={column.key} className="flex items-center gap-2 cursor-pointer hover:bg-base-200 p-1 rounded">
+                          <input
+                            type="checkbox"
+                                className="checkbox checkbox-xs"
+                                checked={isColumnVisible(column.key)}
+                                onChange={() => toggleColumn(column.key)}
                             />
-                            <span className="text-sm">{column.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <div className="pt-3 mt-3 border-t">
-                        <button 
-                          className="btn btn-xs btn-outline w-full"
-                          onClick={() => setShowColumnDropdown(false)}
-                        >
-                          Close
-                        </button>
+                              <span className="text-sm">{column.label}</span>
+                        </label>
+                      ))}
+                        </div>
+                        <div className="pt-3 mt-3 border-t">
+                          <button 
+                            className="btn btn-xs btn-outline w-full"
+                            onClick={() => setShowColumnDropdown(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  )}
                   </div>
-                )}
+                
+                <button 
+                  className="btn btn-primary btn-sm gap-1 sm:gap-2 flex-1 sm:flex-none"
+                  onClick={() => navigate('/admin/addstudent')}
+                >
+                  <MdAdd className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-sm">Add Student</span>
+                </button>
               </div>
-              <button 
-                className="btn btn-primary btn-sm gap-2 w-full sm:w-auto"
-                onClick={() => navigate('/admin/addstudent')}
-              >
-                <MdAdd className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Add Student</span>
-                <span className="sm:hidden">Add</span>
-              </button>
             </div>
           </div>
 
           {guideMode && (
-            <details className="mb-6 bg-info/10 border border-info rounded p-3">
-              <summary className="cursor-pointer font-medium text-base text-info mb-1">How to use the Student List page?</summary>
-              <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                <li>Use the <b>search</b> box to find students by name or ID.</li>
-                <li>Filter by <b>track</b> (strand) or <b>year level</b> using the dropdowns.</li>
-                <li>Click <b>Columns</b> to show or hide table columns in real time.</li>
-                <li>Edit or delete students using the icons in the Actions column.</li>
+            <details className="mb-4 sm:mb-6 bg-info/10 border border-info rounded p-3 sm:p-4">
+              <summary className="cursor-pointer font-medium text-sm sm:text-base text-info mb-1">
+                How to use the Student List page?
+              </summary>
+              <ol className="mt-2 text-xs sm:text-sm text-base-content list-decimal list-inside space-y-1">
+                <li>Use the <b>search</b> box to find students by name, ID, email, or section.</li>
+                <li>Filter by <b>track</b>, <b>year level</b>, or <b>status</b> using the dropdowns.</li>
+                <li>Click column headers to <b>sort</b> the data (ascending/descending).</li>
+                <li>Use <b>Columns</b> to show or hide table columns in real time.</li>
+                <li>Select students and use <b>bulk actions</b> to activate/deactivate or delete multiple students.</li>
+                <li><b>Export</b> filtered data to CSV for external use.</li>
+                <li>On mobile, switch between <b>Table</b> and <b>Cards</b> view for better readability.</li>
               </ol>
             </details>
           )}
 
           {/* Search and Filters */}
-          <div className="card bg-base-100 p-4 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="card bg-base-100 p-3 sm:p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
               <div className="form-control flex-1">
                 <div className="input-group">
                   <span className="bg-base-200">
@@ -367,31 +617,42 @@ const StudentList = () => {
                   </span>
                   <input
                     type="text"
-                    placeholder="Search students..."
-                    className="input input-bordered flex-1 bg-base-100"
+                    placeholder="Search students by name, ID, email, or section..."
+                    className="input input-bordered input-sm sm:input-md flex-1 bg-base-100 text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                  {searchTerm && (
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      <MdClose className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
-              
+
               <button
-                className="btn btn-outline btn-sm gap-2"
+                className="btn btn-outline btn-sm gap-2 w-full sm:w-auto"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <MdFilterList className="w-4 h-4" />
-                Filters
+                <span className="text-sm">Filters</span>
+                {(filterGrade || filterTrack || filterSection || filterStatus) && (
+                  <div className="badge badge-primary badge-sm">Active</div>
+                )}
               </button>
             </div>
 
             {showFilters && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-base-200 rounded-lg">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Grade</span>
-                  </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4 p-3 sm:p-4 bg-base-200 rounded-lg">
+              <div className="form-control">
+                <label className="label">
+                    <span className="label-text text-xs sm:text-sm">Grade</span>
+                </label>
                   <select
-                    className="select select-bordered select-sm bg-base-100"
+                    className="select select-bordered select-sm bg-base-100 text-sm"
                     value={filterGrade}
                     onChange={(e) => setFilterGrade(e.target.value)}
                   >
@@ -404,10 +665,10 @@ const StudentList = () => {
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Track</span>
+                    <span className="label-text text-xs sm:text-sm">Track</span>
                   </label>
                   <select
-                    className="select select-bordered select-sm bg-base-100"
+                    className="select select-bordered select-sm bg-base-100 text-sm"
                     value={filterTrack}
                     onChange={(e) => setFilterTrack(e.target.value)}
                   >
@@ -416,14 +677,14 @@ const StudentList = () => {
                       <option key={track} value={track}>{track}</option>
                     ))}
                   </select>
-                </div>
+              </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Section</span>
-                  </label>
+              <div className="form-control">
+                <label className="label">
+                    <span className="label-text text-xs sm:text-sm">Section</span>
+                </label>
                   <select
-                    className="select select-bordered select-sm bg-base-100"
+                    className="select select-bordered select-sm bg-base-100 text-sm"
                     value={filterSection}
                     onChange={(e) => setFilterSection(e.target.value)}
                   >
@@ -436,10 +697,25 @@ const StudentList = () => {
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Actions</span>
+                    <span className="label-text text-xs sm:text-sm">Status</span>
+                  </label>
+                  <select
+                    className="select select-bordered select-sm bg-base-100 text-sm"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text text-xs sm:text-sm">Actions</span>
                   </label>
                   <button
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-outline btn-sm text-sm"
                     onClick={clearFilters}
                   >
                     Clear All
@@ -451,209 +727,346 @@ const StudentList = () => {
 
           {/* Bulk Actions */}
           {selectedStudents.length > 0 && (
-            <div className="card bg-base-100 p-4 mb-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="card bg-base-100 p-3 sm:p-4 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                 <div>
-                  <span className="font-medium">{selectedStudents.length} students selected</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''} selected
+                  </span>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   <button
-                    className="btn btn-error btn-sm gap-2"
+                    className="btn btn-success btn-sm gap-2 flex-1 sm:flex-none"
+                    onClick={() => handleBulkStatusChange(true)}
+                  >
+                    Activate
+                  </button>
+                  <button
+                    className="btn btn-warning btn-sm gap-2 flex-1 sm:flex-none"
+                    onClick={() => handleBulkStatusChange(false)}
+                  >
+                    Deactivate
+                  </button>
+                  <button
+                    className="btn btn-error btn-sm gap-2 flex-1 sm:flex-none"
                     onClick={handleBulkDelete}
                   >
                     <MdDelete className="w-4 h-4" />
-                    Delete Selected
+                    <span className="text-sm">Delete</span>
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Students Table */}
-          <div className="card bg-base-100 p-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-              <h2 className="text-lg font-semibold">
-                Students List ({filteredStudents.length} of {students.length})
-              </h2>
+          {/* Results Summary and Pagination Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <div className="text-sm text-base-content/70">
+              Showing {paginatedStudents.length} of {filteredAndSortedStudents.length} students
+              {searchTerm || filterGrade || filterTrack || filterSection || filterStatus ? 
+                ` (filtered from ${students.length} total)` : 
+                ''
+              }
             </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Show:</label>
+              <select
+                className="select select-bordered select-sm bg-base-100 text-sm"
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                {ITEMS_PER_PAGE_OPTIONS.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-            {filteredStudents.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-base-content/70">No students found matching your criteria.</p>
+          {/* Students Display */}
+          <div className="card bg-base-100 p-3 sm:p-4">
+            {filteredAndSortedStudents.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-base-content/70 text-sm sm:text-base">No students found matching your criteria.</p>
+                {(searchTerm || filterGrade || filterTrack || filterSection || filterStatus) && (
+                  <button 
+                    className="btn btn-outline btn-sm mt-4"
+                    onClick={clearFilters}
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
+              <>
+                {/* Mobile Card View */}
+                {(viewMode === 'cards' || window.innerWidth < 640) && (
+                  <div className="block sm:hidden">
+                    {paginatedStudents.map((student) => (
+                      <StudentCard key={student._id} student={student} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Desktop Table View */}
+                {(viewMode === 'table' || window.innerWidth >= 640) && (
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="table table-zebra w-full text-sm">
                   <thead>
                     <tr>
-                      <th>
-                        <input
-                          type="checkbox"
-                          className="checkbox checkbox-sm"
-                          checked={selectedStudents.length === filteredStudents.length}
-                          onChange={handleSelectAllStudents}
-                        />
-                      </th>
-                      <th>Student ID</th>
-                      {isColumnVisible('firstName') && <th>First Name</th>}
-                      {isColumnVisible('lastName') && <th>Last Name</th>}
-                      {isColumnVisible('email') && <th className="hidden lg:table-cell">Email</th>}
-                      {isColumnVisible('track') && <th className="hidden sm:table-cell">Track</th>}
-                      {isColumnVisible('section') && <th className="hidden lg:table-cell">Section</th>}
-                      {isColumnVisible('yearLevel') && <th className="hidden sm:table-cell">Year Level</th>}
-                      {isColumnVisible('isActive') && <th className="hidden lg:table-cell">Status</th>}
-                      {isColumnVisible('totalPoints') && <th className="hidden lg:table-cell">Points</th>}
-                      <th>Actions</th>
+                          <th>
+                            <input
+                              type="checkbox"
+                              className="checkbox checkbox-sm"
+                              checked={selectedStudents.length === paginatedStudents.length && paginatedStudents.length > 0}
+                              onChange={handleSelectAllStudents}
+                            />
+                          </th>
+                          <th 
+                            className="cursor-pointer hover:bg-base-200"
+                            onClick={() => handleSort('studentId')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Student ID
+                              {getSortIcon('studentId')}
+                            </div>
+                          </th>
+                          {isColumnVisible('firstName') && (
+                            <th 
+                              className="cursor-pointer hover:bg-base-200"
+                              onClick={() => handleSort('firstName')}
+                            >
+                              <div className="flex items-center gap-1">
+                                First Name
+                                {getSortIcon('firstName')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('lastName') && (
+                            <th 
+                              className="cursor-pointer hover:bg-base-200"
+                              onClick={() => handleSort('lastName')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Last Name
+                                {getSortIcon('lastName')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('email') && (
+                            <th className="hidden lg:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('email')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Email
+                                {getSortIcon('email')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('track') && (
+                            <th className="hidden md:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('track')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Track
+                                {getSortIcon('track')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('section') && (
+                            <th className="hidden lg:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('section')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Section
+                                {getSortIcon('section')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('yearLevel') && (
+                            <th className="hidden md:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('yearLevel')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Year Level
+                                {getSortIcon('yearLevel')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('isActive') && (
+                            <th className="hidden lg:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('isActive')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Status
+                                {getSortIcon('isActive')}
+                              </div>
+                            </th>
+                          )}
+                          {isColumnVisible('totalPoints') && (
+                            <th className="hidden lg:table-cell cursor-pointer hover:bg-base-200"
+                                onClick={() => handleSort('totalPoints')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Points
+                                {getSortIcon('totalPoints')}
+                              </div>
+                            </th>
+                          )}
+                          <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.map((student) => (
-                      <tr key={student._id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm"
-                            checked={selectedStudents.includes(student._id)}
-                            onChange={() => handleSelectStudent(student._id)}
-                          />
-                        </td>
-                        <td className="font-mono">{student.studentId}</td>
-                        
-                        {isColumnVisible('firstName') && (
-                          <td>
-                            {editingStudent === student._id ? (
+                        {paginatedStudents.map((student) => (
+                          <tr key={student._id}>
+                            <td>
                               <input
-                                type="text"
-                                className="input input-xs input-bordered"
-                                value={editForm.firstName}
-                                onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
-                                placeholder="First Name"
+                                type="checkbox"
+                                className="checkbox checkbox-sm"
+                                checked={selectedStudents.includes(student._id)}
+                                onChange={() => handleSelectStudent(student._id)}
                               />
-                            ) : (
-                              student.firstName
+                            </td>
+                            <td className="font-mono text-xs">{student.studentId}</td>
+                            
+                            {isColumnVisible('firstName') && (
+                              <td className="text-xs">
+                                {editingStudent === student._id ? (
+                                  <input
+                                    type="text"
+                                    className="input input-xs input-bordered"
+                                    value={editForm.firstName}
+                                    onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
+                                    placeholder="First Name"
+                                  />
+                                ) : (
+                                  student.firstName
+                                )}
+                              </td>
                             )}
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('lastName') && (
-                          <td>
-                            {editingStudent === student._id ? (
-                              <input
-                                type="text"
-                                className="input input-xs input-bordered"
-                                value={editForm.lastName}
-                                onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
-                                placeholder="Last Name"
-                              />
-                            ) : (
-                              student.lastName
+                            
+                            {isColumnVisible('lastName') && (
+                              <td className="text-xs">
+                                {editingStudent === student._id ? (
+                                  <input
+                                    type="text"
+                                    className="input input-xs input-bordered"
+                                    value={editForm.lastName}
+                                    onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
+                                    placeholder="Last Name"
+                                  />
+                                ) : (
+                                  student.lastName
+                                )}
+                              </td>
                             )}
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('email') && (
-                          <td className="hidden lg:table-cell">
-                            <span className="text-xs">{student.email}</span>
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('track') && (
-                          <td className="hidden sm:table-cell">
-                            {editingStudent === student._id ? (
-                              <select
-                                className="select select-xs select-bordered"
-                                value={editForm.track}
-                                onChange={(e) => setEditForm({...editForm, track: e.target.value})}
-                              >
-                                <option value="Academic Track">Academic Track</option>
-                                <option value="Technical-Professional Track">Technical-Professional Track</option>
-                              </select>
-                            ) : (
-                              <span className="text-xs">{student.track}</span>
+                            
+                            {isColumnVisible('email') && (
+                              <td className="hidden lg:table-cell">
+                                <span className="text-xs">{student.email}</span>
+                              </td>
                             )}
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('section') && (
-                          <td className="hidden lg:table-cell">
-                            {editingStudent === student._id ? (
-                              <input
-                                type="text"
-                                className="input input-xs input-bordered"
-                                value={editForm.section}
-                                onChange={(e) => setEditForm({...editForm, section: e.target.value})}
-                              />
-                            ) : (
-                              student.section
+                            
+                            {isColumnVisible('track') && (
+                              <td className="hidden md:table-cell">
+                                {editingStudent === student._id ? (
+                                  <select
+                                    className="select select-xs select-bordered"
+                                    value={editForm.track}
+                                    onChange={(e) => setEditForm({...editForm, track: e.target.value})}
+                                  >
+                                    <option value="Academic Track">Academic Track</option>
+                                    <option value="Technical-Professional Track">Technical-Professional Track</option>
+                                  </select>
+                                ) : (
+                                  <span className="text-xs">{student.track}</span>
+                                )}
+                              </td>
                             )}
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('yearLevel') && (
-                          <td className="hidden sm:table-cell">
-                            {editingStudent === student._id ? (
-                              <select
-                                className="select select-xs select-bordered"
-                                value={editForm.yearLevel || editForm.grade}
-                                onChange={(e) => setEditForm({...editForm, yearLevel: e.target.value, grade: e.target.value})}
-                              >
-                                <option value="Grade 11">Grade 11</option>
-                                <option value="Grade 12">Grade 12</option>
-                              </select>
-                            ) : (
-                              student.yearLevel
+                            
+                            {isColumnVisible('section') && (
+                              <td className="hidden lg:table-cell">
+                                {editingStudent === student._id ? (
+                                  <input
+                                    type="text"
+                                    className="input input-xs input-bordered"
+                                    value={editForm.section}
+                                    onChange={(e) => setEditForm({...editForm, section: e.target.value})}
+                                  />
+                                ) : (
+                                  <span className="text-xs">{student.section}</span>
+                                )}
+                              </td>
                             )}
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('isActive') && (
-                          <td className="hidden lg:table-cell">
-                            <span className={`badge badge-xs ${student.isActive ? 'badge-success' : 'badge-error'}`}>
-                              {student.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                        )}
-                        
-                        {isColumnVisible('totalPoints') && (
-                          <td className="hidden lg:table-cell">
-                            <span className="font-mono text-xs">{student.totalPoints || 0}</span>
-                          </td>
-                        )}
-                        
-                        <td>
-                          <div className="flex gap-1">
-                            {editingStudent === student._id ? (
-                              <>
-                                <button
-                                  className="btn btn-success btn-xs"
-                                  onClick={handleSaveEdit}
-                                >
-                                  <MdCheck className="w-3 h-3" />
-                                </button>
-                                <button
-                                  className="btn btn-ghost btn-xs"
-                                  onClick={() => setEditingStudent(null)}
-                                >
-                                  <MdClose className="w-3 h-3" />
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  className="btn btn-ghost btn-xs"
-                                  onClick={() => handleEditStudent(student)}
-                                >
-                                  <MdEdit className="w-3 h-3" />
-                                </button>
-                                <button
-                                  className="btn btn-ghost btn-xs text-error"
-                                  onClick={() => handleDeleteStudent(student._id)}
-                                >
-                                  <MdDelete className="w-3 h-3" />
-                                </button>
-                              </>
+                            
+                            {isColumnVisible('yearLevel') && (
+                              <td className="hidden md:table-cell">
+                                {editingStudent === student._id ? (
+                                  <select
+                                    className="select select-xs select-bordered"
+                                    value={editForm.yearLevel || editForm.grade}
+                                    onChange={(e) => setEditForm({...editForm, yearLevel: e.target.value, grade: e.target.value})}
+                                  >
+                                    <option value="Grade 11">Grade 11</option>
+                                    <option value="Grade 12">Grade 12</option>
+                                  </select>
+                                ) : (
+                                  <span className="text-xs">{student.yearLevel}</span>
+                                )}
+                              </td>
                             )}
+                            
+                            {isColumnVisible('isActive') && (
+                              <td className="hidden lg:table-cell">
+                                <span className={`badge badge-xs ${student.isActive ? 'badge-success' : 'badge-error'}`}>
+                                  {student.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                            )}
+                            
+                            {isColumnVisible('totalPoints') && (
+                              <td className="hidden lg:table-cell">
+                                <span className="font-mono text-xs">{student.totalPoints || 0}</span>
+                              </td>
+                            )}
+                            
+                            <td>
+                              <div className="flex gap-1">
+                                {editingStudent === student._id ? (
+                                  <>
+                                    <button
+                                      className="btn btn-success btn-xs"
+                                      onClick={handleSaveEdit}
+                                    >
+                                      <MdCheck className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      className="btn btn-ghost btn-xs"
+                                      onClick={() => setEditingStudent(null)}
+                                    >
+                                      <MdClose className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      className="btn btn-ghost btn-xs"
+                                      onClick={() => handleEditStudent(student)}
+                                    >
+                                      <MdEdit className="w-3 h-3" />
+                            </button>
+                                    <button
+                                      className="btn btn-ghost btn-xs text-error"
+                                      onClick={() => handleDeleteStudent(student._id)}
+                                    >
+                                      <MdDelete className="w-3 h-3" />
+                            </button>
+                                  </>
+                                )}
                           </div>
                         </td>
                       </tr>
@@ -662,7 +1075,60 @@ const StudentList = () => {
                 </table>
               </div>
             )}
+              </>
+            )}
           </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+              <div className="text-sm text-base-content/70">
+                Page {currentPage} of {totalPages}
+              </div>
+              
+              <div className="join">
+                <button
+                  className="join-item btn btn-sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                
+                {/* Page Numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      className={`join-item btn btn-sm ${currentPage === pageNum ? 'btn-active' : ''}`}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  className="join-item btn btn-sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+              </div>
+            )}
         </div>
       </div>
     </div>
