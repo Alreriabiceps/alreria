@@ -23,7 +23,7 @@ const Subjects = () => {
   const [viewMode, setViewMode] = useState('grid'); // grid, table
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+
   const [subjectAnalytics, setSubjectAnalytics] = useState([]);
   const [questionsData, setQuestionsData] = useState([]);
   const [weeksData, setWeeksData] = useState([]);
@@ -329,41 +329,7 @@ const Subjects = () => {
     setLoading(false);
   };
 
-  // Export functionality
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const exportData = {
-        subjects: filteredAndSortedSubjects.map(subject => ({
-          name: subject.subject,
-          questions: subject.questionCount,
-          weeks: subject.weekCount,
-          created: subject.createdAt,
-          updated: subject.updatedAt
-        })),
-        statistics: stats,
-        exportDate: new Date().toISOString(),
-        totalRecords: filteredAndSortedSubjects.length
-      };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `subjects-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setSuccess('Subjects exported successfully!');
-    } catch (err) {
-      console.error('Export error:', err);
-      setError('Failed to export subjects');
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   // Enhanced delete with analytics check
   const handleDeleteSubject = async (id, subjectName) => {
@@ -532,14 +498,7 @@ const Subjects = () => {
             <MdAdd className="w-4 h-4" />
             Add Subject
           </button>
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={handleExport}
-            disabled={isExporting}
-          >
-            <MdFileDownload className={`w-4 h-4 ${isExporting ? 'animate-spin' : ''}`} />
-            Export
-          </button>
+
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => setShowFilters(!showFilters)}

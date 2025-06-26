@@ -50,7 +50,7 @@ const Analytics = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [exportFormat, setExportFormat] = useState('pdf');
+
   const { token } = useAuth();
   const { guideMode } = useGuideMode();
 
@@ -166,40 +166,7 @@ const Analytics = () => {
     };
   };
 
-  // Export functionality
-  const handleExport = async (type) => {
-    try {
-      const response = await fetch(`${backendUrl}/api/admin/analytics/export`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type,
-          format: exportFormat,
-          dateRange,
-          activeTab
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
-      // For demo, just download a sample report
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `analytics-report-${type}-${Date.now()}.${exportFormat}`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Export error:', err);
-      alert('Export functionality not implemented yet');
-    }
-  };
 
   // Chart configurations
   const chartOptions = {
@@ -265,24 +232,7 @@ const Analytics = () => {
                 <option value="90">Last 3 months</option>
                 <option value="365">Last year</option>
               </select>
-              <div className="flex gap-2">
-                <select
-                  className="select select-bordered select-sm bg-base-100"
-                  value={exportFormat}
-                  onChange={(e) => setExportFormat(e.target.value)}
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="excel">Excel</option>
-                  <option value="csv">CSV</option>
-                </select>
-                <button
-                  className="btn btn-primary btn-sm gap-2"
-                  onClick={() => handleExport(activeTab)}
-                >
-                  <MdFileDownload className="w-4 h-4" />
-                  Export
-                </button>
-              </div>
+
             </div>
           </div>
 
@@ -292,7 +242,7 @@ const Analytics = () => {
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
                 <li>Use the tabs to switch between different analytics views.</li>
                 <li>Change the date range to view data for different time periods.</li>
-                <li>Export reports in PDF, Excel, or CSV format for offline analysis.</li>
+
                 <li>Hover over charts for detailed information about data points.</li>
               </ol>
             </details>

@@ -197,10 +197,7 @@ const StudentPerformanceDetail = () => {
     },
   };
 
-  const handleExportReport = () => {
-    // Mock export functionality
-    alert('Student performance report export functionality will be implemented with backend integration');
-  };
+
 
   if (isLoading) {
     return (
@@ -255,13 +252,7 @@ const StudentPerformanceDetail = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleExportReport}
-              className="btn btn-primary btn-sm gap-2"
-            >
-              <MdFileDownload className="w-4 h-4" />
-              Export Report
-            </button>
+
           </div>
 
           {/* Student Info Cards */}

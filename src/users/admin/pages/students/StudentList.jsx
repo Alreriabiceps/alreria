@@ -44,7 +44,7 @@ const StudentList = () => {
   const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [isExporting, setIsExporting] = useState(false);
+
   const [refreshing, setRefreshing] = useState(false);
   const { guideMode } = useGuideMode();
 
@@ -328,37 +328,7 @@ const StudentList = () => {
     }
   };
 
-  const exportToCSV = () => {
-    setIsExporting(true);
-    
-    try {
-      const headers = visibleColumns.map(col => 
-        COLUMN_OPTIONS.find(option => option.key === col)?.label || col
-      );
-      
-      const csvContent = [
-        headers.join(','),
-        ...filteredAndSortedStudents.map(student => 
-          visibleColumns.map(col => {
-            let value = student[col] || '';
-            if (col === 'isActive') value = value ? 'Active' : 'Inactive';
-            return `"${value}"`; // Wrap in quotes to handle commas
-          }).join(',')
-        )
-      ].join('\n');
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `students_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-    } catch (err) {
-      console.error('Export failed:', err);
-      alert('Export failed. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -527,16 +497,7 @@ const StudentList = () => {
                   <span className="hidden sm:inline">Refresh</span>
                 </button>
 
-                      <button
-                  className="btn btn-info btn-sm gap-1"
-                  onClick={exportToCSV}
-                  disabled={isExporting || filteredAndSortedStudents.length === 0}
-                >
-                  <MdFileDownload className="w-3 h-3" />
-                  <span className="text-xs">
-                    {isExporting ? 'Exporting...' : 'Export CSV'}
-                  </span>
-                      </button>
+
 
                 <div className="relative column-dropdown">
                       <button
@@ -601,7 +562,7 @@ const StudentList = () => {
                 <li>Click column headers to <b>sort</b> the data (ascending/descending).</li>
                 <li>Use <b>Columns</b> to show or hide table columns in real time.</li>
                 <li>Select students and use <b>bulk actions</b> to activate/deactivate or delete multiple students.</li>
-                <li><b>Export</b> filtered data to CSV for external use.</li>
+
                 <li>On mobile, switch between <b>Table</b> and <b>Cards</b> view for better readability.</li>
               </ol>
             </details>

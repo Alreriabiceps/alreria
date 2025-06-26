@@ -31,7 +31,7 @@ const CurrentSchedules = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedSchedules, setSelectedSchedules] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+
   const [dateRange, setDateRange] = useState('all');
   
   // Auto-save and analytics states
@@ -376,48 +376,7 @@ const CurrentSchedules = () => {
     setIsLoading(false);
   };
 
-  // Export functionality
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const exportData = {
-        schedules: filteredAndSortedSchedules.map(schedule => ({
-          week: schedule.weekNumber,
-          subject: schedule.subjectName,
-          questions: schedule.questionCount,
-          status: schedule.isActive ? 'Active' : 'Inactive',
-          created: schedule.createdAt,
-          updated: schedule.updatedAt
-        })),
-        statistics: stats,
-        filters: {
-          week: selectedWeek,
-          subject: selectedSubject,
-          status: statusFilter,
-          search: searchTerm
-        },
-        exportDate: new Date().toISOString(),
-        totalRecords: filteredAndSortedSchedules.length
-      };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `schedules-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setSuccess('Schedules exported successfully!');
-    } catch (err) {
-      console.error('Export error:', err);
-      setError('Failed to export schedules');
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const handleToggleActive = async (scheduleId) => {
     try {
@@ -623,14 +582,7 @@ const CurrentSchedules = () => {
             <MdCalendarToday className="w-4 h-4" />
             Create Schedule
           </button>
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={handleExport}
-            disabled={isExporting}
-          >
-            <MdFileDownload className={`w-4 h-4 ${isExporting ? 'animate-spin' : ''}`} />
-            Export
-          </button>
+
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => setShowFilters(!showFilters)}

@@ -67,7 +67,7 @@ const QuestionList = () => {
   
   // Export/Import
   const fileInputRef = useRef(null);
-  const [isExporting, setIsExporting] = useState(false);
+
   
   const { guideMode } = useGuideMode();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -207,35 +207,7 @@ const QuestionList = () => {
     }
   };
 
-  const handleExportQuestions = async () => {
-    setIsExporting(true);
-    try {
-      const dataToExport = filteredQuestions.map(q => ({
-        question: q.questionText,
-        choices: q.choices,
-        correctAnswer: q.correctAnswer,
-        subject: q.subject.subject,
-        bloomsLevel: q.bloomsLevel,
-        difficulty: q.difficulty
-      }));
-      
-      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `questions-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      setSuccess('Questions exported successfully!');
-    } catch (err) {
-      setError('Failed to export questions');
-    } finally {
-      setIsExporting(false);
-    }
-  };
+
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -344,14 +316,7 @@ const QuestionList = () => {
             <MdAdd className="w-4 h-4" />
             Add Question
           </button>
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={handleExportQuestions}
-            disabled={isExporting}
-          >
-            <MdFileDownload className={`w-4 h-4 ${isExporting ? 'animate-spin' : ''}`} />
-            Export
-          </button>
+
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => setShowFilters(!showFilters)}
