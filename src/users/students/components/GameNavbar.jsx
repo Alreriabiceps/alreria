@@ -1,8 +1,26 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./GameNavbar.module.css";
-import { FaChartBar, FaCalendarAlt, FaUserFriends, FaTrophy, FaUsers, FaUser, FaSignOutAlt, FaBars, FaTimes, FaVolumeUp, FaVolumeMute, FaBookOpen, FaUserNinja } from 'react-icons/fa';
-import { GiCrossedSwords, GiPerspectiveDiceSixFacesRandom } from 'react-icons/gi';
+import {
+  FaChartBar,
+  FaCalendarAlt,
+  FaUserFriends,
+  FaTrophy,
+  FaUsers,
+  FaUser,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaVolumeUp,
+  FaVolumeMute,
+  FaBookOpen,
+  FaUserNinja,
+  FaDice,
+} from "react-icons/fa";
+import {
+  GiCrossedSwords,
+  GiPerspectiveDiceSixFacesRandom,
+} from "react-icons/gi";
 
 const Icons = {
   Dashboard: <FaChartBar />,
@@ -19,7 +37,7 @@ const Icons = {
   MenuClose: <FaTimes />,
   Mute: <FaVolumeUp />,
   Unmute: <FaVolumeMute />,
-  MtgDemo: <GiPerspectiveDiceSixFacesRandom />,
+  MtgDemo: <FaDice />,
 };
 
 const MUSIC_MAP = {
@@ -35,8 +53,8 @@ const MUSIC_MAP = {
 
 const getMusicTrack = (path) => {
   if (MUSIC_MAP.dashboard.includes(path)) return "/dashboard.mp3";
-  if (MUSIC_MAP.weekly.includes(path)) return "/weekly-test.mp3";
-  return "/default.mp3";
+  if (MUSIC_MAP.weekly.includes(path)) return "/GLEAS.mp3"; // Using existing GLEAS.mp3
+  return "/shs.mp3"; // Using existing shs.mp3 as default
 };
 
 const BURGER_BREAKPOINT = 1200;
@@ -163,8 +181,8 @@ const GameNavbar = () => {
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const navLinkClass = ({ isActive }) =>
@@ -216,7 +234,8 @@ const GameNavbar = () => {
               className={dropdownItemClass}
               onClick={closeMenus}
             >
-              <span className={styles.panelIcon}>{Icons.Duels}</span> Versus Mode
+              <span className={styles.panelIcon}>{Icons.Duels}</span> Versus
+              Mode
             </NavLink>
             <NavLink
               to="/student/partymmr"
@@ -239,6 +258,10 @@ const GameNavbar = () => {
         )}{" "}
         Reviewers
       </NavLink>
+      <NavLink to="/student/demo" className={navLinkClass} onClick={closeMenus}>
+        {isMobile && <span className={styles.panelIcon}>{Icons.MtgDemo}</span>}{" "}
+        Demo
+      </NavLink>
       <NavLink
         to="/student/ranking"
         className={navLinkClass}
@@ -248,11 +271,17 @@ const GameNavbar = () => {
         Rankings
       </NavLink>
       <NavLink to="/student/crew" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && <span className={styles.panelIcon}>{Icons.Crew}</span>} {" "}
+        {isMobile && <span className={styles.panelIcon}>{Icons.Crew}</span>}{" "}
         Crew
       </NavLink>
-      <NavLink to="/student/chats" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && <span className={styles.panelIcon}>{Icons.PartyQueue}</span>} {" "}
+      <NavLink
+        to="/student/chats"
+        className={navLinkClass}
+        onClick={closeMenus}
+      >
+        {isMobile && (
+          <span className={styles.panelIcon}>{Icons.PartyQueue}</span>
+        )}{" "}
         Messenger
       </NavLink>
       <NavLink
@@ -268,7 +297,7 @@ const GameNavbar = () => {
         className={navLinkClass}
         onClick={closeMenus}
       >
-        {isMobile && <span className={styles.panelIcon}>{Icons.Profile}</span>} {" "}
+        {isMobile && <span className={styles.panelIcon}>{Icons.Profile}</span>}{" "}
         Profile
       </NavLink>
       <button className={styles.navbarLink} onClick={handleLogout}>
@@ -280,7 +309,7 @@ const GameNavbar = () => {
 
   return (
     <nav className={styles.navbar} ref={menuRef}>
-      <div className={styles.navbarBrand} style={{ marginRight: '20px' }}>
+      <div className={styles.navbarBrand} style={{ marginRight: "20px" }}>
         <Link
           to="/student/dashboard"
           className={styles.navbarLogo}
@@ -290,7 +319,7 @@ const GameNavbar = () => {
         </Link>
       </div>
       {windowWidth >= BURGER_BREAKPOINT && (
-        <div className={styles.desktopNavLinks} style={{ marginLeft: 'auto' }}>
+        <div className={styles.desktopNavLinks} style={{ marginLeft: "auto" }}>
           <NavLinks isMobile={false} />
         </div>
       )}
@@ -301,26 +330,31 @@ const GameNavbar = () => {
         <div
           className={`${styles.mobileNavLinks} ${styles.open}`}
           style={{
-            position: 'fixed',
-            top: '60px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            position: "fixed",
+            top: "60px",
+            left: "50%",
+            transform: "translateX(-50%)",
             zIndex: 999,
-            background: 'linear-gradient(135deg, var(--color-bg), var(--color-bg-alt))',
-            borderRadius: '0 0 22px 22px',
-            boxShadow: '0 8px 32px var(--color-shadow)',
-            padding: '18px 0 18px 0',
-            maxHeight: '60vh',
-            maxWidth: '340px',
-            width: '90vw',
-            overflowY: 'auto',
+            background:
+              "linear-gradient(135deg, var(--color-bg), var(--color-bg-alt))",
+            borderRadius: "0 0 22px 22px",
+            boxShadow: "0 8px 32px var(--color-shadow)",
+            padding: "18px 0 18px 0",
+            maxHeight: "60vh",
+            maxWidth: "340px",
+            width: "90vw",
+            overflowY: "auto",
           }}
         >
           <NavLinks isMobile={true} />
         </div>
       )}
       <div className={styles.volumeControls}>
-        <button className={styles.muteButton} onClick={toggleMute} style={{ marginRight: '10px' }}>
+        <button
+          className={styles.muteButton}
+          onClick={toggleMute}
+          style={{ marginRight: "10px" }}
+        >
           {isMuted ? Icons.Unmute : Icons.Mute}
         </button>
         <input
@@ -330,7 +364,7 @@ const GameNavbar = () => {
           value={isMuted ? 0 : volume}
           onChange={handleVolumeChange}
           className={styles.volumeSlider}
-          style={{ width: '100px', cursor: 'pointer' }}
+          style={{ width: "100px", cursor: "pointer" }}
         />
       </div>
       <audio ref={audioRef} autoPlay loop muted={isMuted}>

@@ -6,9 +6,9 @@ import FloatingStars from "../components/FloatingStars/FloatingStars";
 const BACKGROUND_MUSIC_SRC = "/shs.mp3";
 const INITIAL_VOLUME = 1;
 const SFX_VOLUME = 0.5;
-const SFX_CORRECT_SRC = "/sfx/correct.wav";
-const SFX_INCORRECT_SRC = "/sfx/incorrect.wav";
-const SFX_LAUNCH_SRC = "/sfx/launch.wav";
+const SFX_CORRECT_SRC = "/dashboard.mp3";
+const SFX_INCORRECT_SRC = "/shs.mp3";
+const SFX_LAUNCH_SRC = "/GLEAS.mp3";
 
 const playSound = (src, volume = SFX_VOLUME) => {
   try {

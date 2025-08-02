@@ -1,7 +1,7 @@
 /* src/components/WeeklyTest.module.css */
 
 /* Import Fonts (Keep if needed) */
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap");
 
 /* --- Base Container and Theme Variables --- */
 .testListContainer {
@@ -13,14 +13,14 @@
   --dbz-dark-blue: #2c3e50;
   --dbz-light-gray: #ecf0f1;
   --dbz-dark-gray: #34495e;
-  --dbz-black: #1C1C1C;
+  --dbz-black: #1c1c1c;
   --dbz-black-rgb: 28, 28, 28; /* Added */
 
   /* Blueprint Capsule Corp Theme - Plain Dark Background */
-  --blueprint-bg: #0D131A; /* Very dark blue, near black */
+  --blueprint-bg: #0d131a; /* Very dark blue, near black */
   --blueprint-grid-line: rgba(173, 216, 230, 0.35);
   --blueprint-grid-line-strong: rgba(173, 216, 230, 0.6);
-  --blueprint-text: #E0F2F7;
+  --blueprint-text: #e0f2f7;
   --blueprint-text-muted: rgba(224, 242, 247, 0.7); /* Added */
   --blueprint-panel-bg: rgba(30, 45, 60, 0.85);
   --blueprint-panel-border: var(--blueprint-grid-line-strong);
@@ -29,9 +29,9 @@
   --blueprint-accent-text-dark: var(--dbz-black);
   --blueprint-shadow: rgba(0, 0, 0, 0.4);
 
-  --font-header: 'Bangers', cursive;
-  --font-body: 'Montserrat', sans-serif;
-  --font-accent: 'Roboto Condensed', sans-serif;
+  --font-header: "Bangers", cursive;
+  --font-body: "Montserrat", sans-serif;
+  --font-accent: "Roboto Condensed", sans-serif;
 
   min-height: 100vh;
   display: flex;
@@ -47,68 +47,89 @@
   animation: powerUpBg 0.7s ease-out forwards; /* Match dashboard animation */
 }
 
-@keyframes powerUpBg { /* Match dashboard animation */
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes powerUpBg {
+  /* Match dashboard animation */
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Add missing keyframes if not already present, ensure they match Blueprint standard */
 @keyframes titleSmash {
-  0% { opacity: 0; transform: scale(1.5) translateY(-20px); }
-  60% { opacity: 1; transform: scale(0.9) translateY(10px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(1.5) translateY(-20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes fadeInSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- Page Header --- */
 .pageHeader {
-    width: 100%;
-    max-width: 1000px; /* Match dashboard */
-    margin-bottom: 20px; /* Reduced from 25px */
-    text-align: center; /* Match dashboard */
-    z-index: 1;
-    position: relative;
-    /* animation: fadeInUp 0.7s cubic-bezier(.25,1.7,.45,.85) 0.2s both; */ /* Replaced by dashboard's powerUpBg */
-    opacity: 1; /* Ensure visible after animation change -- can be removed if children handle opacity */
+  width: 100%;
+  max-width: 1000px; /* Match dashboard */
+  margin-bottom: 20px; /* Reduced from 25px */
+  text-align: center; /* Match dashboard */
+  z-index: 1;
+  position: relative;
+  /* animation: fadeInUp 0.7s cubic-bezier(.25,1.7,.45,.85) 0.2s both; */ /* Replaced by dashboard's powerUpBg */
+  opacity: 1; /* Ensure visible after animation change -- can be removed if children handle opacity */
 }
 .pageTitle {
-    font-family: var(--font-header); /* Match dashboard */
-    font-size: 3.5rem;  /* Reduced from 4rem */
-    color: var(--blueprint-accent); /* Match dashboard (Yellow title) */
-    letter-spacing: 2.5px; /* Reduced from 3px */
-    text-shadow: /* Match dashboard */
-      3px 3px 0 var(--dbz-black),
-      -1px -1px 0 var(--blueprint-bg),
-      1px -1px 0 var(--blueprint-bg),
-      -1px 1px 0 var(--blueprint-bg),
-      1px 1px 0 var(--blueprint-bg);
-    margin-bottom: 0.1rem; /* Reduced from 0.2rem */
-    line-height: 1.1; /* Match dashboard */
-    /* opacity: 0; */ /* Retain original opacity for WeeklyTest animation logic if needed, or remove if titleSmash handles it */
-    animation: titleSmash 0.5s ease-out 0.2s backwards; /* Match dashboard animation */
-    /* animation: titleSmash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards; */ /* Original WeeklyTest animation */
+  font-family: var(--font-header); /* Match dashboard */
+  font-size: 3.5rem; /* Reduced from 4rem */
+  color: var(--blueprint-accent); /* Match dashboard (Yellow title) */
+  letter-spacing: 2.5px; /* Reduced from 3px */
+  text-shadow: /* Match dashboard */ 3px 3px 0 var(--dbz-black),
+    -1px -1px 0 var(--blueprint-bg), 1px -1px 0 var(--blueprint-bg),
+    -1px 1px 0 var(--blueprint-bg), 1px 1px 0 var(--blueprint-bg);
+  margin-bottom: 0.1rem; /* Reduced from 0.2rem */
+  line-height: 1.1; /* Match dashboard */
+  /* opacity: 0; */ /* Retain original opacity for WeeklyTest animation logic if needed, or remove if titleSmash handles it */
+  animation: titleSmash 0.5s ease-out 0.2s backwards; /* Match dashboard animation */
+  /* animation: titleSmash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards; */ /* Original WeeklyTest animation */
 }
 .pageSubtitle {
-    font-family: var(--font-accent); /* Match dashboard */
-    font-size: 1.2rem; /* Reduced from 1.3rem */
-    color: var(--blueprint-text); /* Match dashboard */
-    opacity: 0.85; /* Match dashboard */
-    text-shadow: 1px 1px 2px var(--dbz-black); /* Match dashboard */
-    margin-top: 5px; /* Match dashboard */
-    opacity: 0; /* Start hidden */
-    animation: fadeInSlideUp 0.5s ease-out 0.6s forwards; /* Stagger after title */
+  font-family: var(--font-accent); /* Match dashboard */
+  font-size: 1.2rem; /* Reduced from 1.3rem */
+  color: var(--blueprint-text); /* Match dashboard */
+  opacity: 0.85; /* Match dashboard */
+  text-shadow: 1px 1px 2px var(--dbz-black); /* Match dashboard */
+  margin-top: 5px; /* Match dashboard */
+  opacity: 0; /* Start hidden */
+  animation: fadeInSlideUp 0.5s ease-out 0.6s forwards; /* Stagger after title */
 }
 
 /* --- Panel Style (Applied to FilterPanel, ContentPanel, StartTestContainer, ResultsContainer etc.) --- */
-.panelStyle { /* New reusable class for panel styling */
+.panelStyle {
+  /* New reusable class for panel styling */
   background: var(--blueprint-panel-bg);
   border: 1.5px solid var(--blueprint-panel-border);
   border-radius: 12px; /* Reduced from 15px */
-  box-shadow: 0 5px 15px var(--blueprint-shadow), inset 0 0 10px rgba(0,0,0,0.2); /* Reduced shadow */
+  box-shadow: 0 5px 15px var(--blueprint-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.2); /* Reduced shadow */
   padding: 18px 22px; /* Reduced from 20px 25px */
   display: flex;
   flex-direction: column;
@@ -120,15 +141,23 @@
   margin-bottom: 20px; /* Reduced from 25px */
   opacity: 0; /* Start hidden, animation will make it visible */
 }
-.panelStyle:hover { /* Match dashboard panel hover */
+.panelStyle:hover {
+  /* Match dashboard panel hover */
   border-color: var(--blueprint-accent);
-  box-shadow: 0 8px 25px var(--blueprint-shadow), 0 0 15px var(--blueprint-accent);
+  box-shadow: 0 8px 25px var(--blueprint-shadow),
+    0 0 15px var(--blueprint-accent);
 }
-@keyframes panelFlyIn { /* Match dashboard panel animation */
-  from { opacity: 0; transform: translateY(30px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes panelFlyIn {
+  /* Match dashboard panel animation */
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
-
 
 /* --- Filter Panel --- */
 .filterPanel {
@@ -138,7 +167,8 @@
   animation: panelFlyIn 0.5s ease-out 0.8s forwards; /* Stagger after header */
 }
 
-.panelHeader { /* This class is used in FilterPanel, can be themed like dashboard's panelHeader */
+.panelHeader {
+  /* This class is used in FilterPanel, can be themed like dashboard's panelHeader */
   display: flex;
   align-items: center;
   gap: 8px; /* Reduced from 10px */
@@ -154,10 +184,13 @@
 }
 
 .filterControls {
-   display: grid;
-   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Reduced minmax */
-   gap: 12px 18px; /* Reduced gap */
-   align-items: flex-end; /* Align button nicely */
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* Reduced minmax */
+  gap: 12px 18px; /* Reduced gap */
+  align-items: flex-end; /* Align button nicely */
 }
 .filterGroup {
   display: flex;
@@ -184,7 +217,7 @@
   border-radius: 6px; /* Reduced from 8px */
   cursor: pointer;
   appearance: none;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); /* Subtle inner shadow */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25); /* Subtle inner shadow */
   padding-right: 30px;
 }
 .filterSelect:focus {
@@ -193,19 +226,19 @@
   box-shadow: 0 0 8px var(--blueprint-accent); /* Glow effect */
 }
 .filterSelect option {
-    background: var(--dbz-dark-gray); /* Dark background for options */
-    color: var(--blueprint-text); /* Light text */
+  background: var(--dbz-dark-gray); /* Dark background for options */
+  color: var(--blueprint-text); /* Light text */
 }
 .filterSelect:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: var(--dbz-dark-gray); /* Keep dark for disabled state */
-    border-color: var(--blueprint-grid-line); /* Less prominent border */
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--dbz-dark-gray); /* Keep dark for disabled state */
+  border-color: var(--blueprint-grid-line); /* Less prominent border */
 }
 
-
 /* --- THEMED Button Base Style (Dashboard Aligned) --- */
-.themedButton { /* New base class for all buttons */
+.themedButton {
+  /* New base class for all buttons */
   font-family: var(--font-header);
   font-size: 1.1rem; /* Reduced from 1.2rem */
   letter-spacing: 1.2px; /* Reduced */
@@ -216,7 +249,8 @@
   border: 2px solid var(--dbz-black); /* Black border for pop */
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+    background 0.2s ease-out;
   text-decoration: none;
   display: inline-block;
   text-align: center;
@@ -229,17 +263,17 @@
   box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
 }
 .themedButton:active {
-    transform: translateY(1px) scale(1); /* Press effect */
-    box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
+  transform: translateY(1px) scale(1); /* Press effect */
+  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 .themedButton:disabled {
-    background: var(--dbz-dark-gray) !important; /* Muted background */
-    color: var(--blueprint-text) !important;
-    opacity: 0.5;
-    cursor: not-allowed;
-    box-shadow: 1px 1px 0 var(--dbz-black); /* Reduced shadow */
-    transform: none;
-    border-color: var(--dbz-dark-gray) !important;
+  background: var(--dbz-dark-gray) !important; /* Muted background */
+  color: var(--blueprint-text) !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: 1px 1px 0 var(--dbz-black); /* Reduced shadow */
+  transform: none;
+  border-color: var(--dbz-dark-gray) !important;
 }
 
 /* Apply themedButton to existing button classes */
@@ -347,7 +381,7 @@
   color: var(--blueprint-text);
   opacity: 0.9;
   padding: 8px;
-  background-color: rgba(0,0,0,0.2); /* Darker, transparent background */
+  background-color: rgba(0, 0, 0, 0.2); /* Darker, transparent background */
   border-radius: 8px;
 }
 
@@ -406,18 +440,25 @@
 }
 
 .choiceItem {
-  background-color: rgba(var(--dbz-dark-gray-rgb, 52, 73, 94), 0.5); /* Darker, semi-transparent choices */
+  background-color: rgba(
+    var(--dbz-dark-gray-rgb, 52, 73, 94),
+    0.5
+  ); /* Darker, semi-transparent choices */
   border: 1.5px solid var(--blueprint-grid-line); /* Subtle border */
   padding: 15px 20px; /* More padding */
   border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    transform 0.15s ease;
   display: flex;
   align-items: center;
   margin-bottom: 12px; /* Spacing between choices */
 }
 .choiceItem:hover {
-  background-color: rgba(var(--dbz-yellow-rgb, 241, 196, 15), 0.15); /* Subtle yellow tint on hover */
+  background-color: rgba(
+    var(--dbz-yellow-rgb, 241, 196, 15),
+    0.15
+  ); /* Subtle yellow tint on hover */
   border-color: var(--blueprint-accent);
   transform: translateX(5px);
 }
@@ -446,7 +487,7 @@
   box-shadow: 0 0 5px var(--color-primary); /* Glow when checked */
 }
 .radioInput:checked::after {
-  content: '';
+  content: "";
   display: block;
   width: 8px;
   height: 8px;
@@ -521,12 +562,24 @@
 
 /* --- Keyframes --- */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes popIn {
-  0% { opacity: 0; transform: scale(0.8) translateY(30px);}
-  100% { opacity: 1; transform: scale(1) translateY(0);}
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 @keyframes slideDownFadeIn {
   from {
@@ -540,52 +593,114 @@
 }
 
 @keyframes slideInRightPop {
-  0% { opacity: 0; transform: translateX(60px) scale(0.95); }
-  60% { opacity: 1; transform: translateX(-8px) scale(1.04); }
-  80% { transform: translateX(0) scale(1.02); }
-  100% { opacity: 1; transform: translateX(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-8px) scale(1.04);
+  }
+  80% {
+    transform: translateX(0) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 @keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(30px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- Responsive --- */
 @media (max-width: 640px) {
-    .pageHeader { text-align: center; }
-    .pageTitle { font-size: 2.8rem; letter-spacing: 2px; } /* Adjusted from 3.5rem base */
-    .pageSubtitle { font-size: 1.1rem; } /* Adjusted from 1.2rem base */
+  .pageHeader {
+    text-align: center;
+  }
+  .pageTitle {
+    font-size: 2.8rem;
+    letter-spacing: 2px;
+  } /* Adjusted from 3.5rem base */
+  .pageSubtitle {
+    font-size: 1.1rem;
+  } /* Adjusted from 1.2rem base */
 
-    .panelStyle { padding: 15px 18px; border-radius: 10px; }
-    .panelHeader { font-size: 1.4rem; gap: 6px; padding-bottom: 6px; margin-bottom: 12px;} 
+  .panelStyle {
+    padding: 15px 18px;
+    border-radius: 10px;
+  }
+  .panelHeader {
+    font-size: 1.4rem;
+    gap: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
 
-    .filterControls { grid-template-columns: 1fr; gap: 10px 15px; }
-    .filterLabel { font-size: 0.8rem; }
-    .filterSelect { font-size: 0.9rem; padding: 8px 12px; border-radius: 5px;}
+  .filterControls {
+    grid-template-columns: 1fr;
+    gap: 10px 15px;
+  }
+  .filterLabel {
+    font-size: 0.8rem;
+  }
+  .filterSelect {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+  }
 
-    .contentPanel { padding: 15px 12px; }
-    
-    .themedButton, .filterButton, .startButton { 
-        font-size: 0.9rem; /* Smaller for mobile */
-        padding: 7px 16px; /* Smaller padding */
-        letter-spacing: 1px;
-    }
-    .startButton { /* If it needs to be distinct on mobile */
-        font-size: 1rem; /* Slightly larger than other buttons */
-        padding: 8px 20px;
-    }
+  .contentPanel {
+    padding: 15px 12px;
+  }
 
-    .testListItem { padding: 10px 12px; margin-bottom: 8px; border-radius: 6px; }
-    .testInfo h4 { font-size: 1rem; margin-bottom: 2px; }
-    .testInfo p { font-size: 0.75rem; }
-    .testActions .startButton { /* Start button within a list item */
-        font-size: 0.85rem;
-        padding: 6px 12px;
-    }
+  .themedButton,
+  .filterButton,
+  .startButton {
+    font-size: 0.9rem; /* Smaller for mobile */
+    padding: 7px 16px; /* Smaller padding */
+    letter-spacing: 1px;
+  }
+  .startButton {
+    /* If it needs to be distinct on mobile */
+    font-size: 1rem; /* Slightly larger than other buttons */
+    padding: 8px 20px;
+  }
 
-    .startTestContainer h3 { font-size: 1.3rem; margin-bottom: 10px; }
-    .startTestContainer p { font-size: 0.85rem; margin-bottom: 15px; }
+  .testListItem {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
+  .testInfo h4 {
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+  .testInfo p {
+    font-size: 0.75rem;
+  }
+  .testActions .startButton {
+    /* Start button within a list item */
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+
+  .startTestContainer h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+  }
+  .startTestContainer p {
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+  }
 }
 
 .resultsContainer {
@@ -619,7 +734,8 @@
   margin-bottom: 20px;
 }
 
-.resultDetails .rankName { /* Assuming you might add a class for rank name here */
+.resultDetails .rankName {
+  /* Assuming you might add a class for rank name here */
   font-family: var(--font-header);
   color: var(--blueprint-accent); /* Or specific rank color */
 }
@@ -633,7 +749,9 @@
 
 .leaderboardButton {
   composes: themedButton;
-  background-color: var(--dbz-blue); /* Differentiate from "Take Another Test" */
+  background-color: var(
+    --dbz-blue
+  ); /* Differentiate from "Take Another Test" */
   color: var(--blueprint-text);
   border-color: var(--blueprint-grid-line-strong);
 }
@@ -661,12 +779,198 @@
 .modalContent {
   background-color: var(--color-panel);
   border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-shadow), 0 0 15px var(--color-shadow), inset 0 0 10px rgba(0,0,0,0.6);
+  box-shadow: 4px 4px 0 0 var(--color-shadow), 0 0 15px var(--color-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 0;
   width: 90%;
   max-width: 500px;
   animation: slideIn 0.3s ease-out;
+}
+
+/* Result Modal Styles */
+.resultModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.resultModal {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+  border: 3px solid var(--dbz-orange);
+  border-radius: 20px;
+  padding: 32px;
+  min-width: 340px;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 30px rgba(241, 196, 15, 0.3), 0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: resultModalSlideIn 0.5s ease-out;
+  color: #fff;
+  text-align: center;
+  position: relative;
+}
+
+.resultModal::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    var(--dbz-orange),
+    var(--dbz-yellow),
+    var(--dbz-orange)
+  );
+  z-index: -1;
+  border-radius: 22px;
+  opacity: 0.8;
+}
+
+@keyframes resultModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Result Modal Content Styles */
+.resultTitle {
+  font-family: var(--font-header);
+  font-size: 2.2rem;
+  color: var(--dbz-orange);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 20px 0;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.resultContent {
+  margin: 20px 0;
+}
+
+.resultRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resultRow:last-child {
+  border-bottom: none;
+}
+
+.closeButton {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  padding: 12px 28px;
+  background: var(--dbz-green);
+  color: #fff;
+  border: 2px solid var(--dbz-black);
+  border-radius: 25px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0 var(--dbz-black);
+}
+
+.closeButton:hover {
+  background: #2ecc71;
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0 var(--dbz-black);
+}
+
+.closeButton:active {
+  transform: translateY(1px);
+  box-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.leaderboardButton {
+  font-family: var(--font-header);
+  font-size: 1rem;
+  padding: 10px 20px;
+  background: var(--dbz-blue);
+  color: #fff;
+  border: 2px solid var(--dbz-black);
+  border-radius: 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0 var(--dbz-black);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.leaderboardButton:hover {
+  background: #3498db;
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0 var(--dbz-black);
+}
+
+.leaderboardButton:active {
+  transform: translateY(1px);
+  box-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+/* Loading and error states */
+.loadingMessage {
+  font-size: 1.2rem;
+  color: var(--dbz-orange);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(241, 196, 15, 0.3);
+  border-top: 4px solid var(--dbz-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.errorMessage {
+  color: var(--dbz-red);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.infoMessage {
+  color: #aaa;
+  font-size: 1rem;
 }
 
 .modalActions {
@@ -739,9 +1043,8 @@
 .resultSection {
   background-color: var(--color-panel);
   border: 2px solid var(--color-panel-border);
-  box-shadow: 4px 4px 0 0 var(--color-shadow), 
-              0 0 15px var(--color-shadow), 
-              inset 0 0 10px rgba(0, 0, 0, 0.6);
+  box-shadow: 4px 4px 0 0 var(--color-shadow), 0 0 15px var(--color-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 0;
   text-align: center;
@@ -780,10 +1083,18 @@
   font-family: var(--font-body);
 }
 
-.scoreExcellent { color: var(--color-primary); }
-.scoreGood { color: var(--color-accent); }
-.scoreAverage { color: var(--color-primary); }
-.scorePoor { color: var(--color-accent); }
+.scoreExcellent {
+  color: var(--color-primary);
+}
+.scoreGood {
+  color: var(--color-accent);
+}
+.scoreAverage {
+  color: var(--color-primary);
+}
+.scorePoor {
+  color: var(--color-accent);
+}
 
 .pointsSection {
   margin-bottom: 30px;
@@ -815,9 +1126,15 @@
   line-height: 1;
 }
 
-.pointsPositive { color: var(--color-primary); }
-.pointsNegative { color: var(--color-accent); }
-.pointsNeutral { color: var(--color-primary); }
+.pointsPositive {
+  color: var(--color-primary);
+}
+.pointsNegative {
+  color: var(--color-accent);
+}
+.pointsNeutral {
+  color: var(--color-primary);
+}
 
 .totalPoints {
   display: flex;
@@ -862,13 +1179,27 @@
   line-height: 1;
 }
 
-.rankBronze { color: var(--color-primary); }
-.rankSilver { color: var(--color-accent); }
-.rankGold { color: var(--color-primary); }
-.rankPlatinum { color: var(--color-primary); }
-.rankDiamond { color: var(--color-primary); }
-.rankMaster { color: var(--color-primary); }
-.rankGrandmaster { color: var(--color-primary); }
+.rankBronze {
+  color: var(--color-primary);
+}
+.rankSilver {
+  color: var(--color-accent);
+}
+.rankGold {
+  color: var(--color-primary);
+}
+.rankPlatinum {
+  color: var(--color-primary);
+}
+.rankDiamond {
+  color: var(--color-primary);
+}
+.rankMaster {
+  color: var(--color-primary);
+}
+.rankGrandmaster {
+  color: var(--color-primary);
+}
 
 .retakeButton {
   font-family: var(--font-header);
@@ -907,7 +1238,7 @@
 .answerButton {
   font-family: var(--font-body);
   font-size: 1rem; /* Reduced from 1.05rem */
-  letter-spacing: 0.5px; 
+  letter-spacing: 0.5px;
   color: var(--blueprint-text);
   background: var(--dbz-dark-gray);
   padding: 12px 18px; /* Reduced from 14px 20px */
@@ -917,10 +1248,10 @@
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s, transform 0.1s ease-out;
   text-decoration: none;
-  display: block; 
+  display: block;
   width: 100%;
-  text-align: left; 
-  box-shadow: none; 
+  text-align: left;
+  box-shadow: none;
 }
 
 .answerButton:hover:not(:disabled) {
@@ -954,7 +1285,7 @@
   color: var(--blueprint-accent-text-dark);
   border: 2px solid var(--dbz-black);
   font-weight: 700;
-  box-shadow: none; 
+  box-shadow: none;
 }
 
 .selectedAnswer:hover:not(:disabled) {
@@ -992,7 +1323,8 @@
   border-radius: 22px; /* Reduced from 25px */
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+    background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
   text-decoration: none;
   display: inline-block;
   text-align: center;
@@ -1002,12 +1334,12 @@
 
 .baseNavButton:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange); 
+  box-shadow: 5px 5px 0 var(--dbz-black), 0 0 15px var(--dbz-orange);
 }
 
 .baseNavButton:active:not(:disabled) {
   transform: translateY(1px) scale(1);
-  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 .baseNavButton:disabled {
@@ -1022,17 +1354,18 @@
 
 .navButton {
   font-family: var(--font-header);
-  letter-spacing: 1.5px; 
-  border-radius: 25px; 
+  letter-spacing: 1.5px;
+  border-radius: 25px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+    background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
   text-decoration: none;
   display: inline-block;
   text-align: center;
   font-size: 1rem; /* UPDATED from 1.1rem */
   padding: 9px 20px; /* UPDATED from 10px 25px */
-  background: var(--blueprint-accent); 
+  background: var(--blueprint-accent);
   color: var(--blueprint-accent-text-dark);
   border: 2px solid var(--dbz-black);
   box-shadow: 3px 3px 0 var(--dbz-black);
@@ -1045,7 +1378,7 @@
 }
 .navButton:active:not(:disabled) {
   transform: translateY(1px) scale(1);
-  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 0 var(--dbz-black), inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 .navButton:disabled {
   background: var(--dbz-dark-gray) !important;
@@ -1062,26 +1395,27 @@
   border-radius: 25px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+    background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
   text-decoration: none;
   display: inline-block;
   text-align: center;
-  box-shadow: 3px 3px 0 var(--dbz-black); 
+  box-shadow: 3px 3px 0 var(--dbz-black);
   font-size: 0.9rem; /* UPDATED from 0.95rem */
   padding: 7px 16px; /* UPDATED from 8px 18px */
   background: var(--dbz-red);
   color: white;
-  border: 2px solid #a02b1c; 
+  border: 2px solid #a02b1c;
 }
 .reviewUnansweredButton:hover:not(:disabled) {
   background: #c0392b;
   color: white;
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 5px 5px 0 #a02b1c, 0 0 15px #c0392b; 
+  box-shadow: 5px 5px 0 #a02b1c, 0 0 15px #c0392b;
 }
 .reviewUnansweredButton:active:not(:disabled) {
   transform: translateY(1px) scale(1);
-  box-shadow: 2px 2px 0 #a02b1c, inset 0 0 8px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 0 #a02b1c, inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 .reviewUnansweredButton:disabled {
   background: var(--dbz-dark-gray) !important;
@@ -1102,11 +1436,12 @@
 
 .submitButton {
   font-family: var(--font-header);
-  letter-spacing: 1.5px; 
-  border-radius: 25px; 
+  letter-spacing: 1.5px;
+  border-radius: 25px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+    background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
   text-decoration: none;
   display: inline-block;
   text-align: center;
@@ -1125,7 +1460,7 @@
 }
 .submitButton:active:not(:disabled) {
   transform: translateY(1px) scale(1);
-  box-shadow: 2px 2px 0 var(--dbz-dark-blue), inset 0 0 8px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 0 var(--dbz-dark-blue), inset 0 0 8px rgba(0, 0, 0, 0.3);
 }
 .submitButton:disabled {
   background: var(--dbz-dark-gray) !important;
@@ -1161,7 +1496,7 @@
 
 .questionNavItem:hover:not(.questionNavItemCurrent) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .questionNavItemCurrent {
@@ -1169,7 +1504,7 @@
   height: 36px; /* UPDATED from 40px */
   border-radius: 50%;
   font-size: 1rem; /* UPDATED from 1.1rem */
-  cursor: default; 
+  cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1200,7 +1535,7 @@
 }
 .questionNavItemAnswered:hover:not(.questionNavItemCurrent) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   background-color: #2ecc71;
 }
 
@@ -1221,7 +1556,7 @@
 }
 .questionNavItemUnanswered:hover:not(.questionNavItemCurrent) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   background-color: #c0392b;
 }
 
@@ -1247,7 +1582,8 @@
     padding: 1px 4px; /* Further reduced */
   }
 
-  .questionContainer { /* Container within QuestionDisplay */
+  .questionContainer {
+    /* Container within QuestionDisplay */
     padding: 10px; /* Further reduced from 12px */
   }
 
@@ -1322,14 +1658,16 @@
     font-size: 0.8rem; /* Smaller filter button text */
     padding: 7px 14px; /* Tighter filter button padding */
   }
-   /* === END OF FILTER PANEL COMPACTNESS (768px) === */
+  /* === END OF FILTER PANEL COMPACTNESS (768px) === */
 
   .pageTitle {
     font-size: 3rem; /* Matched from VersusModeLobby */
     letter-spacing: 2px; /* Matched from VersusModeLobby */
     line-height: 1.1; /* Explicitly match VersusModeLobby base */
     margin-bottom: 0.1rem; /* Explicitly match VersusModeLobby base */
-    text-shadow: 3px 3px 0 var(--dbz-black), -1px -1px 0 var(--blueprint-bg), 1px -1px 0 var(--blueprint-bg), -1px 1px 0 var(--blueprint-bg), 1px 1px 0 var(--blueprint-bg); /* Explicitly match VersusModeLobby base */
+    text-shadow: 3px 3px 0 var(--dbz-black), -1px -1px 0 var(--blueprint-bg),
+      1px -1px 0 var(--blueprint-bg), -1px 1px 0 var(--blueprint-bg),
+      1px 1px 0 var(--blueprint-bg); /* Explicitly match VersusModeLobby base */
     white-space: nowrap; /* Ensure single line */
   }
   .pageSubtitle {
@@ -1375,7 +1713,8 @@
     padding: 1px 3px; /* Further reduced */
   }
 
-  .questionContainer { /* Container within QuestionDisplay */
+  .questionContainer {
+    /* Container within QuestionDisplay */
     padding: 8px; /* Further reduced from 10px */
   }
 
@@ -1407,7 +1746,8 @@
     padding: 8px 10px; /* Adjusted from 10px 12px */
   }
 
-  .navigationButtons > div { /* Container for review and submit buttons */
+  .navigationButtons > div {
+    /* Container for review and submit buttons */
     gap: 6px; /* Further reduced from 8px */
   }
 
@@ -1457,7 +1797,9 @@
     letter-spacing: 1px; /* Reduced letter spacing */
     line-height: 1.1;
     margin-bottom: 0.1rem;
-    text-shadow: 2px 2px 0 var(--dbz-black), -1px -1px 0 var(--blueprint-bg), 1px -1px 0 var(--blueprint-bg), -1px 1px 0 var(--blueprint-bg), 1px 1px 0 var(--blueprint-bg); /* Reduced shadow */
+    text-shadow: 2px 2px 0 var(--dbz-black), -1px -1px 0 var(--blueprint-bg),
+      1px -1px 0 var(--blueprint-bg), -1px 1px 0 var(--blueprint-bg),
+      1px 1px 0 var(--blueprint-bg); /* Reduced shadow */
     white-space: nowrap;
   }
   .pageSubtitle {

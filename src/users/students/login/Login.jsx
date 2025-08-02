@@ -1,47 +1,52 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import styles from './Login.module.css';
-import { FaUserCircle, FaShoppingCart, FaCog } from 'react-icons/fa';
-import FloatingStars from '../components/FloatingStars/FloatingStars';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
+import styles from "./Login.module.css";
+import { FaUserCircle, FaShoppingCart, FaCog } from "react-icons/fa";
+import FloatingStars from "../components/FloatingStars/FloatingStars";
 
 // Old SVG Icons removed
 
 const Login = () => {
-  const [studentId, setStudentId] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [studentId, setStudentId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (!backendUrl) {
-        throw new Error('Backend URL is not configured. Please check your environment variables.');
+        throw new Error(
+          "Backend URL is not configured. Please check your environment variables."
+        );
       }
       const response = await fetch(`${backendUrl}/api/auth/student-login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           studentId: Number(studentId),
-          password
+          password,
         }),
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || `Login failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          data.error ||
+            `Login failed: ${response.status} ${response.statusText}`
+        );
       }
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.student));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.student));
       await login({ studentId, password });
-      navigate('/start');
+      navigate("/start");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -52,15 +57,19 @@ const Login = () => {
   return (
     <div className={styles.loginPageWrapper}>
       <FloatingStars />
-      
+
       {/* Top Navigation Bar - Simplified */}
       <nav className={styles.topNavBar}>
         <div className={styles.navBrand}>AGILA Adventure</div>
         <div className={styles.navActions}>
           {/* Using FaUserCircle as a placeholder profile/login icon, can be removed if not needed on login page */}
           {/* <span className={styles.navIcon}><FaUserCircle /></span>  */}
-          <span className={styles.navIcon} title="Shop (Placeholder)"><FaShoppingCart /></span>
-          <span className={styles.navIcon} title="Settings (Placeholder)"><FaCog /></span>
+          <span className={styles.navIcon} title="Shop (Placeholder)">
+            <FaShoppingCart />
+          </span>
+          <span className={styles.navIcon} title="Settings (Placeholder)">
+            <FaCog />
+          </span>
         </div>
       </nav>
 
@@ -100,13 +109,13 @@ const Login = () => {
           </div>
           {error && (
             <p className={styles.errorMessage}>
-              Oops! {
-                error.includes('not configured') 
-                ? error 
-                : error.includes('Login failed') || error.includes('match our storybook')
-                  ? "That passcode doesn't match our storybook, or there was a login issue."
-                  : error
-              }
+              Oops!{" "}
+              {error.includes("not configured")
+                ? error
+                : error.includes("Login failed") ||
+                  error.includes("match our storybook")
+                ? "That passcode doesn't match our storybook, or there was a login issue."
+                : error}
             </p>
           )}
           <button
@@ -114,14 +123,14 @@ const Login = () => {
             className={styles.loginButton}
             disabled={isLoading}
           >
-            {isLoading ? 'Opening the Book...' : 'Start the Adventure'}
+            {isLoading ? "Opening the Book..." : "Start the Adventure"}
           </button>
         </form>
         <div className={styles.loginLinksWrapper}>
           <button
             type="button"
             className={styles.auxiliaryLink}
-            onClick={() => navigate('/register')}
+            onClick={() => navigate("/register")}
             disabled={isLoading}
           >
             Create your adventurer profile!
@@ -129,7 +138,7 @@ const Login = () => {
           <button
             type="button"
             className={styles.auxiliaryLink}
-            onClick={() => navigate('/forgot-password')}
+            onClick={() => navigate("/forgot-password")}
             disabled={isLoading}
           >
             Forgot your magic word?
@@ -140,4 +149,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

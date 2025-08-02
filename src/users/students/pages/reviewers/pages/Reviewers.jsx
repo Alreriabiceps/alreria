@@ -1,549 +1,786 @@
-import React, { useState, useEffect, useRef } from 'react'; // Added hooks
-import styles from './Reviewers.module.css';
-import { FaSearch, FaBook, FaFileAlt, FaSyncAlt, FaStar, FaRegStar, FaFilePdf, FaFileWord, FaFilePowerpoint, FaTag, FaEraser, FaFilter, FaListUl, FaHeart, FaUndo, FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Added more icons
-import FloatingStars from '../../../components/FloatingStars/FloatingStars';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-import { useSwipeable } from 'react-swipeable';
-// import 'pdfjs-dist/legacy/build/pdf.worker.entry'; // REMOVE THIS LINE
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/legacy/build/pdf.worker.min.js`;
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import { useSwipeable } from "react-swipeable";
+import {
+  FaSearch,
+  FaBook,
+  FaFileAlt,
+  FaSyncAlt,
+  FaStar,
+  FaRegStar,
+  FaFilePdf,
+  FaFileWord,
+  FaFilePowerpoint,
+  FaTag,
+  FaEraser,
+  FaFilter,
+  FaListUl,
+  FaHeart,
+  FaUndo,
+  FaChevronDown,
+  FaChevronUp,
+  FaCalendarAlt,
+  FaDownload,
+  FaClock,
+  FaFire,
+  FaEye,
+  FaShareAlt,
+  FaExpand,
+  FaTimes,
+  FaArrowUp,
+  FaKeyboard,
+  FaBookmark,
+  FaSort,
+  FaThList,
+  FaTh,
+  FaRedo,
+  FaExclamationTriangle,
+  FaUsers,
+  FaGraduationCap,
+  FaLayerGroup,
+} from "react-icons/fa";
+import { toast } from "react-toastify";
 
-// --- Define File Types and Subjects ---
-const FILE_TYPES = ['pdf', 'docx', 'pptx']; // Or derive dynamically if needed
-// const SUBJECTS = [ // This will be dynamically populated now
-//     "Effective Communication",
-//     "Life Skills",
-//     "General Mathematics",
-//     "General Science",
-//     "Pag-aaral ng Kasaysayan"
-// ];
-// -------------------------------------
+// Custom components and hooks
+import FloatingStars from "../../../components/FloatingStars/FloatingStars";
+import SearchBar from "../../../../../components/SearchBar";
+import PdfThumbnail from "../../../../../components/PdfThumbnail";
+import {
+  useReviewers,
+  useAdvancedSearch,
+  useInfiniteReviewers,
+} from "../../../../../hooks/useReviewers";
+import {
+  useKeyboardShortcuts,
+  useCardShortcuts,
+} from "../../../../../hooks/useKeyboardShortcuts";
 
-// Helper to get icon class (Keep as is, but ensure classes exist in new CSS)
-const getIconClass = (type) => {
-    const extension = type?.toLowerCase();
-    if (extension === 'pdf') return styles.iconPdf;
-    if (extension === 'docx' || extension === 'doc') return styles.iconDocx;
-    if (extension === 'pptx' || extension === 'ppt') return styles.iconPptx;
-    return styles.iconDefault;
-};
+import styles from "./Reviewers.module.css";
 
-// Helper to get original icon class for PDF preview background if needed
-const getOriginalIconClassForBg = (type) => {
-    const extension = type?.toLowerCase();
-    if (extension === 'pdf') return styles.iconPdf; // Assumes these provide background-color
-    if (extension === 'docx' || extension === 'doc') return styles.iconDocx;
-    if (extension === 'pptx' || extension === 'ppt') return styles.iconPptx;
-    return styles.iconDefault;
-};
-
-// PDF Thumbnail Preview Component
-const PdfThumbnail = ({ url }) => {
-  const canvasRef = useRef(null);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    let isMounted = true;
-    const renderThumbnail = async () => {
-      try {
-        const loadingTask = pdfjsLib.getDocument(url);
-        const pdf = await loadingTask.promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 0.2 });
-        const canvas = canvasRef.current;
-        if (!canvas || !isMounted) return;
-        const context = canvas.getContext('2d');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({ canvasContext: context, viewport }).promise;
-      } catch (err) {
-        if (isMounted) setError(true);
-        console.error("Error rendering PDF thumbnail:", err);
-      }
-    };
-    if (url && canvasRef.current) renderThumbnail();
-    return () => { isMounted = false; };
-  }, [url]);
-
-  if (error) return <FaFilePdf className={styles.fileIconFallback} />;
-  return <canvas ref={canvasRef} className={styles.pdfThumbnailPreview} title="PDF preview" />;
-};
-
-// Updated to return elements with classes for styling via CSS modules
-const getFileTypeIcon = (type, url) => {
-  const extension = type?.toLowerCase();
-  if (extension === 'pdf') {
-    // Using a wrapper for PdfThumbnail to control its size if needed, or rely on canvas intrinsic size
-    return url ? <PdfThumbnail url={url} /> : <FaFilePdf className={`${styles.fileTypeDisplayIcon} ${styles.iconPdfColor}`} />;
-  }
-  if (extension === 'docx' || extension === 'doc') return <FaFileWord className={`${styles.fileTypeDisplayIcon} ${styles.iconDocxColor}`} />;
-  if (extension === 'pptx' || extension === 'ppt') return <FaFilePowerpoint className={`${styles.fileTypeDisplayIcon} ${styles.iconPptxColor}`} />;
-  return <FaFileAlt className={`${styles.fileTypeDisplayIcon} ${styles.iconDefaultColor}`} />;
-};
-
+// Constants
+const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard"];
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'oldest', label: 'Oldest' },
-  { value: 'title-asc', label: 'Title (A-Z)' },
-  { value: 'title-desc', label: 'Title (Z-A)' },
-  // Add more if needed, e.g., by subject, by download count
+  { value: "newest", label: "Newest First", icon: FaClock },
+  { value: "oldest", label: "Oldest First", icon: FaClock },
+  { value: "title-asc", label: "Title (A-Z)", icon: FaSort },
+  { value: "title-desc", label: "Title (Z-A)", icon: FaSort },
+  { value: "popularity", label: "Most Downloaded", icon: FaFire },
+  { value: "difficulty", label: "By Difficulty", icon: FaTag },
 ];
 
-const ITEMS_PER_PAGE = 8; // Increased slightly for compact cards
+const VIEW_MODES = [
+  { value: "grid", label: "Grid View", icon: FaTh },
+  { value: "list", label: "List View", icon: FaThList },
+];
 
-const isMobile = () => typeof window !== 'undefined' && window.innerWidth <= 768;
+// Sample data for fallback when API fails
+const SAMPLE_REVIEWERS = [
+  {
+    id: "sample-1",
+    title: "General Mathematics Reviewer",
+    type: "pdf",
+    description:
+      "Complete reviewer for General Mathematics covering algebra, geometry, and statistics.",
+    url: "#",
+    subjects: ["General Mathematics"],
+    tags: ["algebra", "geometry", "statistics"],
+    createdAt: new Date().toISOString(),
+    downloadCount: 45,
+    difficulty: "Medium",
+  },
+  {
+    id: "sample-2",
+    title: "Science and Technology Review",
+    type: "docx",
+    description:
+      "Comprehensive review materials for Science and Technology subjects.",
+    url: "#",
+    subjects: ["General Science"],
+    tags: ["physics", "chemistry", "biology"],
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    downloadCount: 23,
+    difficulty: "Hard",
+  },
+  {
+    id: "sample-3",
+    title: "Effective Communication Guide",
+    type: "pptx",
+    description:
+      "Guide for improving communication skills in academic and professional settings.",
+    url: "#",
+    subjects: ["Effective Communication"],
+    tags: ["speaking", "writing", "presentation"],
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    downloadCount: 67,
+    difficulty: "Easy",
+  },
+];
 
-// ... (ReviewerCard component will be refactored later)
+// Enhanced File Type Icon Component
+const FileTypeIcon = ({ type, url, size = "medium" }) => {
+  const className = `${styles.fileTypeIcon} ${
+    styles[`icon${size.charAt(0).toUpperCase() + size.slice(1)}`]
+  }`;
+
+  switch (type?.toLowerCase()) {
+    case "pdf":
+      return url && url !== "#" ? (
+        <PdfThumbnail url={url} className={className} />
+      ) : (
+        <FaFilePdf className={`${className} ${styles.iconPdf}`} />
+      );
+    case "docx":
+    case "doc":
+      return <FaFileWord className={`${className} ${styles.iconDocx}`} />;
+    case "pptx":
+    case "ppt":
+      return <FaFilePowerpoint className={`${className} ${styles.iconPptx}`} />;
+    default:
+      return <FaFileAlt className={`${className} ${styles.iconDefault}`} />;
+  }
+};
+
+// Loading Skeleton Component
+const ReviewerSkeleton = () => (
+  <div className={styles.skeletonCard}>
+    <div className={styles.skeletonHeader}>
+      <div className={styles.skeletonIcon}></div>
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonTitle}></div>
+        <div className={styles.skeletonMeta}></div>
+      </div>
+      <div className={styles.skeletonActions}></div>
+    </div>
+  </div>
+);
+
+// Enhanced Reviewer Card Component
+const ReviewerCard = React.memo(
+  ({
+    reviewer,
+    isFavorite,
+    onToggleFavorite,
+    onAccess,
+    viewMode = "grid",
+    // eslint-disable-next-line no-unused-vars
+    index = 0,
+  }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const cardRef = useRef(null);
+
+    // Swipe handlers for mobile
+    const swipeHandlers = useSwipeable({
+      onSwipedLeft: () => onAccess(reviewer.id, reviewer.url),
+      onSwipedRight: () => onToggleFavorite(reviewer.id),
+      delta: 50,
+      trackTouch: true,
+      trackMouse: false,
+    });
+
+    // Keyboard shortcuts for focused card
+    useCardShortcuts({
+      onToggleFavorite: () => onToggleFavorite(reviewer.id),
+      onAccess: () => onAccess(reviewer.id, reviewer.url),
+      onExpand: () => setIsExpanded(!isExpanded),
+      isEnabled: isHovered,
+    });
+
+    const handleAccess = useCallback(async () => {
+      if (reviewer.url === "#") {
+        toast.info(
+          "This is a sample reviewer. Real links will open documents."
+        );
+        return;
+      }
+
+      setDownloadProgress(10);
+
+      // Simulate download progress
+      const progressInterval = setInterval(() => {
+        setDownloadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      try {
+        await onAccess(reviewer.id, reviewer.url);
+        setDownloadProgress(100);
+        setTimeout(() => setDownloadProgress(0), 1000);
+      } catch {
+        setDownloadProgress(0);
+        clearInterval(progressInterval);
+      }
+    }, [reviewer.id, reviewer.url, onAccess]);
+
+    return (
+      <div
+        ref={cardRef}
+        className={`${styles.reviewerCard} ${styles[viewMode]} ${
+          isExpanded ? styles.expanded : ""
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        tabIndex={0}
+        {...swipeHandlers}
+      >
+        {/* Download Progress Bar */}
+        {downloadProgress > 0 && (
+          <div
+            className={styles.progressBar}
+            style={{ width: `${downloadProgress}%` }}
+          />
+        )}
+
+        <div className={styles.cardHeader}>
+          <div className={styles.fileIconContainer}>
+            <FileTypeIcon type={reviewer.type} url={reviewer.url} />
+            {reviewer.difficulty && (
+              <span
+                className={`${styles.difficultyBadge} ${
+                  styles[`difficulty${reviewer.difficulty}`]
+                }`}
+              >
+                {reviewer.difficulty}
+              </span>
+            )}
+          </div>
+
+          <div className={styles.cardContent}>
+            <h3 className={styles.cardTitle} title={reviewer.title}>
+              {reviewer.title}
+            </h3>
+            <div className={styles.cardMeta}>
+              <span className={styles.subject}>
+                {reviewer.subjects?.join(", ") || "General"}
+              </span>
+              <span className={styles.date}>
+                {reviewer.createdAt &&
+                  new Date(reviewer.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            <div className={styles.cardStats}>
+              <span className={styles.downloads}>
+                <FaDownload /> {reviewer.downloadCount || 0}
+              </span>
+              {reviewer.popularity > 0 && (
+                <span className={styles.popularity}>
+                  <FaFire /> Popular
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.cardActions}>
+            <button
+              className={`${styles.favoriteBtn} ${
+                isFavorite ? styles.active : ""
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(reviewer.id);
+              }}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              {isFavorite ? <FaStar /> : <FaRegStar />}
+            </button>
+
+            <button
+              className={styles.accessBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAccess();
+              }}
+              disabled={downloadProgress > 0}
+            >
+              {downloadProgress > 0 ? "Opening..." : "Access"}
+            </button>
+
+            <button
+              className={styles.expandBtn}
+              onClick={() => setIsExpanded(!isExpanded)}
+              title={isExpanded ? "Collapse details" : "Expand details"}
+            >
+              {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className={styles.cardDetails}>
+            <p className={styles.description}>
+              {reviewer.description || "No description available."}
+            </p>
+
+            {reviewer.tags && reviewer.tags.length > 0 && (
+              <div className={styles.tags}>
+                {reviewer.tags.map((tag) => (
+                  <span key={tag} className={styles.tag}>
+                    <FaTag /> {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 // Main Reviewers Component
 const Reviewers = () => {
-  // --- State ---
-  const [allReviewers, setAllReviewers] = useState([]);
-  const [filteredReviewers, setFilteredReviewers] = useState([]);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [uniqueSubjects, setUniqueSubjects] = useState([]); // For dynamic filter options
-  const [uniqueFileTypes, setUniqueFileTypes] = useState([]); // For dynamic filter options
-  // const [selectedTags, setSelectedTags] = useState([]); // Tags seem unused, can remove or implement fully
-  const [selectedFileType, setSelectedFileType] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true); // Start with loading true
-  const [error, setError] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
-  const [page, setPage] = useState(1);
-  const [favorites, setFavorites] = useState([]);
+  const [viewMode, setViewMode] = useState("grid");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [downloading, setDownloading] = useState({});
-  const [expandedId, setExpandedId] = useState(null);
-  const [swipeAction, setSwipeAction] = useState({});
+  // eslint-disable-next-line no-unused-vars
+  const [autoFocus, setAutoFocus] = useState(false);
+  const [useFallbackData, setUseFallbackData] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const searchInputRef = useRef(null);
 
-  const token = localStorage.getItem('token');
+  // Data hooks with fallback
+  const {
+    reviewers: apiReviewers,
+    favorites,
+    uniqueSubjects: apiUniqueSubjects,
+    uniqueFileTypes: apiUniqueFileTypes,
+    isLoading,
+    // eslint-disable-next-line no-unused-vars
+    error,
+    refetch,
+    toggleFavorite,
+    handleAccess,
+  } = useReviewers();
 
-  const fetchReviewers = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/admin/reviewer-links`);
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'Failed to fetch reviewer links' }));
-        throw new Error(errorData.message || 'Failed to fetch reviewer links');
-      }
-      const data = await res.json();
-      const mapped = data.map(item => ({
-        id: item._id,
-        title: item.title,
-        type: item.fileType?.toLowerCase(), // Ensure lowercase for consistency
-        description: item.description,
-        url: item.link,
-        subject: item.subject, // This might be a single string or an array from backend
-        subjects: Array.isArray(item.subjects) ? item.subjects : (item.subject ? [item.subject] : []), // Normalize subjects
-        tags: item.tags || [], // Ensure tags is an array
-        createdAt: item.createdAt,
-        downloadCount: item.downloadCount || 0,
-      }));
-      setAllReviewers(mapped);
-
-      // Dynamically populate filter options
-      const subjects = Array.from(new Set(mapped.flatMap(r => r.subjects))).sort();
-      const fileTypes = Array.from(new Set(mapped.map(r => r.type).filter(Boolean))).sort();
-      setUniqueSubjects(subjects);
-      setUniqueFileTypes(fileTypes);
-
-    } catch (err) {
-      setError(err.message || 'Could not load reviewer links.');
-      setAllReviewers([]); // Clear data on error
-    } finally {
-      setLoading(false);
+  // Use fallback data if API fails
+  const reviewers = useMemo(() => {
+    if (error && !useFallbackData) {
+      setUseFallbackData(true);
+      toast.warning("Using sample data - Backend not available");
     }
-  };
+    return useFallbackData || apiReviewers.length === 0
+      ? SAMPLE_REVIEWERS
+      : apiReviewers;
+  }, [error, useFallbackData, apiReviewers]);
 
-  const fetchFavorites = async () => {
-    if (!token) return;
-    try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/students/favorite-reviewers`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch favorites');
-      const data = await res.json();
-      setFavorites(data.map(fav => fav.reviewerLink?._id).filter(Boolean)); // Ensure fav.reviewerLink exists
-    } catch (err) {
-      // console.error("Error fetching favorites:", err); // Optional: log error
-      setFavorites([]);
+  const uniqueSubjects = useMemo(() => {
+    if (useFallbackData) {
+      const subjects = SAMPLE_REVIEWERS.flatMap((r) => r.subjects);
+      return [...new Set(subjects)].sort();
     }
-  };
+    return apiUniqueSubjects;
+  }, [useFallbackData, apiUniqueSubjects]);
 
+  const uniqueFileTypes = useMemo(() => {
+    if (useFallbackData) {
+      const types = SAMPLE_REVIEWERS.map((r) => r.type).filter(Boolean);
+      return [...new Set(types)].sort();
+    }
+    return apiUniqueFileTypes;
+  }, [useFallbackData, apiUniqueFileTypes]);
+
+  // Advanced search and filtering
+  const searchFilters = useAdvancedSearch(
+    reviewers,
+    favorites,
+    showFavoritesOnly
+  );
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedSubjects,
+    selectedFileTypes,
+    difficultyFilter,
+    setDifficultyFilter,
+    // eslint-disable-next-line no-unused-vars
+    dateRange,
+    setDateRange,
+    sortBy,
+    setSortBy,
+    // eslint-disable-next-line no-unused-vars
+    searchHistory,
+    filteredReviewers,
+    clearFilters,
+    addSubjectFilter,
+    addFileTypeFilter,
+    hasActiveFilters,
+  } = searchFilters;
+
+  // Infinite scroll
+  const {
+    items: displayedReviewers,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteReviewers(filteredReviewers, viewMode === "grid" ? 12 : 8);
+
+  // Intersection observer for infinite scroll
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.1,
+    rootMargin: "100px",
+  });
+
+  // Load more when in view
   useEffect(() => {
-    fetchReviewers();
-    fetchFavorites();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]); // Re-fetch if token changes, though unlikely in this context
-
-  useEffect(() => {
-    let result = showFavoritesOnly
-      ? allReviewers.filter(r => favorites.includes(r.id))
-      : allReviewers;
-
-    if (searchTerm) {
-      result = result.filter(r =>
-        r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.subjects.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-    if (selectedFileType) {
-      result = result.filter(r => r.type === selectedFileType);
-    }
-    if (selectedSubjects.length > 0) {
-      result = result.filter(r => r.subjects.some(s => selectedSubjects.includes(s)));
-    }
+  }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-    // Sorting logic (ensure stability or add secondary sort if needed)
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest': return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'oldest': return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'title-asc': return a.title.localeCompare(b.title);
-        case 'title-desc': return b.title.localeCompare(a.title);
-        default: return 0;
+  // Filter change handler
+  const handleFilterChange = useCallback(
+    (type, value) => {
+      switch (type) {
+        case "subject":
+          addSubjectFilter(value);
+          break;
+        case "fileType":
+          addFileTypeFilter(value);
+          break;
+        case "difficulty":
+          setDifficultyFilter((prev) => (prev === value ? "" : value));
+          break;
+        case "dateStart":
+          setDateRange((prev) => ({ ...prev, start: value }));
+          break;
+        case "dateEnd":
+          setDateRange((prev) => ({ ...prev, end: value }));
+          break;
       }
-    });
+    },
+    [addSubjectFilter, addFileTypeFilter, setDifficultyFilter, setDateRange]
+  );
 
-    setFilteredReviewers(result);
-    setPage(1); // Reset to first page on filter/sort change
-  }, [allReviewers, searchTerm, selectedFileType, selectedSubjects, sortBy, favorites, showFavoritesOnly]);
+  // Enhanced handlers for fallback mode
+  const handleToggleFavorite = useCallback(
+    (id) => {
+      if (useFallbackData) {
+        toast.info("Favorites are not available in demo mode");
+        return;
+      }
+      toggleFavorite(id);
+    },
+    [useFallbackData, toggleFavorite]
+  );
 
-  const totalPages = Math.max(1, Math.ceil(filteredReviewers.length / ITEMS_PER_PAGE));
-  const currentReviewers = filteredReviewers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const handleAccessFile = useCallback(
+    (id, url) => {
+      if (useFallbackData) {
+        if (url === "#") {
+          toast.info("This is a sample reviewer. Real files would open here.");
+          return;
+        }
+      }
+      handleAccess(id, url);
+    },
+    [useFallbackData, handleAccess]
+  );
 
-  const handleSelectSubject = (subject) => {
-    setSelectedSubjects(prev =>
-      prev.includes(subject) ? prev.filter(s => s !== subject) : [...prev, subject]
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSearch: () => {
+      setAutoFocus(true);
+      searchInputRef.current?.focus();
+    },
+    onClearFilters: clearFilters,
+    onRefresh: () => {
+      if (useFallbackData) {
+        setUseFallbackData(false);
+        toast.info("Trying to reconnect to backend...");
+      }
+      refetch();
+    },
+    onToggleFavorites: () => setShowFavoritesOnly(!showFavoritesOnly),
+    onFocusFirstResult: () => {
+      // Focus first reviewer card
+      const firstCard = document.querySelector(`.${styles.reviewerCard}`);
+      firstCard?.focus();
+    },
+    onEscape: () => {
+      // Clear search and filters
+      setSearchTerm("");
+      setAutoFocus(false);
+    },
+  });
+
+  if (error && !useFallbackData) {
+    return (
+      <div className={styles.reviewersContainer}>
+        <div className={styles.errorContainer}>
+          <FaExclamationTriangle className={styles.errorIcon} />
+          <h2>Backend Connection Error</h2>
+          <p>
+            Unable to connect to the server. You can still explore with sample
+            data.
+          </p>
+          <div className={styles.errorButtons}>
+            <button className={styles.retryBtn} onClick={refetch}>
+              <FaRedo /> Try Again
+            </button>
+            <button
+              className={`${styles.retryBtn} ${styles.sampleBtn}`}
+              onClick={() => setUseFallbackData(true)}
+            >
+              <FaBook /> Use Sample Data
+            </button>
+          </div>
+        </div>
+      </div>
     );
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedFileType('');
-    setSelectedSubjects([]);
-    setSortBy('newest');
-    setShowFavoritesOnly(false); // Also reset favorites filter
-  };
-
-  const handlePrev = () => setPage(p => Math.max(1, p - 1));
-  const handleNext = () => setPage(p => Math.min(totalPages, p + 1));
-  const handleRefresh = () => { fetchReviewers(); fetchFavorites(); };
-
-  const handleToggleFavorite = async (id) => {
-    if (!token) { setError("You must be logged in to manage favorites."); return; }
-    const originalFavorites = [...favorites];
-    const isCurrentlyFavorite = favorites.includes(id);
-    const optimisticFavorites = isCurrentlyFavorite ? favorites.filter(favId => favId !== id) : [...favorites, id];
-    setFavorites(optimisticFavorites);
-
-    try {
-      const method = isCurrentlyFavorite ? 'DELETE' : 'POST';
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/students/favorite-reviewers/${id}`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        setFavorites(originalFavorites); // Revert on error
-        throw new Error(isCurrentlyFavorite ? 'Failed to unfavorite' : 'Failed to favorite');
-      }
-      // Optionally re-fetch favorites to ensure consistency, or trust optimistic update
-      // fetchFavorites(); 
-    } catch (err) {
-      setError(err.message);
-      setFavorites(originalFavorites); // Revert on error
-    }
-  };
-
-  const handleAccess = async (id, url) => {
-    if (!url) { setError("No URL available for this item."); return; }
-    setDownloading(prev => ({ ...prev, [id]: true }));
-    try {
-      // Increment download count on backend
-      await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/admin/reviewer-links/${id}/increment-download`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }, // Assuming admin or specific student endpoint
-      });
-      // Update local state for download count immediately for responsiveness (optional)
-      setAllReviewers(prev => prev.map(r => r.id === id ? { ...r, downloadCount: (r.downloadCount || 0) + 1 } : r));
-      window.open(url, '_blank');
-    } catch (err) {
-      // console.error("Error accessing/incrementing download:", err);
-      // Still open the URL even if count increment fails
-      window.open(url, '_blank');
-    } finally {
-      setDownloading(prev => ({ ...prev, [id]: false }));
-    }
-  };
+  }
 
   return (
     <div className={styles.reviewersContainer}>
       <FloatingStars />
-      <div className={styles.pageHeaderWrapper}> {/* Added wrapper */} 
-        <h1 className={styles.pageTitle}>Reviewer Materials</h1> {/* Changed class */} 
+
+      {/* Page Header */}
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>
+          Reviewer Materials
+          {useFallbackData && (
+            <span className={styles.demoMode}>(Demo Mode)</span>
+          )}
+        </h1>
+        <p className={styles.pageSubtitle}>
+          Access comprehensive study materials and enhance your learning.
+        </p>
       </div>
 
-      <div className={styles.contentPanelWrapper}> {/* Changed class */} 
-        {/* Filter Section */}
-        <div className={styles.filterSection}>
-          <div className={styles.filterControls}>
-            {/* Search Input */}
-            <div className={styles.filterGroup}>
-              <label htmlFor="searchTerm" className={styles.filterLabel}>Search by Title/Keyword</label>
-              <div className={styles.filterInputContainer}>
-                <FaSearch className={styles.filterInputIcon} />
-                <input
-                  type="text"
-                  id="searchTerm"
-                  className={styles.filterInput} // Uses filterControlBase via composes
-                  placeholder="E.g., Communication, Math, History..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-              </div>
+      {/* Filter Panel */}
+      <div className={styles.filterPanel}>
+        <div className={styles.panelHeader}>
+          <FaFilter className={styles.panelIcon} />
+          Filters & Controls
+          <button
+            className={styles.toggleAdvanced}
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            {showAdvancedFilters ? <FaChevronUp /> : <FaChevronDown />}
+          </button>
+        </div>
+
+        <div className={styles.basicFilters}>
+          <div className={styles.filterRow}>
+            <div className={styles.searchContainer}>
+              <SearchBar
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={setSearchTerm}
+                placeholder="Search reviewers..."
+                className={styles.searchInput}
+              />
             </div>
 
-            {/* Sort By Dropdown */}
-            <div className={styles.filterGroup}>
-              <label htmlFor="sortBy" className={styles.filterLabel}>Sort By</label>
-              <div className={styles.filterInputContainer}>
-                 <FaListUl className={styles.filterInputIcon} /> {/* Example Icon */} 
-                <select
-                  id="sortBy"
-                  className={styles.filterSelectWithIcon} // Uses filterControlBase via composes
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                >
-                  {SORT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-            
-          {/* File Type Chips (if uniqueFileTypes has items) */}
-          {uniqueFileTypes.length > 0 && (
-            <div className={styles.filterGroup} style={{ marginTop: '15px' }}>
-              <label className={styles.filterLabel}>Filter by File Type</label>
-              <div className={styles.filterChipsScroll}>
-                {uniqueFileTypes.map(fileType => (
-                  <label key={fileType} className={`${styles.chipCheckbox} ${selectedFileType === fileType ? styles.selected : ''}`}>
-                    <input
-                      type="radio"
-                      name="fileTypeFilter"
-                      value={fileType}
-                      checked={selectedFileType === fileType}
-                      onChange={() => setSelectedFileType(prev => prev === fileType ? '' : fileType)} // Toggle behavior: click again to clear
-                    />
-                    {/* Optional: Add icon to chip based on fileType */}
-                    {/* getFileTypeIcon(fileType) */} 
-                    {fileType.toUpperCase()}
-                  </label>
+            <div className={styles.controlsGroup}>
+              <div className={styles.viewModeToggle}>
+                {VIEW_MODES.map((mode) => (
+                  <button
+                    key={mode.value}
+                    className={`${styles.viewModeBtn} ${
+                      viewMode === mode.value ? styles.active : ""
+                    }`}
+                    onClick={() => setViewMode(mode.value)}
+                    title={mode.label}
+                  >
+                    <mode.icon />
+                  </button>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* Subject Chips (if uniqueSubjects has items) */}
-          {uniqueSubjects.length > 0 && (
-            <div className={styles.filterGroup} style={{ marginTop: '15px' }}>
-              <label className={styles.filterLabel}>Filter by Subject</label>
-              <div className={styles.filterChipsScroll}>
-                {uniqueSubjects.map(subject => (
-                  <label key={subject} className={`${styles.chipCheckbox} ${selectedSubjects.includes(subject) ? styles.selected : ''}`}>
-                    <input
-                      type="checkbox"
-                      value={subject}
-                      checked={selectedSubjects.includes(subject)}
-                      onChange={() => handleSelectSubject(subject)}
-                    />
-                    {/* <FaTag className={styles.chipIcon} />  Example Icon */}
-                    {subject}
-                  </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className={styles.sortSelect}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
-              </div>
-            </div>
-          )}
+              </select>
 
-          {/* Action Buttons */}
-          <div className={styles.filterActions}>
-            <button onClick={handleClearFilters} className={styles.clearFilterBtn}>
-              <FaEraser style={{ marginRight: '6px' }} /> Clear Filters
-            </button>
-            <button onClick={handleRefresh} className={styles.refreshButton} title="Refresh List">
-              <FaSyncAlt />
-            </button>
-            {token && ( /* Show favorites toggle only if logged in */
-              <button onClick={() => setShowFavoritesOnly(!showFavoritesOnly)} className={styles.toggleFavoriteButton}>
-                <FaHeart style={{ marginRight: '6px' }} /> {showFavoritesOnly ? 'Show All' : 'My Favorites'}
+              <button
+                className={`${styles.favoritesToggle} ${
+                  showFavoritesOnly ? styles.active : ""
+                }`}
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                disabled={useFallbackData}
+                title={useFallbackData ? "Not available in demo mode" : ""}
+              >
+                <FaHeart />
+                {showFavoritesOnly ? "Show All" : "Favorites"}
               </button>
-            )}
+
+              <button
+                className={styles.refreshBtn}
+                onClick={() => {
+                  if (useFallbackData) {
+                    setUseFallbackData(false);
+                    toast.info("Trying to reconnect...");
+                  }
+                  refetch();
+                }}
+                title={useFallbackData ? "Reconnect to backend" : "Refresh"}
+              >
+                <FaSyncAlt />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Loading and Error States */}
-        {loading && <p className={styles.loadingMessage}>Loading reviewer materials...</p>}
-        {error && <p className={styles.errorMessage}>{error}</p>}
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className={styles.advancedFilters}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Subjects</label>
+              <div className={styles.chipContainer}>
+                {uniqueSubjects.map((subject) => (
+                  <button
+                    key={subject}
+                    className={`${styles.filterChip} ${
+                      selectedSubjects.includes(subject) ? styles.active : ""
+                    }`}
+                    onClick={() => handleFilterChange("subject", subject)}
+                  >
+                    <FaGraduationCap />
+                    {subject}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Reviewers List (Content to be refactored next) */}
-        {!loading && !error && currentReviewers.length === 0 && (
-          <p className={styles.infoMessage}>No reviewer materials found matching your criteria. Try adjusting the filters.</p>
-        )}
-        {!loading && !error && currentReviewers.length > 0 && (
-          <ul className={styles.reviewersList}>
-            {currentReviewers.map((reviewer, index) => (
-              <ReviewerCard
-                key={reviewer.id} 
-                reviewer={reviewer}
-                isExpanded={expandedId === reviewer.id}
-                onExpand={setExpandedId}
-                onFavorite={handleToggleFavorite}
-                onAccess={handleAccess}
-                isFavorite={favorites.includes(reviewer.id)}
-                isDownloading={downloading[reviewer.id]}
-                token={token} // Pass token for enabling/disabling favorite button
-                swipeAction={swipeAction}
-                setSwipeAction={setSwipeAction}
-                itemIndex={index} // For animation delay
-              />
-            ))}
-          </ul>
-        )}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>File Types</label>
+              <div className={styles.chipContainer}>
+                {uniqueFileTypes.map((type) => (
+                  <button
+                    key={type}
+                    className={`${styles.filterChip} ${
+                      selectedFileTypes.includes(type) ? styles.active : ""
+                    }`}
+                    onClick={() => handleFilterChange("fileType", type)}
+                  >
+                    <FileTypeIcon type={type} size="small" />
+                    {type.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Pagination (To be refactored next) */}
-        {!loading && !error && totalPages > 1 && (
-          <div className={styles.paginationControls}>
-            <button onClick={handlePrev} disabled={page === 1} className={styles.paginationButton}>Previous</button>
-            <span className={styles.paginationInfo}>Page {page} of {totalPages}</span>
-            <button onClick={handleNext} disabled={page === totalPages} className={styles.paginationButton}>Next</button>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Difficulty</label>
+              <div className={styles.chipContainer}>
+                {DIFFICULTY_LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    className={`${styles.filterChip} ${
+                      difficultyFilter === level ? styles.active : ""
+                    }`}
+                    onClick={() => handleFilterChange("difficulty", level)}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button className={styles.clearFiltersBtn} onClick={clearFilters}>
+              <FaEraser /> Clear All Filters
+            </button>
           </div>
+        )}
+      </div>
+
+      {/* Results Stats */}
+      <div className={styles.statsPanel}>
+        <div className={styles.statsContent}>
+          <span className={styles.statItem}>
+            <FaBook />
+            {showFavoritesOnly ? "Favorites" : "Total"}:{" "}
+            <strong>{filteredReviewers.length}</strong>
+            {!showFavoritesOnly &&
+              reviewers.length !== filteredReviewers.length && (
+                <span className={styles.totalCount}>
+                  {" "}
+                  of {reviewers.length}
+                </span>
+              )}
+          </span>
+          {useFallbackData && (
+            <span className={styles.statItem}>
+              <FaExclamationTriangle /> Demo Mode Active
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Panel */}
+      <div className={styles.contentPanel}>
+        {/* Results Section */}
+        {isLoading && !useFallbackData ? (
+          <div className={`${styles.reviewersGrid} ${styles[viewMode]}`}>
+            {[...Array(12)].map((_, i) => (
+              <ReviewerSkeleton key={i} />
+            ))}
+          </div>
+        ) : displayedReviewers.length === 0 ? (
+          <div className={styles.emptyState}>
+            <FaBook className={styles.emptyIcon} />
+            <h3>No reviewers found</h3>
+            <p>Try adjusting your search or filters</p>
+            {hasActiveFilters && (
+              <button className={styles.clearFiltersBtn} onClick={clearFilters}>
+                <FaEraser /> Clear Filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className={`${styles.reviewersGrid} ${styles[viewMode]}`}>
+              {displayedReviewers.map((reviewer, index) => (
+                <ReviewerCard
+                  key={reviewer.id}
+                  reviewer={reviewer}
+                  isFavorite={favorites.includes(reviewer.id)}
+                  onToggleFavorite={handleToggleFavorite}
+                  onAccess={handleAccessFile}
+                  viewMode={viewMode}
+                  index={index}
+                />
+              ))}
+            </div>
+
+            {/* Load More Trigger */}
+            <div ref={loadMoreRef} className={styles.loadMoreTrigger}>
+              {isFetchingNextPage && (
+                <div className={styles.loadingMore}>
+                  <FaSyncAlt className={styles.spinning} /> Loading more...
+                </div>
+              )}
+              {!hasNextPage && displayedReviewers.length > 0 && (
+                <div className={styles.endMessage}>
+                  🎉 You've reached the end!
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 };
-
-// THIS IS THE ReviewerCard component, to be refactored with new styles
-function ReviewerCard({
-  reviewer,
-  isExpanded,
-  onExpand,
-  onFavorite,
-  onAccess,
-  isFavorite,
-  isDownloading,
-  token,
-  swipeAction,
-  setSwipeAction,
-  itemIndex // For animation delay
-}) {
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => {
-      if (isMobile()) onAccess(reviewer.id, reviewer.url);
-      setSwipeAction(a => ({ ...a, [reviewer.id]: 'left' }));
-      setTimeout(() => setSwipeAction(a => ({ ...a, [reviewer.id]: null })), 400); 
-    },
-    onSwipedRight: () => {
-      if (isMobile()) onFavorite(reviewer.id);
-      setSwipeAction(a => ({ ...a, [reviewer.id]: 'right' }));
-      setTimeout(() => setSwipeAction(a => ({ ...a, [reviewer.id]: null })), 400);
-    },
-    delta: 40,
-    trackTouch: true,
-    trackMouse: false, 
-  });
-
-  // Determine card background based on swipe action (visual feedback)
-  const cardStyle = {
-    transition: 'background 0.2s ease-out', // Smoother transition
-    animationDelay: `${itemIndex * 0.05}s` // Stagger animation
-  };
-  if (swipeAction && swipeAction[reviewer.id] === 'left') {
-    cardStyle.background = 'rgba(var(--dbz-blue-rgb, 52, 152, 219), 0.15)'; // Use theme variable
-  } else if (swipeAction && swipeAction[reviewer.id] === 'right') {
-    cardStyle.background = 'rgba(var(--blueprint-accent-rgb, 241, 196, 15), 0.2)'; // Use theme variable
-  }
-
-  return (
-    // .reviewerItem will be restyled for compactness
-    <li 
-      className={styles.reviewerItem} 
-      style={cardStyle} 
-      {...(isMobile() ? swipeHandlers : {})}
-    >
-      <div 
-        className={styles.fileHeader} 
-        onClick={() => onExpand(isExpanded ? null : reviewer.id)}
-        aria-expanded={isExpanded}
-        aria-controls={`reviewer-details-${reviewer.id}`}
-        role="button"
-        tabIndex={0}
-        onKeyPress={(e) => (e.key === 'Enter' || e.key === ' ') && onExpand(isExpanded ? null : reviewer.id)}
-      >
-        <div className={`${styles.fileIconContainer} ${getOriginalIconClassForBg(reviewer.type)}`}> {/* Changed to fileIconContainer if it has specific sizing now */}
-          {getFileTypeIcon(reviewer.type, reviewer.url)}
-          {/* <span className={styles.fileTypeLabel}>{reviewer.type?.toUpperCase()}</span> Removed if icon is enough, or restyle */}
-        </div>
-        <div className={styles.fileInfo}>
-          <h3 className={styles.fileTitle} title={reviewer.title}>{reviewer.title}</h3>
-          <p className={styles.fileMeta}> {/* New class for subject/date */} 
-            <span>{reviewer.subjects?.join(', ') || 'General'}</span>
-            {reviewer.createdAt && (
-                <span>{new Date(reviewer.createdAt).toLocaleDateString()}</span>
-            )}
-          </p>
-        </div>
-        
-        <div className={styles.cardActions}> {/* Wrapper for action buttons */} 
-          <button
-            className={`${styles.iconButton} ${styles.favoriteButtonAction} ${isFavorite ? styles.isFavorite : ''}`} // New classes for styling as icon button
-            onClick={e => { e.stopPropagation(); onFavorite(reviewer.id); }}
-            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            disabled={!token || isDownloading} // Disable if no token or another action is in progress
-            aria-pressed={isFavorite}
-          >
-            {isFavorite ? <FaStar /> : <FaRegStar />}
-          </button>
-          <button
-            className={styles.accessButton} // New class, will use themedButton base
-            onClick={e => { e.stopPropagation(); onAccess(reviewer.id, reviewer.url); }}
-            disabled={isDownloading || !reviewer.url} 
-            title={!reviewer.url ? "URL not available" : (isDownloading ? "Accessing..." : "Access File")}
-          >
-            {isDownloading ? 'Opening...' : 'Access'}
-          </button>
-          <button 
-            className={styles.iconButton} 
-            title={isExpanded ? "Collapse details" : "Expand details"} 
-            style={{marginTop: token ? '0' : 'auto'}} // Align expand button if no favorite button
-            aria-label={isExpanded ? "Collapse details" : "Expand details"}
-            onClick={() => onExpand(isExpanded ? null : reviewer.id)} // No stopPropagation needed here
-            >
-            {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-          </button>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div 
-          id={`reviewer-details-${reviewer.id}`} 
-          className={styles.collapsibleDetails}
-        >
-          <p className={styles.fileDescription}>{reviewer.description || "No description available."}</p>
-          <div className={styles.detailsFooter}>
-            <span className={styles.downloadCount} title="Number of accesses/downloads">
-              <FaBook style={{marginRight: '4px'}}/> {reviewer.downloadCount || 0} accesses
-            </span>
-            {/* Add more details if needed, e.g. tags */}
-            {reviewer.tags && reviewer.tags.length > 0 && (
-                <div className={styles.tagList}>
-                    {reviewer.tags.map(tag => <span key={tag} className={styles.tagItem}>{tag}</span>)}
-                </div>
-            )}
-          </div>
-        </div>
-      )}
-    </li>
-  );
-}
 
 export default Reviewers;

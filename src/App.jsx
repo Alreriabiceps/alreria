@@ -1,8 +1,6 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import { GuideModeProvider } from './contexts/GuideModeContext';
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import StudentLogin from "./users/students/login/Login.jsx";
 import StudentSignup from "./users/students/signup/Signup.jsx";
@@ -23,9 +21,8 @@ import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
 import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
 import AllChats from "./users/students/pages/chat/AllChats.jsx";
-import MtgQuiz from "./users/students/pages/demo/pages/demo.jsx";
-import ExplodingKittensGame from './users/students/pages/demo/pages/demo';
-import useSocket from './hooks/useSocket';
+import useSocket from "./hooks/useSocket";
+import Demo from "./users/students/pages/demo/pages/Demo.jsx";
 
 // Admin routes
 import AdminLayout from "./layout/adminlayout.jsx";
@@ -33,7 +30,7 @@ import AdminDashboard from "./users/admin/pages/dashboard/AdminDashboard.jsx";
 import StudentList from "./users/admin/pages/students/StudentList.jsx";
 import AddStudents from "./users/admin/pages/students/AddStudents.jsx";
 import Subjects from "./users/admin/pages/subjects/Subjects.jsx";
-import Unauthorized from './components/Unauthorized';
+import Unauthorized from "./components/Unauthorized";
 import Settings from "./users/admin/pages/settings/Settings.jsx";
 import AddQuestions from "./users/admin/pages/questions/AddQuestions.jsx";
 import QuestionList from "./users/admin/pages/questions/QuestionList.jsx";
@@ -44,87 +41,89 @@ import Analytics from "./users/admin/pages/reports/Analytics.jsx";
 import StudentPerformanceDetail from "./users/admin/pages/reports/StudentPerformanceDetail.jsx";
 
 const App = () => {
-  const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+  const currentUser = JSON.parse(localStorage.getItem("user")) || {};
   const socketRef = useSocket();
+
   return (
-    <AuthProvider>
-      <GuideModeProvider>
-        <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<StudentLogin />} />
-            <Route path="/register" element={<StudentSignup />} />
-            <Route path="/alogin" element={<AdminLogin />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="start" element={<Start />} />
-            <Route path="/registration-success" element={<RegistrationSuccess />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<StudentLogin />} />
+      <Route path="/register" element={<StudentSignup />} />
+      <Route path="/alogin" element={<AdminLogin />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="start" element={<Start />} />
+      <Route path="/registration-success" element={<RegistrationSuccess />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Student routes */}
-            <Route
-              path="/student/*"
-              element={
-                <ProtectedRoute requireStudent>
-                  <StudentLayout />
-                </ProtectedRoute>
-              }
-            >
+      {/* Student routes */}
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute requireStudent>
+            <StudentLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="weeklytest" element={<WeeklyTest />} />
+        <Route path="reviewers" element={<Reviewers />} />
+        <Route path="ranking" element={<Ranking />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="crew" element={<Crew />} />
+        <Route path="partymmr" element={<Partymmr />} />
+        <Route path="versusmodelobby" element={<VersusModeLobby />} />
+        <Route
+          path="chats"
+          element={<AllChats currentUser={currentUser} socketRef={socketRef} />}
+        />
+        <Route path="demo" element={<Demo />} />
+      </Route>
 
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="weeklytest" element={<WeeklyTest />} />
-              <Route path="reviewers" element={<Reviewers />} />
-              <Route path="ranking" element={<Ranking />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="crew" element={<Crew />} />
-              <Route path="partymmr" element={<Partymmr />} />
-              <Route path="versusmodelobby" element={<VersusModeLobby />} />
-              <Route path="chats" element={<AllChats currentUser={currentUser} socketRef={socketRef} />} />
-              <Route path="mtg-demo" element={<MtgQuiz />} />
-              <Route path="game" element={<ExplodingKittensGame />} />
-            </Route>
+      {/* Admin routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="subjects" element={<Subjects />} />
+        <Route path="addquestions" element={<AddQuestions />} />
+        <Route path="questionlist" element={<QuestionList />} />
+        <Route path="weeks/schedule" element={<WeekSchedule />} />
+        <Route path="weeks/current" element={<CurrentSchedules />} />
+        <Route path="students" element={<StudentList />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="addstudent" element={<AddStudents />} />
+        <Route path="studentlist" element={<StudentList />} />
+        <Route path="reviewer-links" element={<ReviewerLinks />} />
+        <Route path="reports" element={<Analytics />} />
+        <Route
+          path="reports/student/:studentId"
+          element={<StudentPerformanceDetail />}
+        />
+      </Route>
 
-            {/* Admin routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="subjects" element={<Subjects />} />
-              <Route path="addquestions" element={<AddQuestions />} />
-              <Route path="questionlist" element={<QuestionList />} />
-              <Route path="weeks/schedule" element={<WeekSchedule />} />
-              <Route path="weeks/current" element={<CurrentSchedules />} />
-              <Route path="students" element={<StudentList />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="addstudent" element={<AddStudents />} />
-              <Route path="studentlist" element={<StudentList />} />
-              <Route path="reviewer-links" element={<ReviewerLinks />} />
-              <Route path="reports" element={<Analytics />} />
-              <Route path="reports/student/:studentId" element={<StudentPerformanceDetail />} />
-            </Route>
-
-            {/* Redirect root to appropriate dashboard */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  {({ isAdmin }) => (
-                    <Navigate to={isAdmin ? '/admin/dashboard' : '/student/dashboard'} replace />
-                  )}
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
-      </GuideModeProvider>
-    </AuthProvider>
+      {/* Redirect root to appropriate dashboard */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            {({ isAdmin }) => (
+              <Navigate
+                to={isAdmin ? "/admin/dashboard" : "/student/dashboard"}
+                replace
+              />
+            )}
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 };
 
