@@ -35,7 +35,7 @@ import Settings from "./users/admin/pages/settings/Settings.jsx";
 import AddQuestions from "./users/admin/pages/questions/AddQuestions.jsx";
 import QuestionList from "./users/admin/pages/questions/QuestionList.jsx";
 import WeekSchedule from "./users/admin/pages/weeks/WeekSchedule.jsx";
-import CurrentSchedules from "./users/admin/pages/weeks/CurrentSchedules";
+import CurrentSchedules from "./users/admin/pages/weeks/CurrentSchedules.jsx";
 import ReviewerLinks from "./users/admin/pages/reviewer/ReviewerLinks.jsx";
 import Analytics from "./users/admin/pages/reports/Analytics.jsx";
 import StudentPerformanceDetail from "./users/admin/pages/reports/StudentPerformanceDetail.jsx";
