@@ -1,2 +1,2 @@
-import Demo from "./pages/Demo.jsx";
+import Demo from "./Demo.jsx";
 export default Demo;
