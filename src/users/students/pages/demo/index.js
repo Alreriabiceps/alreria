@@ -1,1 +1,2 @@
-export { default } from "./pages/Demo.jsx";
+import Demo from "./pages/Demo.jsx";
+export default Demo;
