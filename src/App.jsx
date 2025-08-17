@@ -12,19 +12,17 @@ import ResetPassword from "./users/students/login/ResetPassword.jsx";
 // Student routes
 import StudentLayout from "./layout/StudentLayout.jsx";
 import Start from "./users/students/start/Start.jsx";
-import {
-  Demo,
-  Dashboard,
-  WeeklyTest,
-  Reviewers,
-  Ranking,
-  Profile,
-  Crew,
-  Partymmr,
-  VersusModeLobby,
-  AllChats,
-} from "./users/students/pages";
+import Dashboard from "./users/students/pages/dashboard/pages/Dashboard.jsx";
+import WeeklyTest from "./users/students/pages/weeklytest/pages/WeeklyTest.jsx";
+import Reviewers from "./users/students/pages/reviewers/pages/Reviewers.jsx";
+import Ranking from "./users/students/pages/ranking/pages/Ranking.jsx";
+import Profile from "./users/students/pages/profile/pages/Profile.jsx";
+import Crew from "./users/students/pages/crew/pages/Crew.jsx";
+import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
+import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
+import AllChats from "./users/students/pages/chat/AllChats.jsx";
 import useSocket from "./hooks/useSocket";
+import Demo from "./users/students/pages/demo";
 
 // Admin routes
 import AdminLayout from "./layout/adminlayout.jsx";
