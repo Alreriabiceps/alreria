@@ -1,0 +1,240 @@
+.powerUpsPanel {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.8),
+    rgba(15, 23, 42, 0.9)
+  );
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.powerUpsPanel.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.powerUpsTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f1f5f9;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.powerUpsCount {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+.powerUpsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.powerUpItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.powerUpItem::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.powerUpItem:hover::before {
+  left: 100%;
+}
+
+.powerUpItem.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.powerUpItem.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.powerUpItem.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.powerUpIcon {
+  font-size: 1.5rem;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.powerUpInfo {
+  flex: 1;
+}
+
+.powerUpName {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.powerUpDescription {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  line-height: 1.3;
+}
+
+.powerUpUseIndicator {
+  background: linear-gradient(145deg, #10b981, #059669);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.6rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.noPowerUps {
+  text-align: center;
+  color: #94a3b8;
+}
+
+.noPowerUps span {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.noPowerUps small {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.powerUpsHint {
+  margin-top: 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* Scrollbar styling */
+.powerUpsPanel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.powerUpsPanel::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 3px;
+}
+
+.powerUpsPanel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 3px;
+}
+
+.powerUpsPanel::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .powerUpsPanel {
+    min-width: 260px;
+    padding: 12px;
+  }
+
+  .powerUpItem {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .powerUpIcon {
+    font-size: 1.3rem;
+    min-width: 20px;
+  }
+
+  .powerUpName {
+    font-size: 0.8rem;
+  }
+
+  .powerUpDescription {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .powerUpsPanel {
+    min-width: 220px;
+    padding: 10px;
+  }
+
+  .powerUpsTitle {
+    font-size: 0.9rem;
+  }
+
+  .powerUpItem {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .powerUpIcon {
+    font-size: 1.2rem;
+    min-width: 18px;
+  }
+
+  .powerUpName {
+    font-size: 0.75rem;
+  }
+
+  .powerUpDescription {
+    font-size: 0.65rem;
+  }
+}

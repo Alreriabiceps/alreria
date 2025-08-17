@@ -74,6 +74,7 @@ const App = () => {
         <Route path="crew" element={<Crew />} />
         <Route path="partymmr" element={<Partymmr />} />
         <Route path="versusmodelobby" element={<VersusModeLobby />} />
+        {/* Route removed: game now uses Demo component directly */}
         <Route
           path="chats"
           element={<AllChats currentUser={currentUser} socketRef={socketRef} />}

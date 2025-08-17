@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styles from './Signup.module.css';
-import { FaEnvelope } from 'react-icons/fa';
-import FloatingStars from '../components/FloatingStars/FloatingStars';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import styles from "./Signup.module.css";
+import { FaEnvelope } from "react-icons/fa";
+import FloatingStars from "../components/FloatingStars/FloatingStars";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    email: '',
-    studentId: '',
-    password: '',
-    confirmPassword: '',
-    track: '',
-    section: '',
-    yearLevel: ''
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    email: "",
+    studentId: "",
+    password: "",
+    confirmPassword: "",
+    track: "",
+    section: "",
+    yearLevel: "",
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
     uppercase: false,
     lowercase: false,
     number: false,
-    special: false
+    special: false,
   });
   const navigate = useNavigate();
 
@@ -35,39 +35,52 @@ const Signup = () => {
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
       number: /[0-9]/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      special: /[@$!%*?&]/.test(password),
     });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'password') {
+    if (name === "password") {
       checkPasswordStrength(value);
     }
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'studentId' ? value.replace(/\D/, '') : value
+      [name]: name === "studentId" ? value.replace(/\D/, "") : value,
     }));
   };
 
   const validatePassword = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return false;
     }
+
+    // Check individual requirements
     const strengthValues = Object.values(passwordStrength);
-    if (strengthValues.some(val => val === false)) {
-        setError('Password does not meet all requirements');
-        return false;
+    if (strengthValues.some((val) => val === false)) {
+      setError("Password does not meet all requirements");
+      return false;
     }
+
+    // Additional validation to match backend regex exactly
+    const backendPasswordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!backendPasswordRegex.test(formData.password)) {
+      setError(
+        "Password must contain only letters, numbers, and these special characters: @$!%*?&"
+      );
+      return false;
+    }
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     if (!validatePassword()) {
       return;
     }
@@ -77,27 +90,34 @@ const Signup = () => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (!backendUrl) {
-        throw new Error('Backend URL is not configured. Please check your environment variables.');
+        throw new Error(
+          "Backend URL is not configured. Please check your environment variables."
+        );
       }
 
       const response = await fetch(`${backendUrl}/api/auth/student-register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          studentId: Number(formData.studentId)
+          studentId: Number(formData.studentId),
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `Registration failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          data.error ||
+            `Registration failed: ${response.status} ${response.statusText}`
+        );
       }
 
-      setSuccess('Registration successful! Please check your email to confirm your account.');
+      setSuccess(
+        "Registration successful! Please check your email to confirm your account."
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -109,9 +129,7 @@ const Signup = () => {
     <div className={styles.signupPageWrapper}>
       <FloatingStars />
       <div className={styles.signupPanel}>
-        <h1 className={styles.pageTitle}>
-          Create New Account
-        </h1>
+        <h1 className={styles.pageTitle}>Create New Account</h1>
 
         {success ? (
           <div>
@@ -120,17 +138,25 @@ const Signup = () => {
               <div>
                 <h2 className={styles.successTitle}>Check Your Email!</h2>
                 <p className={styles.successText}>
-                  We've sent a confirmation link to your email address.<br />
-                  <b>Don't forget to check your <span>Spam</span> or <span>Promotions</span> folder</b> if you don't see it in your inbox.<br />
-                  <span>You must confirm your email before you can log in.</span>
+                  We've sent a confirmation link to your email address.
+                  <br />
+                  <b>
+                    Don't forget to check your <span>Spam</span> or{" "}
+                    <span>Promotions</span> folder
+                  </b>{" "}
+                  if you don't see it in your inbox.
+                  <br />
+                  <span>
+                    You must confirm your email before you can log in.
+                  </span>
                 </p>
               </div>
             </div>
             <button
               type="button"
               className={`${styles.signupButton} ${styles.backToLoginButton}`}
-              style={{ marginTop: '2rem' }}
-              onClick={() => navigate('/')}
+              style={{ marginTop: "2rem" }}
+              onClick={() => navigate("/")}
             >
               Back to Log In
             </button>
@@ -221,7 +247,9 @@ const Signup = () => {
                 >
                   <option value="">Select Track</option>
                   <option value="Academic Track">Academic Track</option>
-                  <option value="Technical-Professional Track">Technical-Professional Track</option>
+                  <option value="Technical-Professional Track">
+                    Technical-Professional Track
+                  </option>
                 </select>
               </div>
               <div className={styles.inputGroup}>
@@ -255,7 +283,7 @@ const Signup = () => {
                 </select>
               </div>
 
-              <div className={`${styles.inputGroup} ${styles.fullWidth}`}> 
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
                 <label htmlFor="password">Password Matrix:</label>
                 <input
                   type="password"
@@ -274,20 +302,27 @@ const Signup = () => {
                   <p>Password must contain:</p>
                   <ul>
                     {Object.entries(passwordStrength).map(([key, met]) => (
-                      <li key={key} className={met ? styles.requirementMet : styles.requirementNotMet}>
-                        {key === 'length' && 'At least 8 characters'}
-                        {key === 'uppercase' && 'One uppercase letter'}
-                        {key === 'lowercase' && 'One lowercase letter'}
-                        {key === 'number' && 'One number'}
-                        {key === 'special' && 'One special character'}
+                      <li
+                        key={key}
+                        className={
+                          met ? styles.requirementMet : styles.requirementNotMet
+                        }
+                      >
+                        {key === "length" && "At least 8 characters"}
+                        {key === "uppercase" && "One uppercase letter"}
+                        {key === "lowercase" && "One lowercase letter"}
+                        {key === "number" && "One number"}
+                        {key === "special" && "One special character (@$!%*?&)"}
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
 
-              <div className={`${styles.inputGroup} ${styles.fullWidth}`}> 
-                <label htmlFor="confirmPassword">Confirm Password Matrix:</label>
+              <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                <label htmlFor="confirmPassword">
+                  Confirm Password Matrix:
+                </label>
                 <input
                   type="password"
                   id="confirmPassword"
@@ -304,14 +339,18 @@ const Signup = () => {
               </div>
             </div>
 
-            {error && <p className={`${styles.messageBox} ${styles.errorMessage}`}>{error}</p>}
+            {error && (
+              <p className={`${styles.messageBox} ${styles.errorMessage}`}>
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"
               className={styles.signupButton}
               disabled={isLoading}
             >
-              {isLoading ? 'REGISTERING...' : 'SIGN UP'}
+              {isLoading ? "REGISTERING..." : "SIGN UP"}
             </button>
           </form>
         )}
@@ -320,4 +359,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;

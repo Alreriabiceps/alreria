@@ -1,0 +1,241 @@
+.realTimeGame {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Game Header */
+.gameHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 2px solid rgba(148, 163, 184, 0.3);
+  z-index: 10;
+}
+
+.exitButton {
+  background: linear-gradient(145deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.exitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.gameStatus {
+  color: #f1f5f9;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Game Board */
+.gameBoard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Opponent Section */
+.opponentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.opponentCards {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 600px;
+}
+
+/* Battle Zone */
+.battleZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 16px;
+  border: 2px solid rgba(148, 163, 184, 0.2);
+  min-height: 200px;
+  justify-content: center;
+}
+
+.selectedCardArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+}
+
+.selectedCard {
+  transform: scale(1.2);
+  z-index: 5;
+}
+
+.gameInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #e2e8f0;
+}
+
+.deckInfo {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.turnInfo {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Local Player Section */
+.localPlayerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.localPlayerCards {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 600px;
+}
+
+/* Power-Ups Section */
+.powerUpsSection {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+}
+
+/* Loading State */
+.loadingGame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #f1f5f9;
+  gap: 16px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(148, 163, 184, 0.3);
+  border-top: 4px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .powerUpsSection {
+    position: static;
+    transform: none;
+    margin-top: 16px;
+    align-self: center;
+  }
+
+  .gameBoard {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gameHeader {
+    padding: 12px 16px;
+  }
+
+  .gameStatus {
+    font-size: 1rem;
+  }
+
+  .battleZone {
+    padding: 16px;
+    min-height: 150px;
+  }
+
+  .selectedCard {
+    transform: scale(1.1);
+  }
+
+  .opponentCards,
+  .localPlayerCards {
+    max-width: 400px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gameHeader {
+    padding: 8px 12px;
+  }
+
+  .exitButton {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  .gameStatus {
+    font-size: 0.9rem;
+  }
+
+  .battleZone {
+    padding: 12px;
+    min-height: 120px;
+  }
+
+  .selectedCard {
+    transform: scale(1);
+  }
+
+  .opponentCards,
+  .localPlayerCards {
+    max-width: 300px;
+    gap: 4px;
+  }
+}

@@ -6,8 +6,8 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { cacheManager } from "../utils/db";
 import styles from "./PdfThumbnail.module.css";
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist/5.2.133/legacy/build/pdf.worker.min.js`;
+// Configure PDF.js worker - use a local worker to avoid CORS issues
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.2.133/pdf.worker.min.js`;
 
 const PdfThumbnail = ({
   url,
@@ -76,7 +76,7 @@ const PdfThumbnail = ({
       // Render from PDF
       const loadingTask = pdfjsLib.getDocument({
         url,
-        cMapUrl: `//unpkg.com/pdfjs-dist/5.2.133/cmaps/`,
+        cMapUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.2.133/cmaps/`,
         cMapPacked: true,
       });
 

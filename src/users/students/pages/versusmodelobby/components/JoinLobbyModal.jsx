@@ -1,23 +1,33 @@
-import React from 'react';
-import styles from '../pages/VersusModeLobby.module.css';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
+import React from "react";
+import styles from "../pages/VersusModeLobby.module.css";
+import { FaExclamationTriangle, FaTimes } from "react-icons/fa";
 
-const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) => {
+const JoinLobbyModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  lobby,
+  isLoading,
+  error,
+}) => {
   if (!isOpen) return null;
 
   const getLobbyStatus = () => {
-    if (!lobby) return '';
-    if (lobby.status !== 'waiting') return 'Game in progress';
-    if (lobby.players.length >= lobby.maxPlayers) return 'Lobby full';
-    return 'Waiting for players';
+    if (!lobby) return "";
+    if (lobby.status !== "waiting") return "Game in progress";
+    if (lobby.players.length >= lobby.maxPlayers) return "Lobby full";
+    return "Waiting for players";
   };
 
   const getTimeRemaining = () => {
-    if (!lobby?.expiresAt) return '';
-    const timeRemaining = Math.max(0, Math.floor((new Date(lobby.expiresAt) - new Date()) / 1000));
+    if (!lobby?.expiresAt) return "";
+    const timeRemaining = Math.max(
+      0,
+      Math.floor((new Date(lobby.expiresAt) - new Date()) / 1000)
+    );
     const mins = Math.floor(timeRemaining / 60);
     const secs = timeRemaining % 60;
-    return `Expires in: ${mins}:${secs.toString().padStart(2, '0')}`;
+    return `Expires in: ${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -25,7 +35,9 @@ const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) 
       <div className={`${styles.modal} ${styles.joinModal}`}>
         <div className={styles.modalHeader}>
           <h2>Join Lobby: {lobby?.name}</h2>
-          <button className={styles.closeButton} onClick={onClose}><FaTimes /></button>
+          <button className={styles.closeButton} onClick={onClose}>
+            <FaTimes />
+          </button>
         </div>
         <div className={styles.modalContent}>
           <div className={styles.lobbyInfo}>
@@ -53,7 +65,10 @@ const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) 
             )}
             {lobby?.isPrivate && (
               <div className={styles.formGroup}>
-                <label htmlFor="lobby-password" className={styles.passwordLabel}>
+                <label
+                  htmlFor="lobby-password"
+                  className={styles.passwordLabel}
+                >
                   Password Required
                 </label>
                 <input
@@ -69,7 +84,9 @@ const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) 
           </div>
           {error && (
             <div className={styles.errorMessage}>
-              <span className={styles.errorIcon}><FaExclamationTriangle /></span>
+              <span className={styles.errorIcon}>
+                <FaExclamationTriangle />
+              </span>
               <p>{error}</p>
             </div>
           )}
@@ -85,10 +102,14 @@ const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) 
           {!lobby?.isPrivate && (
             <button
               className={`${styles.gameButton} ${styles.submitButton}`}
-              onClick={() => onSubmit()}
-              disabled={isLoading || lobby?.players?.length >= lobby?.maxPlayers || lobby?.status !== 'waiting'}
+              onClick={() => onSubmit("")}
+              disabled={
+                isLoading ||
+                lobby?.players?.length >= lobby?.maxPlayers ||
+                lobby?.status !== "waiting"
+              }
             >
-              {isLoading ? 'Joining...' : 'Join Lobby'}
+              {isLoading ? "Joining..." : "Join Lobby"}
             </button>
           )}
         </div>
@@ -97,4 +118,4 @@ const JoinLobbyModal = ({ isOpen, onClose, onSubmit, lobby, isLoading, error }) 
   );
 };
 
-export default JoinLobbyModal; 
+export default JoinLobbyModal;
