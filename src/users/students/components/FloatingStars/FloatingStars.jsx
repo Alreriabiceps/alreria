@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import styles from './FloatingStars.module.css';
+import React, { useEffect, useRef } from "react";
+import styles from "./FloatingStars.module.css";
 
 const FloatingStars = () => {
   const canvasRef = useRef(null);
@@ -10,7 +10,7 @@ const FloatingStars = () => {
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     let animationFrameId;
     let resizeTimeout;
 
@@ -31,9 +31,11 @@ const FloatingStars = () => {
     setCanvasDimensions();
 
     // Star properties
-    const numStars = Math.min(100, Math.floor((canvas.width * canvas.height) / 10000)); // Adjust star count based on area
+    const numStars = Math.min(
+      100,
+      Math.floor((canvas.width * canvas.height) / 10000)
+    ); // Adjust star count based on area
     const stars = [];
-    const starColor = 'rgba(255, 255, 255, 0.8)';
 
     class Star {
       constructor() {
@@ -92,7 +94,7 @@ const FloatingStars = () => {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      stars.forEach(star => star.update());
+      stars.forEach((star) => star.update());
       animationFrameId = requestAnimationFrame(animate);
     };
 
@@ -127,4 +129,4 @@ const FloatingStars = () => {
   );
 };
 
-export default FloatingStars; 
+export default FloatingStars;

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 import styles from "./Start.module.css";
 import FloatingStars from "../components/FloatingStars/FloatingStars";
+import ApprovalStatus from "../components/ApprovalStatus";
 
 const BACKGROUND_MUSIC_SRC = "/shs.mp3";
 const INITIAL_VOLUME = 1;
@@ -22,6 +24,7 @@ const playSound = (src, volume = SFX_VOLUME) => {
 
 const Start = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [buttonPosition, setButtonPosition] = useState({
     top: "78%",
     left: "50%",
@@ -62,12 +65,13 @@ const Start = () => {
     const handleLoaded = () => {
       console.log("Audio loaded and ready to play");
       if (!isMuted) {
-        audioRef.current.play()
+        audioRef.current
+          .play()
           .then(() => {
             console.log("Autoplay started successfully");
             setIsPlaying(true);
           })
-          .catch(e => {
+          .catch((e) => {
             console.warn("Autoplay blocked:", e.message);
             setIsPlaying(false);
           });
@@ -87,9 +91,12 @@ const Start = () => {
     // Attempt to play on first user interaction with the page
     const handleFirstInteraction = () => {
       if (audioRef.current && audioRef.current.paused && !isMuted) {
-        audioRef.current.play()
+        audioRef.current
+          .play()
           .then(() => console.log("Audio started after user interaction"))
-          .catch(e => console.warn("Audio still failed after interaction:", e));
+          .catch((e) =>
+            console.warn("Audio still failed after interaction:", e)
+          );
       }
 
       // Remove the event listeners after first interaction
@@ -122,7 +129,9 @@ const Start = () => {
         audioRef.current.pause();
       } else if (!audioRef.current.paused || isPlaying) {
         // Only attempt to play if it was previously playing or isPlaying is true
-        audioRef.current.play().catch(e => console.warn("Play on unmute failed:", e));
+        audioRef.current
+          .play()
+          .catch((e) => console.warn("Play on unmute failed:", e));
       }
     }
   }, [isMuted, isPlaying]);
@@ -205,7 +214,14 @@ const Start = () => {
         securityBox?.classList.remove(styles.shakeAnimationBox);
       }, 400);
     }
-  }, [isCorrect, isAnimating, navigate, isMuted, styles.securityPanel, styles.shakeAnimationBox]);
+  }, [
+    isCorrect,
+    isAnimating,
+    navigate,
+    isMuted,
+    styles.securityPanel,
+    styles.shakeAnimationBox,
+  ]);
 
   // Keydown event listener (now in its own effect)
   useEffect(() => {
@@ -276,29 +292,39 @@ const Start = () => {
     setIsCorrect(false);
     setFeedbackMessage("");
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate-simple-security-question`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/generate-simple-security-question`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
         }
-      });
-      
+      );
+
       if (!res.ok) {
         throw new Error(`API error: ${res.status} ${res.statusText}`);
       }
-      
+
       const data = await res.json();
-      
-      if (!data || !data.questionText || !Array.isArray(data.choices) || !data.correctAnswer) {
-        throw new Error('Invalid response format from API');
+
+      if (
+        !data ||
+        !data.questionText ||
+        !Array.isArray(data.choices) ||
+        !data.correctAnswer
+      ) {
+        throw new Error("Invalid response format from API");
       }
-      
+
       setSecurityQuestion(data.questionText);
       setSecurityChoices(data.choices);
       setSecurityAnswer(data.correctAnswer);
     } catch (err) {
-      console.error('Error fetching security question:', err);
+      console.error("Error fetching security question:", err);
       // Fallback to a simple question if API fails
       setSecurityQuestion("What is 2 + 2?");
       setSecurityChoices(["3", "4", "5"]);
@@ -352,14 +378,19 @@ const Start = () => {
   return (
     <div
       ref={containerRef}
-      className={`${styles.startPageWrapper} ${isAnimating ? styles.slideUpAnimation : ""
-        }`}
+      className={`${styles.startPageWrapper} ${
+        isAnimating ? styles.slideUpAnimation : ""
+      }`}
       onMouseMove={handleMouseMove}
     >
       <FloatingStars />
       <div
         className={`${styles.screenFlashOverlay} ${
-          screenFlash === "correct" ? styles.flashCorrect : screenFlash === "wrong" ? styles.flashWrong : ""
+          screenFlash === "correct"
+            ? styles.flashCorrect
+            : screenFlash === "wrong"
+            ? styles.flashWrong
+            : ""
         }`}
       ></div>
       {/* Music playing message */}
@@ -386,9 +417,13 @@ const Start = () => {
       <div className={styles.contentWrapper}>
         {/* Logo image above the title */}
 
-        <h1 className={styles.pageTitle}>
-          READY PLAYER?
-        </h1>
+        {/* Approval Status */}
+        <ApprovalStatus
+          isApproved={user?.isApproved}
+          isActive={user?.isActive}
+        />
+
+        <h1 className={styles.pageTitle}>READY PLAYER?</h1>
 
         {/* New Play Anthem Button - Show only if music is NOT playing */}
         {!isPlaying && (
@@ -410,15 +445,16 @@ const Start = () => {
               <>
                 <p className={styles.securityQuestion}>{securityQuestion}</p>
                 <div className={styles.answersContainer}>
-                  {securityChoices && securityChoices.map((choice, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleAnswer(choice)}
-                      className={`${styles.gameButton} ${styles.answerButton}`}
-                    >
-                      {choice}
-                    </button>
-                  ))}
+                  {securityChoices &&
+                    securityChoices.map((choice, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleAnswer(choice)}
+                        className={`${styles.gameButton} ${styles.answerButton}`}
+                      >
+                        {choice}
+                      </button>
+                    ))}
                 </div>
               </>
             )}
@@ -427,10 +463,9 @@ const Start = () => {
 
         {feedbackMessage && (
           <p
-            className={`${styles.feedbackMessage} ${isCorrect
-              ? styles.feedbackCorrect
-              : styles.feedbackIncorrect
-              }`}
+            className={`${styles.feedbackMessage} ${
+              isCorrect ? styles.feedbackCorrect : styles.feedbackIncorrect
+            }`}
           >
             {feedbackMessage}
           </p>
@@ -440,8 +475,9 @@ const Start = () => {
       <button
         id="launch-button"
         onClick={handleLaunchClick}
-        className={`${styles.gameButton} ${styles.launchButton} ${isCorrect ? styles.buttonReady : styles.buttonWaiting
-          }`}
+        className={`${styles.gameButton} ${styles.launchButton} ${
+          isCorrect ? styles.buttonReady : styles.buttonWaiting
+        }`}
         style={{
           top: buttonPosition.top,
           left: buttonPosition.left,

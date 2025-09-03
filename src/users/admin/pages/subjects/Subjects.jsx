@@ -1,9 +1,49 @@
 // components/Subjects.js
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { MdAdd, MdEdit, MdDelete, MdSave, MdClose, MdAnalytics, MdViewList, MdSearch, MdFilterList, MdFileDownload, MdCheckBox, MdCheckBoxOutlineBlank, MdSelectAll, MdClear, MdInfo, MdCheckCircle, MdError, MdWarning, MdAutorenew, MdCloud, MdCloudDone, MdBookmark, MdQuiz, MdSchedule, MdBarChart } from "react-icons/md";
-import { FaChartPie, FaHistory, FaUsers, FaBookOpen } from 'react-icons/fa';
-import { useGuideMode } from '../../../../contexts/GuideModeContext';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from 'recharts';
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdSave,
+  MdClose,
+  MdAnalytics,
+  MdViewList,
+  MdSearch,
+  MdFilterList,
+  MdFileDownload,
+  MdCheckBox,
+  MdCheckBoxOutlineBlank,
+  MdSelectAll,
+  MdClear,
+  MdInfo,
+  MdCheckCircle,
+  MdError,
+  MdWarning,
+  MdAutorenew,
+  MdCloud,
+  MdCloudDone,
+  MdBookmark,
+  MdQuiz,
+  MdSchedule,
+  MdBarChart,
+} from "react-icons/md";
+import { FaChartPie, FaHistory, FaUsers, FaBookOpen } from "react-icons/fa";
+import { useGuideMode } from "../../../../contexts/GuideModeContext";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+} from "recharts";
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
@@ -16,64 +56,91 @@ const Subjects = () => {
   const { guideMode } = useGuideMode();
 
   // Enhanced state for modern features
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name'); // name, questions, created, updated
-  const [sortOrder, setSortOrder] = useState('asc'); // asc, desc
-  const [viewMode, setViewMode] = useState('grid'); // grid, table
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name"); // name, questions, created, updated
+  const [sortOrder, setSortOrder] = useState("asc"); // asc, desc
+  const [viewMode, setViewMode] = useState("grid"); // grid, table
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  const [subjectAnalytics, setSubjectAnalytics] = useState([]);
+  // Remove unused state variables
+  // const [subjectAnalytics, setSubjectAnalytics] = useState([]);
   const [questionsData, setQuestionsData] = useState([]);
   const [weeksData, setWeeksData] = useState([]);
-  
+
   // Auto-save and validation states
-  const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
+  const [autoSaveStatus, setAutoSaveStatus] = useState("saved");
   const [lastSaved, setLastSaved] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  const backendurl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
+  const backendurl =
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff7c7c",
+    "#8dd1e1",
+    "#d084d0",
+    "#ffb347",
+    "#87ceeb",
+  ];
 
   // Auto-save functionality
   const saveToLocalStorage = useCallback((data) => {
     try {
-      localStorage.setItem('subjects_state', JSON.stringify({
-        ...data,
-        timestamp: Date.now()
-      }));
+      localStorage.setItem(
+        "subjects_state",
+        JSON.stringify({
+          ...data,
+          timestamp: Date.now(),
+        })
+      );
       setLastSaved(new Date());
-      setAutoSaveStatus('saved');
+      setAutoSaveStatus("saved");
     } catch (error) {
-      console.error('Failed to save state:', error);
+      console.error("Failed to save state:", error);
     }
   }, []);
 
   // Subject validation
-  const validateSubject = useCallback((subjectName) => {
-    const errors = [];
-    
-    if (!subjectName.trim()) {
-      errors.push("Subject name is required");
-    } else if (subjectName.trim().length < 2) {
-      errors.push("Subject name must be at least 2 characters");
-    } else if (subjectName.trim().length > 50) {
-      errors.push("Subject name must be less than 50 characters");
-    }
-    
-    if (subjects.some(s => s.subject.toLowerCase() === subjectName.trim().toLowerCase() && s._id !== editingSubject?._id)) {
-      errors.push("Subject with this name already exists");
-    }
-    
-    // Check for inappropriate content (basic)
-    const inappropriateWords = ['test', 'dummy', 'temp'];
-    if (inappropriateWords.some(word => subjectName.toLowerCase().includes(word))) {
-      errors.push("Subject name should be professional");
-    }
-    
-    return errors;
-  }, [subjects, editingSubject]);
+  const validateSubject = useCallback(
+    (subjectName) => {
+      const errors = [];
+
+      if (!subjectName.trim()) {
+        errors.push("Subject name is required");
+      } else if (subjectName.trim().length < 2) {
+        errors.push("Subject name must be at least 2 characters");
+      } else if (subjectName.trim().length > 50) {
+        errors.push("Subject name must be less than 50 characters");
+      }
+
+      if (
+        subjects.some(
+          (s) =>
+            s.subject.toLowerCase() === subjectName.trim().toLowerCase() &&
+            s._id !== editingSubject?._id
+        )
+      ) {
+        errors.push("Subject with this name already exists");
+      }
+
+      // Check for inappropriate content (basic)
+      const inappropriateWords = ["test", "dummy", "temp"];
+      if (
+        inappropriateWords.some((word) =>
+          subjectName.toLowerCase().includes(word)
+        )
+      ) {
+        errors.push("Subject name should be professional");
+      }
+
+      return errors;
+    },
+    [subjects, editingSubject]
+  );
 
   // Enhanced data fetching
   useEffect(() => {
@@ -81,14 +148,14 @@ const Subjects = () => {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error('No authentication token found');
+          throw new Error("No authentication token found");
         }
 
         // Fetch subjects
         const subjectsRes = await fetch(`${backendurl}/api/subjects`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (!subjectsRes.ok) throw new Error("Failed to fetch subjects");
         const subjectsData = await subjectsRes.json();
@@ -96,7 +163,7 @@ const Subjects = () => {
 
         // Fetch questions for analytics
         const questionsRes = await fetch(`${backendurl}/api/questions`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (questionsRes.ok) {
           const questionsData = await questionsRes.json();
@@ -105,18 +172,20 @@ const Subjects = () => {
 
         // Fetch weeks data for analytics
         const weeksRes = await fetch(`${backendurl}/api/weeks`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (weeksRes.ok) {
           const weeksData = await weeksRes.json();
           setWeeksData(weeksData);
         }
-
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError(`Failed to fetch data: ${err.message}`);
-        if (err.message.includes('token') || err.message.includes('authentication')) {
-          window.location.href = '/admin/login';
+        if (
+          err.message.includes("token") ||
+          err.message.includes("authentication")
+        ) {
+          window.location.href = "/admin/login";
         }
       } finally {
         setLoading(false);
@@ -140,22 +209,33 @@ const Subjects = () => {
   // Enhanced statistics calculation
   const stats = useMemo(() => {
     const totalSubjects = subjects.length;
-    const questionsPerSubject = subjects.map(subject => ({
+    const questionsPerSubject = subjects.map((subject) => ({
       name: subject.subject,
-      count: questionsData.filter(q => q.subject?._id === subject._id || q.subject?.subject === subject.subject).length,
-      _id: subject._id
-    }));
-    
-    const weeksPerSubject = subjects.map(subject => ({
-      name: subject.subject,
-      count: weeksData.filter(w => w.subject?._id === subject._id || w.subject?.subject === subject.subject).length,
-      _id: subject._id
+      count: questionsData.filter(
+        (q) =>
+          q.subject?._id === subject._id ||
+          q.subject?.subject === subject.subject
+      ).length,
+      _id: subject._id,
     }));
 
-    const averageQuestions = totalSubjects > 0 ? 
-      questionsPerSubject.reduce((sum, s) => sum + s.count, 0) / totalSubjects : 0;
+    const weeksPerSubject = subjects.map((subject) => ({
+      name: subject.subject,
+      count: weeksData.filter(
+        (w) =>
+          w.subject?._id === subject._id ||
+          w.subject?.subject === subject.subject
+      ).length,
+      _id: subject._id,
+    }));
 
-    const recentlyAdded = subjects.filter(s => {
+    const averageQuestions =
+      totalSubjects > 0
+        ? questionsPerSubject.reduce((sum, s) => sum + s.count, 0) /
+          totalSubjects
+        : 0;
+
+    const recentlyAdded = subjects.filter((s) => {
       const addedDate = new Date(s.createdAt || Date.now());
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       return addedDate > weekAgo;
@@ -163,51 +243,58 @@ const Subjects = () => {
 
     return {
       total: totalSubjects,
-      questionsPerSubject: questionsPerSubject.sort((a, b) => b.count - a.count),
+      questionsPerSubject: questionsPerSubject.sort(
+        (a, b) => b.count - a.count
+      ),
       weeksPerSubject: weeksPerSubject.sort((a, b) => b.count - a.count),
       averageQuestions: Math.round(averageQuestions),
       recentlyAdded,
       totalQuestions: questionsData.length,
       totalWeeks: weeksData.length,
-      mostActiveSubject: questionsPerSubject.length > 0 ? questionsPerSubject[0] : null,
-      subjectUtilization: questionsPerSubject.filter(s => s.count > 0).length
+      mostActiveSubject:
+        questionsPerSubject.length > 0 ? questionsPerSubject[0] : null,
+      subjectUtilization: questionsPerSubject.filter((s) => s.count > 0).length,
     };
   }, [subjects, questionsData, weeksData]);
 
   // Enhanced filtering and sorting
   const filteredAndSortedSubjects = useMemo(() => {
-    let filtered = subjects.filter(subject =>
+    let filtered = subjects.filter((subject) =>
       subject.subject.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Add question counts to subjects for sorting
-    filtered = filtered.map(subject => ({
+    filtered = filtered.map((subject) => ({
       ...subject,
-      questionCount: questionsData.filter(q => 
-        q.subject?._id === subject._id || q.subject?.subject === subject.subject
+      questionCount: questionsData.filter(
+        (q) =>
+          q.subject?._id === subject._id ||
+          q.subject?.subject === subject.subject
       ).length,
-      weekCount: weeksData.filter(w => 
-        w.subject?._id === subject._id || w.subject?.subject === subject.subject
-      ).length
+      weekCount: weeksData.filter(
+        (w) =>
+          w.subject?._id === subject._id ||
+          w.subject?.subject === subject.subject
+      ).length,
     }));
 
     // Sort
     filtered.sort((a, b) => {
       let aVal, bVal;
       switch (sortBy) {
-        case 'name':
+        case "name":
           aVal = a.subject.toLowerCase();
           bVal = b.subject.toLowerCase();
           break;
-        case 'questions':
+        case "questions":
           aVal = a.questionCount;
           bVal = b.questionCount;
           break;
-        case 'weeks':
+        case "weeks":
           aVal = a.weekCount;
           bVal = b.weekCount;
           break;
-        case 'created':
+        case "created":
           aVal = new Date(a.createdAt || 0);
           bVal = new Date(b.createdAt || 0);
           break;
@@ -215,8 +302,8 @@ const Subjects = () => {
           aVal = a.subject.toLowerCase();
           bVal = b.subject.toLowerCase();
       }
-      
-      if (sortOrder === 'asc') {
+
+      if (sortOrder === "asc") {
         return aVal > bVal ? 1 : -1;
       } else {
         return aVal < bVal ? 1 : -1;
@@ -234,40 +321,45 @@ const Subjects = () => {
 
     const trimmedSubject = newSubject.trim();
     const errors = validateSubject(trimmedSubject);
-    
+
     if (errors.length > 0) {
-      setError(errors.join('. '));
+      setError(errors.join(". "));
       return;
     }
 
     setLoading(true);
-    setAutoSaveStatus('saving');
-    
+    setAutoSaveStatus("saving");
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
 
       const res = await fetch(`${backendurl}/api/subjects`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ subject: trimmedSubject }),
       });
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.message || `Failed to add subject. Status: ${res.status}`);
+      if (!res.ok)
+        throw new Error(
+          result.message || `Failed to add subject. Status: ${res.status}`
+        );
 
-      setSubjects(prev => [...prev, result].sort((a, b) => a.subject.localeCompare(b.subject)));
+      setSubjects((prev) =>
+        [...prev, result].sort((a, b) => a.subject.localeCompare(b.subject))
+      );
       setNewSubject("");
       setSuccess(`Subject "${result.subject}" added successfully!`);
-      setAutoSaveStatus('saved');
-      
+      setAutoSaveStatus("saved");
+
       // Auto-save state
       saveToLocalStorage({ subjects: [...subjects, result] });
-      
-      document.getElementById('add-subject-modal').close();
+
+      document.getElementById("add-subject-modal").close();
     } catch (err) {
       console.error("Error adding subject:", err);
       setError(`Error adding subject: ${err.message}`);
@@ -281,14 +373,18 @@ const Subjects = () => {
     if (selectedSubjects.length === filteredAndSortedSubjects.length) {
       setSelectedSubjects([]);
     } else {
-      setSelectedSubjects(filteredAndSortedSubjects.map(s => s._id));
+      setSelectedSubjects(filteredAndSortedSubjects.map((s) => s._id));
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedSubjects.length === 0) return;
-    
-    if (!window.confirm(`Are you sure you want to delete ${selectedSubjects.length} subjects? This action cannot be undone.`)) {
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedSubjects.length} subjects? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -298,10 +394,10 @@ const Subjects = () => {
 
     for (const subjectId of selectedSubjects) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const res = await fetch(`${backendurl}/api/subjects/${subjectId}`, {
           method: "DELETE",
-          headers: { "Authorization": `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.ok) {
@@ -316,32 +412,32 @@ const Subjects = () => {
     }
 
     // Update local state
-    setSubjects(prev => prev.filter(s => !selectedSubjects.includes(s._id)));
+    setSubjects((prev) =>
+      prev.filter((s) => !selectedSubjects.includes(s._id))
+    );
     setSelectedSubjects([]);
-    
+
     if (successCount > 0) {
       setSuccess(`Successfully deleted ${successCount} subjects`);
     }
     if (errorCount > 0) {
       setError(`Failed to delete ${errorCount} subjects`);
     }
-    
+
     setLoading(false);
   };
 
-
-
   // Enhanced delete with analytics check
   const handleDeleteSubject = async (id, subjectName) => {
-    const subject = subjects.find(s => s._id === id);
+    const subject = subjects.find((s) => s._id === id);
     if (!subject) return;
 
-    const questionCount = questionsData.filter(q => 
-      q.subject?._id === id || q.subject?.subject === subjectName
+    const questionCount = questionsData.filter(
+      (q) => q.subject?._id === id || q.subject?.subject === subjectName
     ).length;
-    
-    const weekCount = weeksData.filter(w => 
-      w.subject?._id === id || w.subject?.subject === subjectName
+
+    const weekCount = weeksData.filter(
+      (w) => w.subject?._id === id || w.subject?.subject === subjectName
     ).length;
 
     let confirmMessage = `Are you sure you want to delete the subject "${subjectName}"?`;
@@ -355,10 +451,10 @@ const Subjects = () => {
     setSuccess("");
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const res = await fetch(`${backendurl}/api/subjects/${id}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -366,11 +462,11 @@ const Subjects = () => {
         throw new Error(errorData.message || "Failed to delete subject");
       }
 
-      setSubjects(prev => prev.filter(subject => subject._id !== id));
+      setSubjects((prev) => prev.filter((subject) => subject._id !== id));
       setSuccess(`Subject "${subjectName}" deleted successfully!`);
-      
+
       // Auto-save state
-      saveToLocalStorage({ subjects: subjects.filter(s => s._id !== id) });
+      saveToLocalStorage({ subjects: subjects.filter((s) => s._id !== id) });
     } catch (err) {
       console.error("Error deleting subject:", err);
       setError(`Error deleting subject: ${err.message}`);
@@ -385,10 +481,10 @@ const Subjects = () => {
 
     const trimmedEditedName = editedSubjectName.trim();
     const errors = validateSubject(trimmedEditedName);
-    
+
     if (errors.length > 0) {
       setValidationErrors({ [editingSubject._id]: errors });
-      setError(errors.join('. '));
+      setError(errors.join(". "));
       return;
     }
 
@@ -401,36 +497,49 @@ const Subjects = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${backendurl}/api/subjects/${editingSubject._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ subject: trimmedEditedName }),
-      });
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${backendurl}/api/subjects/${editingSubject._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ subject: trimmedEditedName }),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Failed to update subject. Status: ${res.status}`);
+        throw new Error(
+          errorData.message || `Failed to update subject. Status: ${res.status}`
+        );
       }
 
       const updatedSubject = await res.json();
-      setSubjects(prevSubjects => {
-        const updatedSubjects = prevSubjects.map(subject =>
+      setSubjects((prevSubjects) => {
+        const updatedSubjects = prevSubjects.map((subject) =>
           subject._id === updatedSubject._id ? updatedSubject : subject
         );
-        return updatedSubjects.sort((a, b) => a.subject.localeCompare(b.subject));
+        return updatedSubjects.sort((a, b) =>
+          a.subject.localeCompare(b.subject)
+        );
       });
 
       setEditingSubject(null);
       setEditedSubjectName("");
       setValidationErrors({});
-      setSuccess(`Subject updated to "${updatedSubject.subject}" successfully!`);
-      
+      setSuccess(
+        `Subject updated to "${updatedSubject.subject}" successfully!`
+      );
+
       // Auto-save state
-      saveToLocalStorage({ subjects: subjects.map(s => s._id === updatedSubject._id ? updatedSubject : s) });
+      saveToLocalStorage({
+        subjects: subjects.map((s) =>
+          s._id === updatedSubject._id ? updatedSubject : s
+        ),
+      });
     } catch (err) {
       console.error("Error updating subject:", err);
       setError(`Error updating subject: ${err.message}`);
@@ -459,7 +568,9 @@ const Subjects = () => {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <span className="loading loading-spinner loading-lg"></span>
-          <p className="mt-2 text-base-content/70">Loading subjects dashboard...</p>
+          <p className="mt-2 text-base-content/70">
+            Loading subjects dashboard...
+          </p>
         </div>
       </div>
     );
@@ -470,30 +581,38 @@ const Subjects = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Subject Management</h1>
-          <p className="text-base-content/70">Manage subjects and analyze their usage across the system</p>
-          
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">
+            Subject Management
+          </h1>
+          <p className="text-base-content/70">
+            Manage subjects and analyze their usage across the system
+          </p>
+
           {/* Auto-save Status */}
           <div className="flex items-center gap-2 mt-2">
-            {autoSaveStatus === 'saving' && (
+            {autoSaveStatus === "saving" && (
               <div className="flex items-center gap-1 text-warning">
                 <MdAutorenew className="w-4 h-4 animate-spin" />
                 <span className="text-xs">Saving...</span>
               </div>
             )}
-            {autoSaveStatus === 'saved' && lastSaved && (
+            {autoSaveStatus === "saved" && lastSaved && (
               <div className="flex items-center gap-1 text-success">
                 <MdCloudDone className="w-4 h-4" />
-                <span className="text-xs">Saved {lastSaved.toLocaleTimeString()}</span>
+                <span className="text-xs">
+                  Saved {lastSaved.toLocaleTimeString()}
+                </span>
               </div>
             )}
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <button
             className="btn btn-primary btn-sm"
-            onClick={() => document.getElementById('add-subject-modal').showModal()}
+            onClick={() =>
+              document.getElementById("add-subject-modal").showModal()
+            }
           >
             <MdAdd className="w-4 h-4" />
             Add Subject
@@ -515,7 +634,10 @@ const Subjects = () => {
           <MdInfo />
           <div>
             <h4 className="font-semibold">Subject Management Guide</h4>
-            <p className="text-sm">Use the dashboard to monitor subject usage, manage subjects efficiently with bulk operations, and analyze data distribution.</p>
+            <p className="text-sm">
+              Use the dashboard to monitor subject usage, manage subjects
+              efficiently with bulk operations, and analyze data distribution.
+            </p>
           </div>
         </div>
       )}
@@ -525,7 +647,7 @@ const Subjects = () => {
         <div className="alert alert-error mb-4">
           <MdError />
           <span className="whitespace-pre-line">{error}</span>
-          <button onClick={() => setError('')} className="btn btn-ghost btn-xs">
+          <button onClick={() => setError("")} className="btn btn-ghost btn-xs">
             <MdClear />
           </button>
         </div>
@@ -535,7 +657,10 @@ const Subjects = () => {
         <div className="alert alert-success mb-4">
           <MdCheckCircle />
           <span>{success}</span>
-          <button onClick={() => setSuccess('')} className="btn btn-ghost btn-xs">
+          <button
+            onClick={() => setSuccess("")}
+            className="btn btn-ghost btn-xs"
+          >
             <MdClear />
           </button>
         </div>
@@ -544,15 +669,17 @@ const Subjects = () => {
       {/* Navigation Tabs */}
       <div className="tabs tabs-boxed mb-6 bg-base-200">
         <button
-          className={`tab tab-lg ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
+          className={`tab tab-lg ${
+            activeTab === "dashboard" ? "tab-active" : ""
+          }`}
+          onClick={() => setActiveTab("dashboard")}
         >
           <MdAnalytics className="w-4 h-4 mr-2" />
           Dashboard
         </button>
         <button
-          className={`tab tab-lg ${activeTab === 'manage' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('manage')}
+          className={`tab tab-lg ${activeTab === "manage" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("manage")}
         >
           <MdViewList className="w-4 h-4 mr-2" />
           Manage Subjects ({filteredAndSortedSubjects.length})
@@ -560,7 +687,7 @@ const Subjects = () => {
       </div>
 
       {/* Dashboard Tab */}
-      {activeTab === 'dashboard' && (
+      {activeTab === "dashboard" && (
         <div className="space-y-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -570,15 +697,21 @@ const Subjects = () => {
               </div>
               <div className="stat-title">Total Subjects</div>
               <div className="stat-value text-primary">{stats.total}</div>
-              <div className="stat-desc">{stats.subjectUtilization} with questions</div>
+              <div className="stat-desc">
+                {stats.subjectUtilization} with questions
+              </div>
             </div>
             <div className="stat bg-base-200 rounded-lg p-4">
               <div className="stat-figure text-secondary">
                 <MdQuiz className="w-8 h-8" />
               </div>
               <div className="stat-title">Total Questions</div>
-              <div className="stat-value text-secondary">{stats.totalQuestions}</div>
-              <div className="stat-desc">Avg {stats.averageQuestions} per subject</div>
+              <div className="stat-value text-secondary">
+                {stats.totalQuestions}
+              </div>
+              <div className="stat-desc">
+                Avg {stats.averageQuestions} per subject
+              </div>
             </div>
             <div className="stat bg-base-200 rounded-lg p-4">
               <div className="stat-figure text-accent">
@@ -608,8 +741,8 @@ const Subjects = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={stats.questionsPerSubject.slice(0, 8)}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
+                      <XAxis
+                        dataKey="name"
                         angle={-45}
                         textAnchor="end"
                         height={100}
@@ -640,14 +773,25 @@ const Subjects = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name.length > 10 ? name.substring(0, 10) + '...' : name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${
+                            name.length > 10
+                              ? name.substring(0, 10) + "..."
+                              : name
+                          } ${(percent * 100).toFixed(0)}%`
+                        }
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="count"
                       >
-                        {stats.questionsPerSubject.slice(0, 6).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
+                        {stats.questionsPerSubject
+                          .slice(0, 6)
+                          .map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
                       </Pie>
                       <Tooltip />
                     </PieChart>
@@ -670,14 +814,27 @@ const Subjects = () => {
                   <div key={subject._id} className="card bg-base-200 shadow-sm">
                     <div className="card-body p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`badge ${index === 0 ? 'badge-primary' : index === 1 ? 'badge-secondary' : 'badge-accent'}`}>
+                        <div
+                          className={`badge ${
+                            index === 0
+                              ? "badge-primary"
+                              : index === 1
+                              ? "badge-secondary"
+                              : "badge-accent"
+                          }`}
+                        >
                           #{index + 1}
                         </div>
                         <h4 className="font-medium text-sm">{subject.name}</h4>
                       </div>
                       <div className="flex justify-between text-xs text-base-content/70">
                         <span>{subject.count} questions</span>
-                        <span>{stats.weeksPerSubject.find(w => w._id === subject._id)?.count || 0} weeks</span>
+                        <span>
+                          {stats.weeksPerSubject.find(
+                            (w) => w._id === subject._id
+                          )?.count || 0}{" "}
+                          weeks
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -689,7 +846,7 @@ const Subjects = () => {
       )}
 
       {/* Manage Subjects Tab */}
-      {activeTab === 'manage' && (
+      {activeTab === "manage" && (
         <div className="space-y-6">
           {/* Search and Filters */}
           <div className="card bg-base-100 shadow">
@@ -707,10 +864,10 @@ const Subjects = () => {
                     />
                   </div>
                 </div>
-                
+
                 {showFilters && (
                   <div className="flex flex-wrap gap-2">
-                    <select 
+                    <select
                       className="select select-bordered select-sm"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
@@ -720,8 +877,8 @@ const Subjects = () => {
                       <option value="weeks">Sort by Weeks</option>
                       <option value="created">Sort by Created</option>
                     </select>
-                    
-                    <select 
+
+                    <select
                       className="select select-bordered select-sm"
                       value={sortOrder}
                       onChange={(e) => setSortOrder(e.target.value)}
@@ -729,17 +886,21 @@ const Subjects = () => {
                       <option value="asc">Ascending</option>
                       <option value="desc">Descending</option>
                     </select>
-                    
+
                     <div className="btn-group">
-                      <button 
-                        className={`btn btn-sm ${viewMode === 'grid' ? 'btn-active' : ''}`}
-                        onClick={() => setViewMode('grid')}
+                      <button
+                        className={`btn btn-sm ${
+                          viewMode === "grid" ? "btn-active" : ""
+                        }`}
+                        onClick={() => setViewMode("grid")}
                       >
                         Grid
                       </button>
-                      <button 
-                        className={`btn btn-sm ${viewMode === 'table' ? 'btn-active' : ''}`}
-                        onClick={() => setViewMode('table')}
+                      <button
+                        className={`btn btn-sm ${
+                          viewMode === "table" ? "btn-active" : ""
+                        }`}
+                        onClick={() => setViewMode("table")}
                       >
                         Table
                       </button>
@@ -757,16 +918,18 @@ const Subjects = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex items-center gap-2">
                     <MdCheckCircle className="w-5 h-5 text-warning" />
-                    <span className="font-medium">{selectedSubjects.length} subjects selected</span>
+                    <span className="font-medium">
+                      {selectedSubjects.length} subjects selected
+                    </span>
                   </div>
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       className="btn btn-outline btn-sm"
                       onClick={() => setSelectedSubjects([])}
                     >
                       Clear Selection
                     </button>
-                    <button 
+                    <button
                       className="btn btn-error btn-sm"
                       onClick={handleBulkDelete}
                     >
@@ -780,13 +943,15 @@ const Subjects = () => {
           )}
 
           {/* Grid View */}
-          {viewMode === 'grid' && (
+          {viewMode === "grid" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAndSortedSubjects.map((subject) => (
-                <div 
-                  key={subject._id} 
+                <div
+                  key={subject._id}
                   className={`card bg-base-200 shadow hover:shadow-lg transition-all cursor-pointer ${
-                    selectedSubjects.includes(subject._id) ? 'ring-2 ring-primary' : ''
+                    selectedSubjects.includes(subject._id)
+                      ? "ring-2 ring-primary"
+                      : ""
                   }`}
                 >
                   <div className="card-body p-4">
@@ -798,18 +963,32 @@ const Subjects = () => {
                           checked={selectedSubjects.includes(subject._id)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedSubjects([...selectedSubjects, subject._id]);
+                              setSelectedSubjects([
+                                ...selectedSubjects,
+                                subject._id,
+                              ]);
                             } else {
-                              setSelectedSubjects(selectedSubjects.filter(id => id !== subject._id));
+                              setSelectedSubjects(
+                                selectedSubjects.filter(
+                                  (id) => id !== subject._id
+                                )
+                              );
                             }
                           }}
                         />
-                        <h3 className="font-medium text-sm line-clamp-2">{subject.subject}</h3>
+                        <h3 className="font-medium text-sm line-clamp-2">
+                          {subject.subject}
+                        </h3>
                       </div>
-                      
+
                       <div className="dropdown dropdown-end">
-                        <label tabIndex={0} className="btn btn-ghost btn-xs">⋮</label>
-                        <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <label tabIndex={0} className="btn btn-ghost btn-xs">
+                          ⋮
+                        </label>
+                        <ul
+                          tabIndex={0}
+                          className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+                        >
                           <li>
                             <button onClick={() => handleEditSubject(subject)}>
                               <MdEdit className="w-4 h-4" />
@@ -817,9 +996,14 @@ const Subjects = () => {
                             </button>
                           </li>
                           <li>
-                            <button 
+                            <button
                               className="text-error"
-                              onClick={() => handleDeleteSubject(subject._id, subject.subject)}
+                              onClick={() =>
+                                handleDeleteSubject(
+                                  subject._id,
+                                  subject.subject
+                                )
+                              }
                             >
                               <MdDelete className="w-4 h-4" />
                               Delete
@@ -828,7 +1012,7 @@ const Subjects = () => {
                         </ul>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-1 mb-3">
                       <div className="badge badge-primary badge-sm">
                         {subject.questionCount} questions
@@ -837,15 +1021,20 @@ const Subjects = () => {
                         {subject.weekCount} weeks
                       </div>
                     </div>
-                    
+
                     <div className="text-xs text-base-content/60">
-                      Created: {subject.createdAt ? new Date(subject.createdAt).toLocaleDateString() : 'Unknown'}
+                      Created:{" "}
+                      {subject.createdAt
+                        ? new Date(subject.createdAt).toLocaleDateString()
+                        : "Unknown"}
                     </div>
 
                     {validationErrors[subject._id] && (
                       <div className="alert alert-error py-1 mt-2">
                         <MdError className="w-4 h-4" />
-                        <span className="text-xs">{validationErrors[subject._id].join(', ')}</span>
+                        <span className="text-xs">
+                          {validationErrors[subject._id].join(", ")}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -855,7 +1044,7 @@ const Subjects = () => {
           )}
 
           {/* Table View */}
-          {viewMode === 'table' && (
+          {viewMode === "table" && (
             <div className="card bg-base-100 shadow">
               <div className="card-body p-0">
                 <div className="overflow-x-auto">
@@ -864,10 +1053,14 @@ const Subjects = () => {
                       <tr>
                         <th>
                           <label>
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               className="checkbox"
-                              checked={selectedSubjects.length === filteredAndSortedSubjects.length && filteredAndSortedSubjects.length > 0}
+                              checked={
+                                selectedSubjects.length ===
+                                  filteredAndSortedSubjects.length &&
+                                filteredAndSortedSubjects.length > 0
+                              }
                               onChange={handleSelectAll}
                             />
                           </label>
@@ -884,15 +1077,22 @@ const Subjects = () => {
                         <tr key={subject._id}>
                           <th>
                             <label>
-                              <input 
-                                type="checkbox" 
+                              <input
+                                type="checkbox"
                                 className="checkbox"
                                 checked={selectedSubjects.includes(subject._id)}
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setSelectedSubjects([...selectedSubjects, subject._id]);
+                                    setSelectedSubjects([
+                                      ...selectedSubjects,
+                                      subject._id,
+                                    ]);
                                   } else {
-                                    setSelectedSubjects(selectedSubjects.filter(id => id !== subject._id));
+                                    setSelectedSubjects(
+                                      selectedSubjects.filter(
+                                        (id) => id !== subject._id
+                                      )
+                                    );
                                   }
                                 }}
                               />
@@ -900,15 +1100,23 @@ const Subjects = () => {
                           </th>
                           <td>
                             {editingSubject?._id === subject._id ? (
-                              <form onSubmit={handleUpdateSubject} className="flex gap-2">
+                              <form
+                                onSubmit={handleUpdateSubject}
+                                className="flex gap-2"
+                              >
                                 <input
                                   type="text"
                                   value={editedSubjectName}
-                                  onChange={(e) => setEditedSubjectName(e.target.value)}
+                                  onChange={(e) =>
+                                    setEditedSubjectName(e.target.value)
+                                  }
                                   className="input input-bordered input-sm w-full"
                                   placeholder="Enter subject name"
                                 />
-                                <button type="submit" className="btn btn-primary btn-sm">
+                                <button
+                                  type="submit"
+                                  className="btn btn-primary btn-sm"
+                                >
                                   <MdSave className="w-4 h-4" />
                                 </button>
                                 <button
@@ -920,23 +1128,33 @@ const Subjects = () => {
                                 </button>
                               </form>
                             ) : (
-                              <div className="font-medium">{subject.subject}</div>
+                              <div className="font-medium">
+                                {subject.subject}
+                              </div>
                             )}
                             {validationErrors[subject._id] && (
                               <div className="text-error text-xs mt-1">
-                                {validationErrors[subject._id].join(', ')}
+                                {validationErrors[subject._id].join(", ")}
                               </div>
                             )}
                           </td>
                           <td>
-                            <div className="badge badge-primary">{subject.questionCount}</div>
+                            <div className="badge badge-primary">
+                              {subject.questionCount}
+                            </div>
                           </td>
                           <td>
-                            <div className="badge badge-secondary">{subject.weekCount}</div>
+                            <div className="badge badge-secondary">
+                              {subject.weekCount}
+                            </div>
                           </td>
                           <td>
                             <div className="text-sm text-base-content/70">
-                              {subject.createdAt ? new Date(subject.createdAt).toLocaleDateString() : 'Unknown'}
+                              {subject.createdAt
+                                ? new Date(
+                                    subject.createdAt
+                                  ).toLocaleDateString()
+                                : "Unknown"}
                             </div>
                           </td>
                           <td>
@@ -949,7 +1167,12 @@ const Subjects = () => {
                                   <MdEdit className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteSubject(subject._id, subject.subject)}
+                                  onClick={() =>
+                                    handleDeleteSubject(
+                                      subject._id,
+                                      subject.subject
+                                    )
+                                  }
                                   className="btn btn-ghost btn-sm text-error"
                                 >
                                   <MdDelete className="w-4 h-4" />
@@ -969,13 +1192,19 @@ const Subjects = () => {
           {filteredAndSortedSubjects.length === 0 && (
             <div className="text-center py-12">
               <FaBookOpen className="w-16 h-16 mx-auto text-base-content/30 mb-4" />
-              <h3 className="text-lg font-medium text-base-content/70 mb-2">No subjects found</h3>
+              <h3 className="text-lg font-medium text-base-content/70 mb-2">
+                No subjects found
+              </h3>
               <p className="text-base-content/50 mb-4">
-                {searchTerm ? `No subjects match "${searchTerm}"` : 'Get started by adding your first subject'}
+                {searchTerm
+                  ? `No subjects match "${searchTerm}"`
+                  : "Get started by adding your first subject"}
               </p>
               <button
                 className="btn btn-primary"
-                onClick={() => document.getElementById('add-subject-modal').showModal()}
+                onClick={() =>
+                  document.getElementById("add-subject-modal").showModal()
+                }
               >
                 <MdAdd className="w-4 h-4" />
                 Add Subject
@@ -1007,7 +1236,7 @@ const Subjects = () => {
                   {newSubject.length}/50 characters
                 </span>
               </div>
-              
+
               {/* Real-time validation feedback */}
               {newSubject && (
                 <div className="mt-2">
@@ -1028,10 +1257,10 @@ const Subjects = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="modal-action">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary"
                 disabled={loading || validateSubject(newSubject).length > 0}
               >
@@ -1051,7 +1280,7 @@ const Subjects = () => {
                 type="button"
                 className="btn"
                 onClick={() => {
-                  document.getElementById('add-subject-modal').close();
+                  document.getElementById("add-subject-modal").close();
                   setNewSubject("");
                 }}
               >

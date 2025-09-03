@@ -1,110 +1,65 @@
 import React from "react";
-import { FaUser, FaHeart, FaShieldAlt, FaBolt } from "react-icons/fa";
-import "./PlayerInfo.css";
 
-const PlayerInfo = ({
-  player,
-  isCurrentTurn = false,
-  isOpponent = false,
-  gamePhase = "cardSelection",
-  activatedSpells = [],
-  className = "",
-}) => {
-  const getStatusText = () => {
-    if (gamePhase === "cardSelection") {
-      return isCurrentTurn ? "SELECTING CARD" : "WAITING";
-    } else if (gamePhase === "answering") {
-      return isCurrentTurn ? "ANSWERING" : "OPPONENT TURN";
+const PlayerInfo = ({ player, isOpponent = false }) => {
+  const getHpColor = (currentHp, maxHp) => {
+    const percentage = (currentHp / maxHp) * 100;
+
+    if (percentage >= 70) {
+      return "#22c55e"; // Green for high HP (70-100%)
+    } else if (percentage >= 40) {
+      return "#f59e0b"; // Orange for medium HP (40-69%)
+    } else if (percentage >= 20) {
+      return "#f97316"; // Red-orange for low HP (20-39%)
+    } else {
+      return "#dc2626"; // Dark red for critical HP (0-19%)
     }
-    return "READY";
   };
 
-  const getStatusColor = () => {
-    if (isCurrentTurn) return "#10b981";
-    if (gamePhase === "answering") return "#f59e0b";
-    return "#6b7280";
-  };
+  if (!player) {
+    return (
+      <div className="playerInfo">
+        <div className="playerName">
+          {isOpponent ? "OPPONENT" : "PLAYER"}
+        </div>
+        <div className="hpBar">
+          <div className="hpBarBackground">
+            <div
+              className="hpBarFill"
+              style={{
+                width: "100%",
+                backgroundColor: "#22c55e",
+              }}
+            ></div>
+          </div>
+          <div className="hpText">100/100</div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentHp = player.hp || 100;
+  const maxHp = player.maxHp || 100;
+  const hpPercentage = (currentHp / maxHp) * 100;
 
   return (
-    <div
-      className={`playerInfo ${isOpponent ? "opponent" : "local"} ${className}`}
-    >
-      <div className="playerHeader">
-        <div className="playerAvatar">
-          <FaUser />
-        </div>
-        <div className="playerDetails">
-          <div className="playerName">{player.username}</div>
-          <div className="playerStatus" style={{ color: getStatusColor() }}>
-            {getStatusText()}
-          </div>
-        </div>
-        <div className="playerStats">
-          <div className="statItem">
-            <FaHeart className="statIcon" />
-            <span className="statValue">
-              {player.hp}/{player.maxHp}
-            </span>
-          </div>
-          <div className="statItem">
-            <FaBolt className="statIcon" />
-            <span className="statValue">{player.cards?.length || 0}</span>
-          </div>
-        </div>
+    <div className="playerInfo">
+      <div className="playerName">
+        {player.name || (isOpponent ? "OPPONENT" : "PLAYER")}
       </div>
-
-      {/* HP Bar */}
-      <div className="hpBarContainer">
-        <div className="hpBar">
+      <div className="hpBar">
+        <div className="hpBarBackground">
           <div
-            className="hpFill"
+            className="hpBarFill"
             style={{
-              width: `${(player.hp / player.maxHp) * 100}%`,
-              backgroundColor:
-                player.hp > 50
-                  ? "#10b981"
-                  : player.hp > 25
-                  ? "#f59e0b"
-                  : "#ef4444",
+              width: `${hpPercentage}%`,
+              backgroundColor: getHpColor(currentHp, maxHp),
             }}
-          />
+          ></div>
+        </div>
+        <div className="hpText">
+          {currentHp}/{maxHp}
         </div>
       </div>
-
-      {/* Activated Spells */}
-      {activatedSpells && activatedSpells.length > 0 && (
-        <div className="activatedSpells">
-          <div className="spellsTitle">
-            <FaBolt />
-            ACTIVE SPELLS
-          </div>
-          <div className="spellsList">
-            {activatedSpells.map((spell, index) => (
-              <div
-                key={spell.id || index}
-                className="spellIndicator"
-                style={{
-                  backgroundColor: spell.bgColor || "rgba(124, 58, 237, 0.2)",
-                  borderColor: spell.color || "#7c3aed",
-                }}
-                title={spell.name}
-              >
-                <span style={{ color: spell.color || "#7c3aed" }}>
-                  {spell.name?.charAt(0) || "S"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Turn Indicator */}
-      {isCurrentTurn && (
-        <div className="turnIndicator">
-          <div className="turnPulse"></div>
-          <span>YOUR TURN</span>
-        </div>
-      )}
     </div>
   );
 };

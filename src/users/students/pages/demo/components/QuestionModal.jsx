@@ -1,207 +1,208 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaTimes,
-  FaCheck,
-  FaBrain,
-  FaQuestion,
-  FaBolt,
-  FaFire,
-  FaGem,
-  FaCrown,
-} from "react-icons/fa";
-import "./QuestionModal.css";
-
-// Bloom's Taxonomy Configuration
-const BLOOM_CONFIG = {
-  Remembering: {
-    damage: 5,
-    color: "#9ca3af",
-    bgColor: "rgba(156, 163, 175, 0.2)",
-    icon: FaBrain,
-  },
-  Understanding: {
-    damage: 10,
-    color: "#60a5fa",
-    bgColor: "rgba(96, 165, 250, 0.2)",
-    icon: FaQuestion,
-  },
-  Applying: {
-    damage: 15,
-    color: "#34d399",
-    bgColor: "rgba(52, 211, 153, 0.2)",
-    icon: FaBolt,
-  },
-  Analyzing: {
-    damage: 20,
-    color: "#fb923c",
-    bgColor: "rgba(251, 146, 60, 0.2)",
-    icon: FaFire,
-  },
-  Evaluating: {
-    damage: 25,
-    color: "#f87171",
-    bgColor: "rgba(248, 113, 113, 0.2)",
-    icon: FaGem,
-  },
-  Creating: {
-    damage: 30,
-    color: "#a78bfa",
-    bgColor: "rgba(167, 139, 250, 0.2)",
-    icon: FaCrown,
-  },
-};
+import { FaTimes, FaCheck } from "react-icons/fa";
+import questionService from "../services/questionService";
 
 const QuestionModal = ({
-  card,
-  onAnswer,
+  isOpen,
   onClose,
-  isVisible,
-  powerUpEffects = {},
+  cardData,
+  onAnswerSubmit,
+  playerName,
 }) => {
-  const [selectedChoice, setSelectedChoice] = useState(null);
-  const [eliminatedChoices, setEliminatedChoices] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Simple state - no complex refs or multiple flags
+  const [question, setQuestion] = useState(null);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Handle power-up effects for choice elimination
+  // Load question when modal opens
   useEffect(() => {
-    if (isVisible && card && card.choices) {
-      const newEliminatedChoices = [];
+    if (isOpen && cardData) {
+      loadQuestion();
+    }
+  }, [isOpen, cardData]);
 
-      if (powerUpEffects.hintReveal) {
-        // Eliminate 1 wrong choice
-        const wrongChoices = card.choices.filter(
-          (choice) => choice !== card.answer
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setQuestion(null);
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+      setError(null);
+    }
+  }, [isOpen]);
+
+  const loadQuestion = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      let gameQuestion;
+
+      // Handle different question data structures
+      if (cardData.questionData) {
+        // Card has real question data from database
+        gameQuestion = questionService.transformQuestionToGameFormat(
+          cardData.questionData
         );
-        if (wrongChoices.length > 0) {
-          const randomWrongChoice =
-            wrongChoices[Math.floor(Math.random() * wrongChoices.length)];
-          newEliminatedChoices.push(randomWrongChoice);
+
+        // If transform didn't find correctAnswer, use cardData.answer as fallback
+        if (!gameQuestion.correctAnswer && cardData.answer) {
+          gameQuestion.correctAnswer = cardData.answer;
         }
-      } else if (powerUpEffects.fiftyFifty) {
-        // Eliminate 2 wrong choices
-        const wrongChoices = card.choices.filter(
-          (choice) => choice !== card.answer
+      } else if (cardData.question && cardData.choices) {
+        // Card has question data directly in the card object
+        const possibleCorrectAnswer =
+          cardData.correctAnswer ||
+          cardData.answer ||
+          cardData.correct_answer ||
+          cardData.solution;
+
+        gameQuestion = {
+          question: cardData.question,
+          choices: cardData.choices,
+          correctAnswer: possibleCorrectAnswer,
+          bloomLevel: cardData.bloomLevel || cardData.bloom_level,
+        };
+      } else {
+        // Fallback: Get random question for the card's Bloom's level
+        const dbQuestion = await questionService.getRandomQuestionByBloomLevel(
+          cardData.bloomLevel
         );
-        if (wrongChoices.length >= 2) {
-          const shuffled = wrongChoices.sort(() => 0.5 - Math.random());
-          newEliminatedChoices.push(shuffled[0], shuffled[1]);
-        } else if (wrongChoices.length === 1) {
-          newEliminatedChoices.push(wrongChoices[0]);
-        }
+        gameQuestion =
+          questionService.transformQuestionToGameFormat(dbQuestion);
       }
 
-      setEliminatedChoices(newEliminatedChoices);
+      setQuestion(gameQuestion);
+    } catch (error) {
+      console.error("Error loading question:", error);
+      setError("Failed to load question. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  }, [isVisible, card, powerUpEffects]);
+  };
 
-  // Reset state when modal opens/closes
-  useEffect(() => {
-    if (!isVisible) {
-      setSelectedChoice(null);
-      setEliminatedChoices([]);
-      setIsSubmitting(false);
-    }
-  }, [isVisible]);
-
-  const handleChoiceSelect = (choice) => {
-    if (isEliminated(choice) || isSubmitting) return;
-    setSelectedChoice(choice);
+  const handleAnswerSelect = (answer) => {
+    if (isSubmitted) return; // Prevent selection after submission
+    setSelectedAnswer(answer);
   };
 
   const handleSubmit = () => {
-    if (!selectedChoice || isSubmitting) return;
+    if (!selectedAnswer || !question || isSubmitted) return;
 
-    setIsSubmitting(true);
-    onAnswer(selectedChoice);
+    const isCorrect = selectedAnswer === question.correctAnswer;
+
+    // Set submitted state IMMEDIATELY - this triggers highlighting
+    setIsSubmitted(true);
+
+    // Call parent callback
+    if (onAnswerSubmit) {
+      onAnswerSubmit({
+        question: question,
+        selectedAnswer: selectedAnswer,
+        correctAnswer: question.correctAnswer,
+        isCorrect: isCorrect,
+        damage: questionService.getDamageByBloomLevel(question.bloomLevel),
+      });
+    }
+
+    // Auto close after 5 seconds
+    setTimeout(() => {
+      onClose();
+    }, 5000);
   };
 
-  const isEliminated = (choice) => {
-    return eliminatedChoices.includes(choice);
-  };
+  // Simple, direct choice class logic - no complex conditions
+  const getChoiceClass = (choice) => {
+    let classes = "choiceButton";
 
-  const getConfig = () => {
-    return (
-      BLOOM_CONFIG[card.bloom_level] ||
-      BLOOM_CONFIG["Remembering"] || {
-        damage: 5,
-        color: "#9ca3af",
-        bgColor: "rgba(156, 163, 175, 0.2)",
-        icon: FaBrain,
+    // Add selected class
+    if (selectedAnswer === choice) {
+      classes += " selected";
+    }
+
+    // Add result classes ONLY after submission
+    if (isSubmitted) {
+      if (choice === question.correctAnswer) {
+        classes += " correct";
+      } else if (choice === selectedAnswer) {
+        classes += " incorrect";
       }
-    );
+    }
+
+    return classes;
   };
 
-  const config = getConfig();
-  const IconComponent = config.icon;
-
-  if (!isVisible || !card) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="questionModalOverlay">
       <div className="questionModal">
         <div className="modalHeader">
-          <div className="cardInfo">
-            <div className="cardDamage" style={{ color: config.color }}>
-              <IconComponent />
-              {config.damage}
-            </div>
-            <div className="cardBloomLevel" style={{ color: config.color }}>
-              {card.bloom_level}
-            </div>
-          </div>
+          <h2>Answer the Question</h2>
           <button className="closeButton" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
         <div className="modalContent">
-          <div className="questionText">{card.question}</div>
-
-          {card.type !== "spell" && card.choices && (
-            <div className="choicesContainer">
-              {card.choices.map((choice, index) => (
-                <button
-                  key={index}
-                  className={`choiceButton ${
-                    selectedChoice === choice ? "selected" : ""
-                  } ${isEliminated(choice) ? "eliminated" : ""}`}
-                  onClick={() => handleChoiceSelect(choice)}
-                  disabled={isEliminated(choice) || isSubmitting}
-                >
-                  <span className="choiceText">{choice}</span>
-                  {isEliminated(choice) && (
-                    <span className="eliminatedIcon">❌</span>
-                  )}
-                  {selectedChoice === choice && (
-                    <FaCheck className="selectedIcon" />
-                  )}
-                </button>
-              ))}
+          {isLoading ? (
+            <div className="loading">
+              <p>Loading question...</p>
             </div>
-          )}
-
-          {card.type === "spell" && (
-            <div className="spellInfo">
-              <div
-                className="spellName"
-                style={{ color: card.color || "#7c3aed" }}
-              >
-                {card.name}
+          ) : error ? (
+            <div className="error">
+              <p>{error}</p>
+            </div>
+          ) : question ? (
+            <>
+              {/* Question */}
+              <div className="questionText">
+                <h3>{question.question}</h3>
               </div>
-              <div className="spellDescription">{card.description}</div>
-            </div>
-          )}
-        </div>
 
-        <div className="modalFooter">
-          <button
-            className="submitButton"
-            onClick={handleSubmit}
-            disabled={!selectedChoice || isSubmitting}
-            style={{ backgroundColor: config.color }}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Answer"}
-          </button>
+              {/* Answer Choices */}
+              <div className="answerChoices">
+                {question.choices.map((choice, index) => {
+                  return (
+                    <button
+                      key={index}
+                      className={getChoiceClass(choice)}
+                      onClick={() => handleAnswerSelect(choice)}
+                      disabled={isSubmitted}
+                    >
+                      <span className="choiceLetter">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <span className="choiceText">{choice}</span>
+                      {isSubmitted && choice === question.correctAnswer && (
+                        <FaCheck className="correctIcon" />
+                      )}
+                      {isSubmitted &&
+                        selectedAnswer === choice &&
+                        choice !== question.correctAnswer && (
+                          <FaTimes className="incorrectIcon" />
+                        )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Submit Button */}
+              {!isSubmitted && (
+                <div className="submitSection">
+                  <button
+                    className="submitButton"
+                    onClick={handleSubmit}
+                    disabled={!selectedAnswer}
+                  >
+                    Submit Answer
+                  </button>
+                </div>
+              )}
+            </>
+          ) : null}
         </div>
       </div>
     </div>

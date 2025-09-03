@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../../../contexts/AuthContext';
-import { MdLock, MdPerson, MdNotifications, MdSave } from 'react-icons/md';
-import { useGuideMode } from '../../../../contexts/GuideModeContext';
+import React, { useState } from "react";
+import { useAuth } from "../../../../contexts/AuthContext";
+import { MdLock, MdPerson, MdNotifications, MdSave } from "react-icons/md";
+import { useGuideMode } from "../../../../contexts/GuideModeContext";
 
 const Settings = () => {
-  const { user } = useAuth();
+  // Remove unused user variable
+  // const { user } = useAuth();
   const [securityForm, setSecurityForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    newUsername: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    newUsername: "",
   });
   const [profileForm, setProfileForm] = useState({
-    name: '',
-    email: '',
-    role: ''
+    name: "",
+    email: "",
+    role: "",
   });
   const [systemSettings, setSystemSettings] = useState({
     enableRegistration: true,
@@ -22,100 +23,106 @@ const Settings = () => {
     maxQuestionsPerTest: 50,
     defaultTestDuration: 60,
     enableAI: true,
-    enableBulkOperations: true
+    enableBulkOperations: true,
   });
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     testReminders: true,
     performanceAlerts: true,
-    systemUpdates: false
+    systemUpdates: false,
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('security');
+  const [activeTab, setActiveTab] = useState("security");
   const { guideMode } = useGuideMode();
 
   const handleSecurityChange = (e) => {
     const { name, value } = e.target;
-    setSecurityForm(prev => ({
+    setSecurityForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
-    setProfileForm(prev => ({
+    setProfileForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSecuritySubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(true);
 
     if (securityForm.newPassword !== securityForm.confirmPassword) {
-      setError('New passwords do not match');
+      setError("New passwords do not match");
       setIsLoading(false);
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       // Change password
       if (securityForm.newPassword) {
-        const passwordResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/change-password`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            currentPassword: securityForm.currentPassword,
-            newPassword: securityForm.newPassword
-          }),
-        });
+        const passwordResponse = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/change-password`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              currentPassword: securityForm.currentPassword,
+              newPassword: securityForm.newPassword,
+            }),
+          }
+        );
 
         if (!passwordResponse.ok) {
           const data = await passwordResponse.json();
-          throw new Error(data.error || 'Failed to change password');
+          throw new Error(data.error || "Failed to change password");
         }
       }
 
       // Change username
       if (securityForm.newUsername) {
-        const usernameResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/change-username`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            currentPassword: securityForm.currentPassword,
-            newUsername: securityForm.newUsername
-          }),
-        });
+        const usernameResponse = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/change-username`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              currentPassword: securityForm.currentPassword,
+              newUsername: securityForm.newUsername,
+            }),
+          }
+        );
 
         if (!usernameResponse.ok) {
           const data = await usernameResponse.json();
-          throw new Error(data.error || 'Failed to change username');
+          throw new Error(data.error || "Failed to change username");
         }
       }
 
-      setSuccess('Security settings updated successfully');
+      setSuccess("Security settings updated successfully");
       setSecurityForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-        newUsername: ''
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        newUsername: "",
       });
     } catch (err) {
       setError(err.message);
@@ -126,32 +133,35 @@ const Settings = () => {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profileForm),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(profileForm),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update profile');
+        throw new Error(data.error || "Failed to update profile");
       }
 
-      setSuccess('Profile updated successfully');
+      setSuccess("Profile updated successfully");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -161,31 +171,34 @@ const Settings = () => {
 
   const handleSystemSettingsSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/system-settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(systemSettings),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/system-settings`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(systemSettings),
+        }
+      );
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to update system settings');
+        throw new Error(data.error || "Failed to update system settings");
       }
 
-      setSuccess('System settings updated successfully');
+      setSuccess("System settings updated successfully");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -195,24 +208,29 @@ const Settings = () => {
 
   const handleBackupExport = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/backup/export`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (!response.ok) throw new Error('Backup failed');
-      
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/backup/export`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error("Backup failed");
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `gleas-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `gleas-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
       a.click();
       window.URL.revokeObjectURL(url);
-      
-      setSuccess('Backup exported successfully');
+
+      setSuccess("Backup exported successfully");
     } catch (err) {
-      setError('Backup export failed');
+      setError("Backup export failed");
     }
   };
 
@@ -228,13 +246,24 @@ const Settings = () => {
           </div>
 
           {guideMode && (
-            <details open className="mb-6 bg-warning/10 border border-warning rounded p-3">
-              <summary className="cursor-pointer font-medium text-base text-warning mb-1">How to use the Settings page?</summary>
+            <details
+              open
+              className="mb-6 bg-warning/10 border border-warning rounded p-3"
+            >
+              <summary className="cursor-pointer font-medium text-base text-warning mb-1">
+                How to use the Settings page?
+              </summary>
               <ol className="mt-2 text-sm text-base-content list-decimal list-inside space-y-1">
-                <li>Switch between Security and Profile tabs to update your information.</li>
+                <li>
+                  Switch between Security and Profile tabs to update your
+                  information.
+                </li>
                 <li>In Security, you can change your password and username.</li>
                 <li>In Profile, you can update your name, email, and role.</li>
-                <li>Click <b>Save</b> to apply your changes. A confirmation will appear if successful.</li>
+                <li>
+                  Click <b>Save</b> to apply your changes. A confirmation will
+                  appear if successful.
+                </li>
               </ol>
             </details>
           )}
@@ -249,8 +278,8 @@ const Settings = () => {
                   </li>
                   <li>
                     <a
-                      className={activeTab === 'security' ? 'active' : ''}
-                      onClick={() => setActiveTab('security')}
+                      className={activeTab === "security" ? "active" : ""}
+                      onClick={() => setActiveTab("security")}
                     >
                       <MdLock className="w-4 h-4" />
                       Security
@@ -258,8 +287,8 @@ const Settings = () => {
                   </li>
                   <li>
                     <a
-                      className={activeTab === 'profile' ? 'active' : ''}
-                      onClick={() => setActiveTab('profile')}
+                      className={activeTab === "profile" ? "active" : ""}
+                      onClick={() => setActiveTab("profile")}
                     >
                       <MdPerson className="w-4 h-4" />
                       Profile
@@ -267,8 +296,8 @@ const Settings = () => {
                   </li>
                   <li>
                     <a
-                      className={activeTab === 'notifications' ? 'active' : ''}
-                      onClick={() => setActiveTab('notifications')}
+                      className={activeTab === "notifications" ? "active" : ""}
+                      onClick={() => setActiveTab("notifications")}
                     >
                       <MdNotifications className="w-4 h-4" />
                       Notifications
@@ -279,8 +308,8 @@ const Settings = () => {
                   </li>
                   <li>
                     <a
-                      className={activeTab === 'system' ? 'active' : ''}
-                      onClick={() => setActiveTab('system')}
+                      className={activeTab === "system" ? "active" : ""}
+                      onClick={() => setActiveTab("system")}
                     >
                       <MdSave className="w-4 h-4" />
                       Configuration
@@ -288,8 +317,8 @@ const Settings = () => {
                   </li>
                   <li>
                     <a
-                      className={activeTab === 'backup' ? 'active' : ''}
-                      onClick={() => setActiveTab('backup')}
+                      className={activeTab === "backup" ? "active" : ""}
+                      onClick={() => setActiveTab("backup")}
                     >
                       <MdSave className="w-4 h-4" />
                       Backup & Restore
@@ -302,22 +331,31 @@ const Settings = () => {
             {/* Main Settings Area */}
             <div className="md:col-span-3">
               <div className="card bg-base-100 p-4 rounded-lg">
-                {activeTab === 'security' && (
+                {activeTab === "security" && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="bg-primary/10 p-2 rounded-lg">
                         <MdLock className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="card-title text-lg">Security Settings</h2>
-                        <p className="text-sm text-base-content/70">Update your password and username</p>
+                        <h2 className="card-title text-lg">
+                          Security Settings
+                        </h2>
+                        <p className="text-sm text-base-content/70">
+                          Update your password and username
+                        </p>
                       </div>
                     </div>
 
-                    <form onSubmit={handleSecuritySubmit} className="space-y-4 max-w-md">
+                    <form
+                      onSubmit={handleSecuritySubmit}
+                      className="space-y-4 max-w-md"
+                    >
                       <div className="form-control">
                         <label className="label py-1">
-                          <span className="label-text font-medium">Current Password</span>
+                          <span className="label-text font-medium">
+                            Current Password
+                          </span>
                         </label>
                         <input
                           type="password"
@@ -332,7 +370,9 @@ const Settings = () => {
 
                       <div className="form-control">
                         <label className="label py-1">
-                          <span className="label-text font-medium">New Username</span>
+                          <span className="label-text font-medium">
+                            New Username
+                          </span>
                         </label>
                         <input
                           type="text"
@@ -344,13 +384,17 @@ const Settings = () => {
                           placeholder="Enter your new username"
                         />
                         <label className="label py-1">
-                          <span className="label-text-alt text-xs">Username must be at least 3 characters long</span>
+                          <span className="label-text-alt text-xs">
+                            Username must be at least 3 characters long
+                          </span>
                         </label>
                       </div>
 
                       <div className="form-control">
                         <label className="label py-1">
-                          <span className="label-text font-medium">New Password</span>
+                          <span className="label-text font-medium">
+                            New Password
+                          </span>
                         </label>
                         <input
                           type="password"
@@ -362,13 +406,17 @@ const Settings = () => {
                           placeholder="Enter your new password"
                         />
                         <label className="label py-1">
-                          <span className="label-text-alt text-xs">Password must be at least 6 characters long</span>
+                          <span className="label-text-alt text-xs">
+                            Password must be at least 6 characters long
+                          </span>
                         </label>
                       </div>
 
                       <div className="form-control">
                         <label className="label py-1">
-                          <span className="label-text font-medium">Confirm New Password</span>
+                          <span className="label-text font-medium">
+                            Confirm New Password
+                          </span>
                         </label>
                         <input
                           type="password"
@@ -400,14 +448,14 @@ const Settings = () => {
                           disabled={isLoading}
                         >
                           <MdSave className="w-4 h-4" />
-                          {isLoading ? 'Saving Changes...' : 'Save Changes'}
+                          {isLoading ? "Saving Changes..." : "Save Changes"}
                         </button>
                       </div>
                     </form>
                   </>
                 )}
 
-                {activeTab === 'profile' && (
+                {activeTab === "profile" && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="bg-primary/10 p-2 rounded-lg">
@@ -415,11 +463,16 @@ const Settings = () => {
                       </div>
                       <div>
                         <h2 className="card-title text-lg">Profile Settings</h2>
-                        <p className="text-sm text-base-content/70">Update your profile information</p>
+                        <p className="text-sm text-base-content/70">
+                          Update your profile information
+                        </p>
                       </div>
                     </div>
 
-                    <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-md">
+                    <form
+                      onSubmit={handleProfileSubmit}
+                      className="space-y-4 max-w-md"
+                    >
                       <div className="form-control">
                         <label className="label py-1">
                           <span className="label-text font-medium">Name</span>
@@ -486,37 +539,45 @@ const Settings = () => {
                           disabled={isLoading}
                         >
                           <MdSave className="w-4 h-4" />
-                          {isLoading ? 'Saving Changes...' : 'Save Changes'}
+                          {isLoading ? "Saving Changes..." : "Save Changes"}
                         </button>
                       </div>
                     </form>
                   </>
                 )}
 
-                {activeTab === 'notifications' && (
+                {activeTab === "notifications" && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="bg-primary/10 p-2 rounded-lg">
                         <MdNotifications className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="card-title text-lg">Notification Preferences</h2>
-                        <p className="text-sm text-base-content/70">Manage how you receive notifications</p>
+                        <h2 className="card-title text-lg">
+                          Notification Preferences
+                        </h2>
+                        <p className="text-sm text-base-content/70">
+                          Manage how you receive notifications
+                        </p>
                       </div>
                     </div>
 
                     <div className="space-y-4 max-w-md">
                       <div className="form-control">
                         <label className="cursor-pointer label">
-                          <span className="label-text">Email Notifications</span>
-                          <input 
-                            type="checkbox" 
+                          <span className="label-text">
+                            Email Notifications
+                          </span>
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={notificationSettings.emailNotifications}
-                            onChange={(e) => setNotificationSettings(prev => ({
-                              ...prev, 
-                              emailNotifications: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setNotificationSettings((prev) => ({
+                                ...prev,
+                                emailNotifications: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
@@ -524,14 +585,16 @@ const Settings = () => {
                       <div className="form-control">
                         <label className="cursor-pointer label">
                           <span className="label-text">Test Reminders</span>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={notificationSettings.testReminders}
-                            onChange={(e) => setNotificationSettings(prev => ({
-                              ...prev, 
-                              testReminders: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setNotificationSettings((prev) => ({
+                                ...prev,
+                                testReminders: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
@@ -539,14 +602,16 @@ const Settings = () => {
                       <div className="form-control">
                         <label className="cursor-pointer label">
                           <span className="label-text">Performance Alerts</span>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={notificationSettings.performanceAlerts}
-                            onChange={(e) => setNotificationSettings(prev => ({
-                              ...prev, 
-                              performanceAlerts: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setNotificationSettings((prev) => ({
+                                ...prev,
+                                performanceAlerts: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
@@ -554,14 +619,16 @@ const Settings = () => {
                       <div className="form-control">
                         <label className="cursor-pointer label">
                           <span className="label-text">System Updates</span>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={notificationSettings.systemUpdates}
-                            onChange={(e) => setNotificationSettings(prev => ({
-                              ...prev, 
-                              systemUpdates: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setNotificationSettings((prev) => ({
+                                ...prev,
+                                systemUpdates: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
@@ -574,30 +641,41 @@ const Settings = () => {
                   </>
                 )}
 
-                {activeTab === 'system' && (
+                {activeTab === "system" && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="bg-primary/10 p-2 rounded-lg">
                         <MdSave className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="card-title text-lg">System Configuration</h2>
-                        <p className="text-sm text-base-content/70">Configure system-wide settings</p>
+                        <h2 className="card-title text-lg">
+                          System Configuration
+                        </h2>
+                        <p className="text-sm text-base-content/70">
+                          Configure system-wide settings
+                        </p>
                       </div>
                     </div>
 
-                    <form onSubmit={handleSystemSettingsSubmit} className="space-y-4 max-w-md">
+                    <form
+                      onSubmit={handleSystemSettingsSubmit}
+                      className="space-y-4 max-w-md"
+                    >
                       <div className="form-control">
                         <label className="cursor-pointer label">
-                          <span className="label-text">Enable Student Registration</span>
-                          <input 
-                            type="checkbox" 
+                          <span className="label-text">
+                            Enable Student Registration
+                          </span>
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={systemSettings.enableRegistration}
-                            onChange={(e) => setSystemSettings(prev => ({
-                              ...prev, 
-                              enableRegistration: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setSystemSettings((prev) => ({
+                                ...prev,
+                                enableRegistration: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
@@ -605,21 +683,25 @@ const Settings = () => {
                       <div className="form-control">
                         <label className="cursor-pointer label">
                           <span className="label-text">Enable AI Features</span>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="toggle toggle-primary"
                             checked={systemSettings.enableAI}
-                            onChange={(e) => setSystemSettings(prev => ({
-                              ...prev, 
-                              enableAI: e.target.checked
-                            }))}
+                            onChange={(e) =>
+                              setSystemSettings((prev) => ({
+                                ...prev,
+                                enableAI: e.target.checked,
+                              }))
+                            }
                           />
                         </label>
                       </div>
 
                       <div className="form-control">
                         <label className="label">
-                          <span className="label-text font-medium">Max Questions Per Test</span>
+                          <span className="label-text font-medium">
+                            Max Questions Per Test
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -627,16 +709,20 @@ const Settings = () => {
                           max="100"
                           className="input input-bordered input-sm w-full bg-base-100"
                           value={systemSettings.maxQuestionsPerTest}
-                          onChange={(e) => setSystemSettings(prev => ({
-                            ...prev, 
-                            maxQuestionsPerTest: parseInt(e.target.value)
-                          }))}
+                          onChange={(e) =>
+                            setSystemSettings((prev) => ({
+                              ...prev,
+                              maxQuestionsPerTest: parseInt(e.target.value),
+                            }))
+                          }
                         />
                       </div>
 
                       <div className="form-control">
                         <label className="label">
-                          <span className="label-text font-medium">Default Test Duration (minutes)</span>
+                          <span className="label-text font-medium">
+                            Default Test Duration (minutes)
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -644,10 +730,12 @@ const Settings = () => {
                           max="180"
                           className="input input-bordered input-sm w-full bg-base-100"
                           value={systemSettings.defaultTestDuration}
-                          onChange={(e) => setSystemSettings(prev => ({
-                            ...prev, 
-                            defaultTestDuration: parseInt(e.target.value)
-                          }))}
+                          onChange={(e) =>
+                            setSystemSettings((prev) => ({
+                              ...prev,
+                              defaultTestDuration: parseInt(e.target.value),
+                            }))
+                          }
                         />
                       </div>
 
@@ -657,13 +745,13 @@ const Settings = () => {
                         disabled={isLoading}
                       >
                         <MdSave className="w-4 h-4" />
-                        {isLoading ? 'Saving...' : 'Save Configuration'}
+                        {isLoading ? "Saving..." : "Save Configuration"}
                       </button>
                     </form>
                   </>
                 )}
 
-                {activeTab === 'backup' && (
+                {activeTab === "backup" && (
                   <>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="bg-primary/10 p-2 rounded-lg">
@@ -671,7 +759,9 @@ const Settings = () => {
                       </div>
                       <div>
                         <h2 className="card-title text-lg">Backup & Restore</h2>
-                        <p className="text-sm text-base-content/70">Manage your data backups</p>
+                        <p className="text-sm text-base-content/70">
+                          Manage your data backups
+                        </p>
                       </div>
                     </div>
 
@@ -679,9 +769,10 @@ const Settings = () => {
                       <div className="card bg-base-200 p-4">
                         <h3 className="font-semibold mb-2">Export Data</h3>
                         <p className="text-sm text-base-content/70 mb-3">
-                          Download a complete backup of your system data including students, questions, and settings.
+                          Download a complete backup of your system data
+                          including students, questions, and settings.
                         </p>
-                        <button 
+                        <button
                           className="btn btn-primary btn-sm"
                           onClick={handleBackupExport}
                         >
@@ -694,8 +785,8 @@ const Settings = () => {
                         <p className="text-sm text-base-content/70 mb-3">
                           Restore your system from a backup file.
                         </p>
-                        <input 
-                          type="file" 
+                        <input
+                          type="file"
                           accept=".json"
                           className="file-input file-input-bordered file-input-sm w-full"
                         />
@@ -706,7 +797,9 @@ const Settings = () => {
 
                       <div className="alert alert-warning">
                         <span className="text-sm">
-                          ⚠️ Importing a backup will overwrite all existing data. Please ensure you have a current backup before proceeding.
+                          ⚠️ Importing a backup will overwrite all existing
+                          data. Please ensure you have a current backup before
+                          proceeding.
                         </span>
                       </div>
                     </div>

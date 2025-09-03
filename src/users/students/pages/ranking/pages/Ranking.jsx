@@ -209,7 +209,7 @@ const fetchLeaderboard = async ({ queryKey, pageParam = 1 }) => {
   });
 
   const endpoint =
-    type === "pvp" ? "/api/leaderboard/pvp" : "/api/leaderboard/weekly";
+    type === "pvp" ? "/api/pvp/leaderboard" : "/api/leaderboard/weekly";
   const response = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}${endpoint}?${params}`,
     {
@@ -521,9 +521,42 @@ const Ranking = () => {
     if (!leaderboardData?.pages) return [];
 
     return leaderboardData.pages.reduce((acc, page) => {
-      return [...acc, ...(page.leaderboard || [])];
+      let students = [];
+
+      // Handle PvP API response structure
+      if (isPvpLeaderboard && page.data?.leaderboard) {
+        students = page.data.leaderboard.map((player) => ({
+          ...player,
+          id: player.studentId,
+          username: player.name,
+          mmr: player.pvpStars,
+          position: player.rank,
+          // Add default values for missing fields
+          avatarInitial: player.name?.charAt(0) || "?",
+          handle: "",
+          yearLevel: "",
+          rankName: getPvpRankName(player.pvpStars),
+          pointsThisWeek: 0,
+          trend: "neutral",
+        }));
+      } else {
+        // Handle regular leaderboard response structure
+        students = page.leaderboard || [];
+      }
+
+      return [...acc, ...students];
     }, []);
-  }, [leaderboardData]);
+  }, [leaderboardData, isPvpLeaderboard]);
+
+  // Helper function to get PvP rank name based on stars
+  const getPvpRankName = (stars) => {
+    for (let i = pvpRanks.length - 1; i >= 0; i--) {
+      if (stars >= pvpRanks[i].min) {
+        return pvpRanks[i].name;
+      }
+    }
+    return pvpRanks[0].name;
+  };
 
   // Get filter options from first page
   const filterOptions = leaderboardData?.pages?.[0]?.filters || {

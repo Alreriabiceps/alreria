@@ -12,6 +12,7 @@ import {
   FaTasks,
 } from "react-icons/fa";
 import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // Corrected Import FloatingStars
+import ApprovalStatus from "../../../components/ApprovalStatus";
 
 const rankingTiers = [
   { name: "Trainee Technician", mmr: "0+", colorClass: styles.rankBronze },
@@ -359,6 +360,12 @@ const Dashboard = () => {
       <div className={styles.dashboardLayoutGrid}>
         {/* Main Content Area */}
         <div className={styles.mainContentArea}>
+          {/* Approval Status */}
+          <ApprovalStatus
+            isApproved={user?.isApproved}
+            isActive={user?.isActive}
+          />
+
           {/* MMR Progress Panel */}
           <div className={styles.panel}>
             <h2 className={styles.panelHeader}>

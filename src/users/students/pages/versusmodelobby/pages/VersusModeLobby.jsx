@@ -9,6 +9,8 @@ import InvitePanel from "../components/InvitePanel";
 import CreatePanel from "../components/CreatePanel";
 import QueuePanel from "../components/QueuePanel";
 import JoinLobbyPanel from "../components/JoinLobbyPanel";
+import MatchFoundModal from "../components/MatchFoundModal";
+import MatchConfirmModal from "../components/MatchConfirmModal";
 import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // Import FloatingStars
 import {
   FaUserFriends,
@@ -19,6 +21,12 @@ import {
   FaSyncAlt,
   FaRedo,
   FaBook,
+  FaTimes,
+  FaPlay,
+  FaLock,
+  FaUserCircle,
+  FaArrowLeft,
+  FaArrowRight,
 } from "react-icons/fa";
 
 // Function to format time (MM:SS)
@@ -61,6 +69,16 @@ const VersusModeLobby = () => {
   const [showJoinLobbyModal, setShowJoinLobbyModal] = useState(false);
   const [selectedLobby, setSelectedLobby] = useState(null);
   const [joinError, setJoinError] = useState(null);
+  const [showMatchFoundModal, setShowMatchFoundModal] = useState(false);
+  const [showMatchConfirmModal, setShowMatchConfirmModal] = useState(false);
+  const [matchData, setMatchData] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
+  const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+
+  // Debug modal state changes
+  useEffect(() => {
+    console.log("🔍 Modal state changed:", { showMatchFoundModal, matchData });
+  }, [showMatchFoundModal, matchData]);
   const socketRef = useRef(null);
   const [wsConnected, setWsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
@@ -71,6 +89,133 @@ const VersusModeLobby = () => {
   // Backend URL helper
   const getBackendUrl = () =>
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+  // Calculate active players count from lobbies
+  const getActivePlayersCount = () => {
+    if (!lobbies || lobbies.length === 0) return 0;
+    return lobbies.reduce((total, lobby) => {
+      return total + (lobby.players?.length || 0);
+    }, 0);
+  };
+
+  // Start queue timer - removed duplicate timer logic
+  const startQueueTimer = () => {
+    setQueueTime(0);
+    // Timer is now handled by the useEffect below
+  };
+
+  // Handle match found event
+  const handleMatchFound = (data) => {
+    console.log("🎮 Match found via socket!", data);
+    setIsQueueing(false);
+    setQueueTime(0);
+    // Timer is automatically cleared by the useEffect when isQueueing becomes false
+
+    // Show confirm modal first
+    const confirmModalData = {
+      lobbyId: data.lobbyId,
+      opponentName: data.opponentName || "Opponent",
+    };
+    console.log(
+      "🔍 Socket event - Setting confirm modal data:",
+      confirmModalData
+    );
+    setConfirmData(confirmModalData);
+    setShowMatchConfirmModal(true);
+  };
+
+  // Handle match ready event (both players accepted)
+  const handleMatchReady = (data) => {
+    console.log("🎮 Match ready via socket!", data);
+
+    // Show the vs modal
+    const vsModalData = {
+      lobbyId: data.lobbyId,
+      player1Name: user.firstName + " " + user.lastName,
+      player2Name: data.opponentName || confirmData?.opponentName || "Opponent",
+    };
+    setMatchData(vsModalData);
+    setShowMatchConfirmModal(false);
+    setIsWaitingForOpponent(false);
+    setShowMatchFoundModal(true);
+  };
+
+  // Navigate to game
+  const navigateToGame = (lobbyId) => {
+    console.log("🚀 Navigating to game with lobby:", lobbyId);
+    navigate("/student/demo", {
+      state: {
+        gameMode: "pvp",
+        roomId: lobbyId,
+        // Other game data will be loaded by the game component
+      },
+    });
+  };
+
+  // Handle match confirmation
+  const handleMatchAccept = async () => {
+    console.log("✅ Match accepted");
+
+    try {
+      // Send acceptance to backend
+      const response = await apiFetch("/api/match/accept", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: user.id,
+          lobbyId: confirmData.lobbyId,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🔍 Accept response:", data);
+
+        if (data.ready) {
+          // Both players accepted, show VS modal
+          console.log("🎮 Both players accepted, showing VS modal");
+          setShowMatchConfirmModal(false);
+
+          const vsModalData = {
+            lobbyId: confirmData.lobbyId,
+            player1Name: user.firstName + " " + user.lastName,
+            player2Name: confirmData.opponentName,
+          };
+          setMatchData(vsModalData);
+          setShowMatchFoundModal(true);
+        } else if (data.accepted) {
+          // Player accepted, waiting for opponent
+          console.log("⏳ Waiting for opponent to accept...");
+          setIsWaitingForOpponent(true);
+          // Keep the confirm modal open but show waiting state
+          // We'll listen for socket events for when opponent accepts
+        }
+      } else {
+        console.error("❌ Failed to accept match");
+        // Handle error - maybe show error message
+      }
+    } catch (error) {
+      console.error("❌ Error accepting match:", error);
+    }
+  };
+
+  const handleMatchDecline = useCallback(() => {
+    console.log("❌ Match declined");
+    setShowMatchConfirmModal(false);
+    setConfirmData(null);
+    setIsWaitingForOpponent(false);
+    // Could add logic here to notify the opponent
+  }, []);
+
+  // Handle proceeding from match found modal
+  const handleProceedToGame = useCallback(() => {
+    setShowMatchFoundModal(false);
+    if (matchData) {
+      navigateToGame(matchData.lobbyId);
+    }
+  }, [matchData]);
 
   // Unified API helper
   const apiFetch = useCallback(
@@ -177,6 +322,23 @@ const VersusModeLobby = () => {
         setLobbies((prev) =>
           prev.map((l) => (l._id === lobby._id ? { ...l, ...lobby } : l))
         );
+
+        // Update userCreatedLobby if this is the user's lobby
+        if (userCreatedLobby && userCreatedLobby._id === lobby._id) {
+          console.log("🔄 Updating userCreatedLobby with new data:", lobby);
+          setUserCreatedLobby(lobby);
+
+          // If lobby is now full and in-progress, trigger game start check
+          if (
+            lobby.status === "in-progress" &&
+            lobby.players?.length >= lobby.maxPlayers
+          ) {
+            console.log(
+              "🎮 Lobby is full and in-progress, checking if game should start..."
+            );
+            // The game:start event should be emitted by the backend
+          }
+        }
       });
 
       // Lobby deleted
@@ -185,11 +347,36 @@ const VersusModeLobby = () => {
         setLobbies((prev) => prev.filter((l) => l._id !== lobbyId));
       });
 
+      // Match found event
+      socket.on("match_found", (data) => {
+        console.log("🎮 Received match_found event:", data);
+        console.log("🔍 Socket event details:", {
+          socketId: socket.id,
+          userId: socket.userId,
+          data: data,
+        });
+        handleMatchFound(data);
+      });
+
       // Game start (only handle once)
       socket.on("game:start", async (data) => {
-        console.log("Received game:start event:", data);
+        console.log("🎮 RECEIVED game:start EVENT");
+        console.log("📦 Event data:", data);
+        console.log("📊 Players data structure:", {
+          playersCount: data.players?.length || 0,
+          players: data.players?.map((p) => ({
+            type: typeof p,
+            keys: typeof p === "object" ? Object.keys(p) : "N/A",
+            _id: p._id,
+            id: p.id,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            username: p.username,
+            raw: p,
+          })),
+        });
         const isPlayerInGame = data.players.some((player) => {
-          const playerId = player._id || player.id || player;
+          const playerId = player.userId || player._id || player.id || player;
           return String(playerId) === String(user.id);
         });
         if (!isPlayerInGame) return;
@@ -203,19 +390,23 @@ const VersusModeLobby = () => {
         try {
           // Normalize players
           const formattedPlayers = data.players.map((player) => {
-            if (typeof player === "object" && player._id) {
+            if (typeof player === "object" && player.userId) {
               return {
-                userId: player._id,
-                username: `${player.firstName || "Player"} ${
-                  player.lastName || ""
-                }`.trim(),
+                userId: player.userId,
+                username:
+                  player.name ||
+                  player.username ||
+                  `${player.firstName || "Player"} ${
+                    player.lastName || ""
+                  }`.trim(),
               };
             } else if (typeof player === "string") {
               return { userId: player, username: "Player" };
             } else {
               return {
-                userId: player.id || player._id,
+                userId: player.userId || player.id || player._id,
                 username:
+                  player.name ||
                   player.username ||
                   `${player.firstName || "Player"} ${
                     player.lastName || ""
@@ -224,20 +415,44 @@ const VersusModeLobby = () => {
             }
           });
 
+          console.log("🔧 Formatted players result:", {
+            original: data.players,
+            formatted: formattedPlayers,
+            userInfo: {
+              id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+          });
+
           const sortedPlayerIds = formattedPlayers.map((p) => p.userId).sort();
           const isFirstPlayer = String(user.id) === String(sortedPlayerIds[0]);
 
           let gameData;
           if (isFirstPlayer) {
             // Initialize game
-            const response = await apiFetch("/api/game/initialize", {
-              method: "POST",
-              body: JSON.stringify({
-                lobbyId: data.lobbyId,
-                players: formattedPlayers,
-              }),
+            console.log("🎮 FIRST PLAYER - INITIALIZING GAME");
+            console.log("📦 Sending data:", {
+              lobbyId: data.lobbyId,
+              players: formattedPlayers,
             });
-            gameData = await response.json();
+
+            try {
+              const response = await apiFetch("/api/game/initialize", {
+                method: "POST",
+                body: JSON.stringify({
+                  lobbyId: data.lobbyId,
+                  players: formattedPlayers,
+                }),
+              });
+
+              console.log("📡 Response status:", response.status);
+              gameData = await response.json();
+              console.log("🎯 Game data received:", gameData);
+            } catch (error) {
+              console.error("❌ Game initialization failed:", error);
+              throw error;
+            }
           } else {
             // Wait for game data
             gameData = await new Promise((resolve, reject) => {
@@ -256,10 +471,30 @@ const VersusModeLobby = () => {
 
           if (gameData && gameData.success) {
             setError(null);
+
+            // Format players data properly for the Demo component
+            const demoPlayers = data.players.map((player) => ({
+              userId: player.userId || player._id || player.id,
+              name:
+                player.name ||
+                player.username ||
+                `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+                "Player",
+              username:
+                player.username ||
+                player.name ||
+                `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+                "Player",
+              firstName: player.firstName,
+              lastName: player.lastName,
+            }));
+
+            console.log("🎮 Sending formatted players to Demo:", demoPlayers);
+
             navigate("/student/demo", {
               state: {
                 gameId: gameData.data.gameState.gameId,
-                players: data.players,
+                players: demoPlayers,
                 currentPlayer: user.id,
                 roomId: gameData.data.roomId,
                 gameMode: "pvp",
@@ -314,13 +549,17 @@ const VersusModeLobby = () => {
     return () => {
       isMountedRef.current = false;
       try {
-        socketRef.current?.removeAllListeners?.();
-        socketRef.current?.disconnect?.();
+        // Clean up match_found listener specifically
+        if (socketRef.current) {
+          socketRef.current.off("match_found", handleMatchFound);
+          socketRef.current.removeAllListeners?.();
+          socketRef.current.disconnect?.();
+        }
       } catch (_) {}
       socketRef.current = null;
       isGameInitHandledRef.current = false;
     };
-  }, [connectWebSocket, token, navigate]);
+  }, [token]); // Remove connectWebSocket dependency to prevent recreation
 
   // Fetch lobbies
   const fetchLobbies = useCallback(async () => {
@@ -372,21 +611,7 @@ const VersusModeLobby = () => {
     }
   }, [user, token, fetchLobbies, checkUserCreatedLobby]);
 
-  // Queue timer
-  useEffect(() => {
-    if (isQueueing) {
-      queueIntervalRef.current = setInterval(
-        () => setQueueTime((t) => t + 1),
-        1000
-      );
-    } else {
-      if (queueIntervalRef.current) clearInterval(queueIntervalRef.current);
-      setQueueTime(0);
-    }
-    return () => {
-      if (queueIntervalRef.current) clearInterval(queueIntervalRef.current);
-    };
-  }, [isQueueing]);
+  // Queue timer - removed duplicate effect (kept the one below)
 
   // Pagination helpers
   const filteredLobbies = lobbies.filter(
@@ -526,13 +751,121 @@ const VersusModeLobby = () => {
   };
 
   const handleQueueMatchmaking = async () => {
-    if (isLoadingAction || isQueueing) return;
-    setIsQueueing(true);
+    if (isLoadingAction || isQueueing) {
+      console.log("⚠️ Already queuing or loading, ignoring request");
+      return;
+    }
+
+    try {
+      setIsLoadingAction(true);
+      setError(null);
+
+      console.log("🎯 Joining matchmaking queue...");
+
+      // Add to backend matchmaking queue
+      const response = await apiFetch("/api/match/queue", {
+        method: "POST",
+        body: JSON.stringify({ studentId: user.id || user._id }),
+      });
+
+      console.log("📡 Matchmaking response:", {
+        status: response.status,
+        ok: response.ok,
+        url: response.url,
+      });
+
+      const data = await response.json();
+      console.log("📦 Matchmaking response data:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to join matchmaking queue");
+      }
+
+      if (data.matched) {
+        // Found opponent immediately - show confirm modal
+        console.log("🎮 Match found immediately!", data);
+        setIsQueueing(false);
+
+        // Show confirm modal immediately
+        const confirmModalData = {
+          lobbyId: data.lobbyId,
+          opponentName: data.opponentName || "Opponent",
+        };
+        console.log("🔍 Setting confirm modal data:", confirmModalData);
+        setConfirmData(confirmModalData);
+        setShowMatchConfirmModal(true);
+
+        // Also listen for socket event to ensure synchronization
+        if (socketRef.current) {
+          socketRef.current.off("match_found", handleMatchFound);
+          socketRef.current.off("match_ready", handleMatchReady);
+          socketRef.current.on("match_found", handleMatchFound);
+          socketRef.current.on("match_ready", handleMatchReady);
+        }
+      } else {
+        // Added to queue, start waiting
+        console.log("⏳ Added to queue, waiting for opponent...");
+        console.log("📊 Queue status:", data);
+
+        // Double-check we're not already queuing
+        if (isQueueing) {
+          console.log("⚠️ Already queuing, ignoring duplicate request");
+          return;
+        }
+
+        setIsQueueing(true);
+        startQueueTimer();
+
+        // Listen for match found event
+        if (socketRef.current) {
+          // Remove any existing listener first to prevent duplicates
+          socketRef.current.off("match_found", handleMatchFound);
+          socketRef.current.off("match_ready", handleMatchReady);
+          socketRef.current.on("match_found", handleMatchFound);
+          socketRef.current.on("match_ready", handleMatchReady);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error joining matchmaking queue:", error);
+      setError(error.message || "Failed to join matchmaking queue");
+    } finally {
+      setIsLoadingAction(false);
+    }
   };
 
   const handleCancelQueue = async () => {
     if (!isQueueing) return;
-    setIsQueueing(false);
+
+    try {
+      console.log("❌ Cancelling matchmaking queue...");
+
+      // Remove from backend matchmaking queue
+      const response = await apiFetch("/api/match/cancel", {
+        method: "POST",
+        body: JSON.stringify({ studentId: user.id || user._id }),
+      });
+
+      if (!response.ok) {
+        console.warn("Warning: Failed to remove from backend queue");
+      }
+
+      // Clean up local state
+      setIsQueueing(false);
+      setQueueTime(0);
+      // Timer is automatically cleared by the useEffect when isQueueing becomes false
+
+      // Remove match found listener
+      if (socketRef.current) {
+        socketRef.current.off("match_found", handleMatchFound);
+      }
+
+      console.log("✅ Successfully cancelled matchmaking");
+    } catch (error) {
+      console.error("❌ Error cancelling queue:", error);
+      // Still clean up local state even if backend fails
+      setIsQueueing(false);
+      setQueueTime(0);
+    }
   };
 
   const handleDeleteLobby = async (lobbyId) => {
@@ -669,101 +1002,284 @@ const VersusModeLobby = () => {
         <div className={styles.floatingShape3}></div>
       </div>
 
-      {/* Page Header */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>
-          Duels & Matchmaking
-          {!wsConnected && (
-            <span className={styles.connectionStatus}>
-              <span
-                className={`${styles.statusDot} ${styles.disconnected}`}
-              ></span>
-              Offline
+      {/* Header Section */}
+      <header className={styles.header}>
+        <div className={styles.titleSection}>
+          <h1 className={styles.pageTitle}>
+            <FaUserFriends className={styles.titleIcon} />
+            Battle Arena
+          </h1>
+          <p className={styles.pageSubtitle}>
+            Challenge friends or find worthy opponents in epic duels
+          </p>
+        </div>
+
+        <div className={styles.statusSection}>
+          <div className={styles.connectionIndicator}>
+            <div
+              className={`${styles.statusDot} ${
+                wsConnected ? styles.connected : styles.disconnected
+              }`}
+            ></div>
+            <span className={styles.statusText}>
+              {wsConnected ? "Connected" : "Offline"}
             </span>
-          )}
-        </h1>
-        <p className={styles.pageSubtitle}>
-          Challenge rivals directly or find a random opponent
-        </p>
-      </div>
+          </div>
+          <div className={styles.quickStats}>
+            <div className={styles.statBadge}>
+              <FaUsers />
+              <span>{getActivePlayersCount()} Players Online</span>
+            </div>
+            {isQueueing && (
+              <div className={styles.statBadge}>
+                <FaSyncAlt className={styles.spinning} />
+                <span>In Queue: {formatTime(queueTime)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
 
       {/* Error Display */}
       {error && (
-        <div className={styles.errorMessage}>
+        <div className={styles.errorBanner}>
           <FaExclamationTriangle className={styles.errorIcon} />
-          <p>{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className={styles.errorCloseButton}
-          >
-            ×
+          <div className={styles.errorContent}>
+            <p>{error}</p>
+          </div>
+          <button onClick={() => setError(null)} className={styles.errorClose}>
+            <FaTimes />
           </button>
         </div>
       )}
 
-      {/* Connection Status Panel */}
+      {/* Connection Warning */}
       {!wsConnected && (
-        <div className={styles.connectionPanel}>
-          <div className={styles.connectionContent}>
-            <FaExclamationTriangle className={styles.connectionIcon} />
-            <div className={styles.connectionInfo}>
-              <h3>Connection Issue</h3>
-              <p>
-                Unable to connect to the game server. Some features may be
-                limited.
-              </p>
-            </div>
-            <button className={styles.retryBtn} onClick={fetchLobbies}>
-              <FaRedo /> Retry Connection
-            </button>
+        <div className={styles.warningBanner}>
+          <FaExclamationTriangle className={styles.warningIcon} />
+          <div className={styles.warningContent}>
+            <h4>Connection Issue</h4>
+            <p>
+              Unable to connect to game server. Some features may be limited.
+            </p>
           </div>
+          <button className={styles.retryButton} onClick={fetchLobbies}>
+            <FaRedo />
+            Retry
+          </button>
         </div>
       )}
 
-      {/* Stats Panel */}
-      <div className={styles.statsPanel}>
-        <div className={styles.statsContent}>
-          <span className={styles.statItem}>
-            <FaUsers /> Active Lobbies: <strong>{lobbies.length}</strong>
-          </span>
-          {hasActiveLobby && (
-            <span className={styles.statItem}>
-              <FaBook /> You have an active lobby
-            </span>
+      {/* Quick Actions Bar */}
+      <div className={styles.quickActions}>
+        <button
+          className={`${styles.quickActionBtn} ${styles.createBtn}`}
+          onClick={() => setShowCreateLobbyModal(true)}
+          disabled={hasActiveLobby || isLoadingAction}
+        >
+          <FaPlus />
+          <span>Create Lobby</span>
+        </button>
+
+        <button
+          className={`${styles.quickActionBtn} ${styles.queueBtn}`}
+          onClick={isQueueing ? handleCancelQueue : handleQueueMatchmaking}
+          disabled={isLoadingAction}
+        >
+          {isQueueing ? (
+            <>
+              <FaTimes />
+              <span>Cancel Queue</span>
+            </>
+          ) : (
+            <>
+              <FaUsers />
+              <span>Quick Match</span>
+            </>
           )}
-          {isQueueing && (
-            <span className={styles.statItem}>
-              <FaSyncAlt className={styles.spinning} /> In Queue:{" "}
-              {formatTime(queueTime)}
-            </span>
-          )}
+        </button>
+
+        <div className={styles.inviteSection}>
+          <form onSubmit={handleInviteSubmit} className={styles.inviteForm}>
+            <input
+              type="text"
+              placeholder="Challenge a friend by username..."
+              value={inviteUsername}
+              onChange={handleInviteChange}
+              className={styles.inviteInput}
+              disabled={isLoadingAction || isQueueing}
+            />
+            <button
+              type="submit"
+              className={`${styles.quickActionBtn} ${styles.inviteBtn}`}
+              disabled={isLoadingAction || isQueueing || !inviteUsername.trim()}
+            >
+              <FaUserFriends />
+              <span>Challenge</span>
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className={styles.contentPanel}>
-        {/* Tab Navigation */}
-        <div className={styles.tabContainer}>
-          <div className={styles.tabNavigation}>
-            {tabs.map((tab) => (
+      {/* Main Content Area */}
+      <div className={styles.mainContent}>
+        {/* Lobby Browser */}
+        <div className={styles.lobbySection}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              <FaSearch />
+              Available Lobbies
+            </h2>
+            <div className={styles.lobbyControls}>
+              <input
+                type="text"
+                placeholder="Search lobbies..."
+                value={lobbySearchTerm}
+                onChange={(e) => setLobbySearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
               <button
-                key={tab.id}
-                className={`${styles.tabButton} ${
-                  activeTab === tab.id ? styles.activeTab : ""
-                }`}
-                onClick={() => setActiveTab(tab.id)}
+                className={styles.refreshBtn}
+                onClick={fetchLobbies}
+                disabled={isLoadingLobbies}
               >
-                <span className={styles.tabIcon}>{tab.icon}</span>
-                <span className={styles.tabLabel}>{tab.label}</span>
+                <FaSyncAlt
+                  className={isLoadingLobbies ? styles.spinning : ""}
+                />
               </button>
-            ))}
+            </div>
           </div>
 
-          {/* Tab Content */}
-          <div className={styles.tabContent}>
-            {tabs.find((tab) => tab.id === activeTab)?.component}
+          {/* Lobby List */}
+          <div className={styles.lobbyGrid}>
+            {isLoadingLobbies ? (
+              <div className={styles.loadingState}>
+                <FaSyncAlt className={styles.spinning} />
+                <p>Loading lobbies...</p>
+              </div>
+            ) : currentLobbies.length === 0 ? (
+              <div className={styles.emptyState}>
+                <FaUsers />
+                <h3>No lobbies found</h3>
+                <p>
+                  Be the first to create a lobby or try searching with different
+                  terms.
+                </p>
+              </div>
+            ) : (
+              currentLobbies.map((lobby) => (
+                <div key={lobby._id} className={styles.lobbyCard}>
+                  <div className={styles.lobbyHeader}>
+                    <h3 className={styles.lobbyName}>{lobby.name}</h3>
+                    {lobby.isPrivate && (
+                      <span className={styles.privateBadge}>
+                        <FaLock /> Private
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.lobbyInfo}>
+                    <div className={styles.lobbyHost}>
+                      <FaUserCircle />
+                      <span>
+                        {lobby.hostId?.firstName} {lobby.hostId?.lastName}
+                      </span>
+                    </div>
+                    <div className={styles.lobbyPlayers}>
+                      <FaUsers />
+                      <span>{lobby.players?.length || 0}/2 players</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.lobbyActions}>
+                    {lobby.hostId?._id === user?.id ? (
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteLobby(lobby._id)}
+                        disabled={isLoadingAction}
+                      >
+                        <FaTimes />
+                        Delete
+                      </button>
+                    ) : (
+                      <button
+                        className={styles.joinBtn}
+                        onClick={() => handleJoinClick(lobby)}
+                        disabled={
+                          isLoadingAction || isQueueing || hasActiveLobby
+                        }
+                      >
+                        <FaPlay />
+                        Join
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                className={styles.pageBtn}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <FaArrowLeft />
+              </button>
+
+              <span className={styles.pageInfo}>
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                className={styles.pageBtn}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages}
+              >
+                <FaArrowRight />
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Active Lobby Status */}
+        {userCreatedLobby && (
+          <div className={styles.activeLobby}>
+            <div className={styles.activeLobbyHeader}>
+              <h3>Your Active Lobby</h3>
+              <span className={styles.statusBadge}>
+                {userCreatedLobby.status}
+              </span>
+            </div>
+
+            <div className={styles.activeLobbyInfo}>
+              <p>
+                <strong>Name:</strong> {userCreatedLobby.name}
+              </p>
+              <p>
+                <strong>Players:</strong>{" "}
+                {userCreatedLobby.players?.length || 0}/2
+              </p>
+              <p>
+                <strong>Status:</strong> {userCreatedLobby.status}
+              </p>
+            </div>
+
+            <button
+              className={styles.deleteLobbyBtn}
+              onClick={() => handleDeleteLobby(userCreatedLobby._id)}
+              disabled={isLoadingAction}
+            >
+              <FaTimes />
+              Close Lobby
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -795,6 +1311,30 @@ const VersusModeLobby = () => {
           lobby={selectedLobby}
           isLoading={isLoadingAction}
           error={joinError}
+        />
+      )}
+
+      {/* Match Confirm Modal */}
+      {showMatchConfirmModal && confirmData && (
+        <MatchConfirmModal
+          isOpen={showMatchConfirmModal}
+          opponentName={confirmData.opponentName}
+          lobbyId={confirmData.lobbyId}
+          onAccept={handleMatchAccept}
+          onDecline={handleMatchDecline}
+          timeout={30}
+          isWaitingForOpponent={isWaitingForOpponent}
+        />
+      )}
+
+      {/* Match Found Modal */}
+      {showMatchFoundModal && matchData && (
+        <MatchFoundModal
+          isOpen={showMatchFoundModal}
+          player1Name={matchData.player1Name}
+          player2Name={matchData.player2Name}
+          lobbyId={matchData.lobbyId}
+          onProceed={handleProceedToGame}
         />
       )}
     </div>

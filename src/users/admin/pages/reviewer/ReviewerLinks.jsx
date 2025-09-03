@@ -1,97 +1,134 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  MdAdd, MdEdit, MdDelete, MdSave, MdClose, MdSearch, MdFilterList, 
-  MdViewList, MdGridView, MdFileDownload, MdRefresh, MdAnalytics,
-  MdSelectAll, MdClear, MdCheckBox, MdCheckBoxOutlineBlank, 
-  MdInfo, MdLink, MdBookmark, MdVisibility, MdSort,
-  MdExpandMore, MdExpandLess, MdWarning, MdCheckCircle, MdError
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdSave,
+  MdClose,
+  MdSearch,
+  MdFilterList,
+  MdViewList,
+  MdGridView,
+  MdFileDownload,
+  MdRefresh,
+  MdAnalytics,
+  MdSelectAll,
+  MdClear,
+  MdCheckBox,
+  MdCheckBoxOutlineBlank,
+  MdInfo,
+  MdLink,
+  MdBookmark,
+  MdVisibility,
+  MdSort,
+  MdExpandMore,
+  MdExpandLess,
+  MdWarning,
+  MdCheckCircle,
+  MdError,
 } from "react-icons/md";
-import { FaFilePdf, FaFileWord, FaFilePowerpoint, FaChartPie, FaUsers, FaBookOpen } from 'react-icons/fa';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { useGuideMode } from '../../../../contexts/GuideModeContext';
+import {
+  FaFilePdf,
+  FaFileWord,
+  FaFilePowerpoint,
+  FaChartPie,
+  FaUsers,
+  FaBookOpen,
+} from "react-icons/fa";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+// Remove unused import
+// import { useGuideMode } from '../../../../contexts/GuideModeContext';
 
-const FILE_TYPES = ['pdf', 'docx', 'pptx'];
+const FILE_TYPES = ["pdf", "docx", "pptx"];
 const SUBJECTS = [
-  'Effective Communication',
-  'Life Skills',
-  'General Mathematics',
-  'General Science',
-  'Pag-aaral ng Kasaysayan',
+  "Effective Communication",
+  "Life Skills",
+  "General Mathematics",
+  "General Science",
+  "Pag-aaral ng Kasaysayan",
 ];
 
 const SORT_OPTIONS = [
-  { value: 'title', label: 'Title A-Z' },
-  { value: '-title', label: 'Title Z-A' },
-  { value: '-createdAt', label: 'Newest First' },
-  { value: 'createdAt', label: 'Oldest First' },
-  { value: 'subject', label: 'Subject A-Z' },
-  { value: 'fileType', label: 'File Type' }
+  { value: "title", label: "Title A-Z" },
+  { value: "-title", label: "Title Z-A" },
+  { value: "-createdAt", label: "Newest First" },
+  { value: "createdAt", label: "Oldest First" },
+  { value: "subject", label: "Subject A-Z" },
+  { value: "fileType", label: "File Type" },
 ];
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7c7c", "#8dd1e1"];
 
 const ReviewerLinks = () => {
   // Core state
   const [reviewerLinks, setReviewerLinks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // UI state
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
-  
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'table'
+
   // Form state
   const [formData, setFormData] = useState({
-    link: '',
-    fileType: 'pdf',
-    title: '',
-    description: '',
+    link: "",
+    fileType: "pdf",
+    title: "",
+    description: "",
     subject: SUBJECTS[0],
-    tags: []
+    tags: [],
   });
   const [editingId, setEditingId] = useState(null);
-  
+
   // Advanced filtering and search
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterSubject, setFilterSubject] = useState('');
-  const [filterFileType, setFilterFileType] = useState('');
-  const [sortBy, setSortBy] = useState('-createdAt');
-  const [showFilters, setShowFilters] = useState(false);
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
+  const [filterFileType, setFilterFileType] = useState("");
+  const [sortBy, setSortBy] = useState("-createdAt");
+
   // Bulk operations
   const [selectedLinks, setSelectedLinks] = useState([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
-  
-  // Advanced features
-  const [expandedLinks, setExpandedLinks] = useState([]);
-  
-  const { guideMode } = useGuideMode();
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+
+  // Remove unused guideMode
+  // const { guideMode } = useGuideMode();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
 
   // Fetch reviewer links
   const fetchLinks = useCallback(async () => {
     try {
       setLoading(true);
-      setError('');
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      setError("");
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
 
       const response = await fetch(`${backendUrl}/api/admin/reviewer-links`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch reviewer links');
+
+      if (!response.ok) throw new Error("Failed to fetch reviewer links");
       const data = await response.json();
       setReviewerLinks(data);
     } catch (err) {
-      console.error('Error fetching reviewer links:', err);
-      setError(err.message || 'Failed to load reviewer links');
+      console.error("Error fetching reviewer links:", err);
+      setError(err.message || "Failed to load reviewer links");
     } finally {
       setLoading(false);
     }
@@ -105,8 +142,8 @@ const ReviewerLinks = () => {
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
-        setError('');
-        setSuccess('');
+        setError("");
+        setSuccess("");
       }, 5000);
       return () => clearTimeout(timer);
     }
@@ -115,17 +152,17 @@ const ReviewerLinks = () => {
   // Enhanced statistics calculation
   const stats = useMemo(() => {
     const totalLinks = reviewerLinks.length;
-    const linksBySubject = SUBJECTS.map(subject => ({
+    const linksBySubject = SUBJECTS.map((subject) => ({
       name: subject,
-      count: reviewerLinks.filter(link => link.subject === subject).length
-    }));
-    
-    const linksByFileType = FILE_TYPES.map(type => ({
-      name: type.toUpperCase(),
-      count: reviewerLinks.filter(link => link.fileType === type).length
+      count: reviewerLinks.filter((link) => link.subject === subject).length,
     }));
 
-    const recentlyAdded = reviewerLinks.filter(link => {
+    const linksByFileType = FILE_TYPES.map((type) => ({
+      name: type.toUpperCase(),
+      count: reviewerLinks.filter((link) => link.fileType === type).length,
+    }));
+
+    const recentlyAdded = reviewerLinks.filter((link) => {
       const addedDate = new Date(link.createdAt || Date.now());
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       return addedDate > weekAgo;
@@ -133,43 +170,50 @@ const ReviewerLinks = () => {
 
     return {
       total: totalLinks,
-      linksBySubject: linksBySubject.filter(item => item.count > 0),
-      linksByFileType: linksByFileType.filter(item => item.count > 0),
+      linksBySubject: linksBySubject.filter((item) => item.count > 0),
+      linksByFileType: linksByFileType.filter((item) => item.count > 0),
       recentlyAdded,
-      mostActiveSubject: linksBySubject.reduce((max, current) => 
-        current.count > max.count ? current : max, { count: 0 }
-      )
+      mostActiveSubject: linksBySubject.reduce(
+        (max, current) => (current.count > max.count ? current : max),
+        { count: 0 }
+      ),
     };
   }, [reviewerLinks]);
 
   // Enhanced filtering and sorting
   const filteredAndSortedLinks = useMemo(() => {
-    let filtered = reviewerLinks.filter(link => {
-      const matchesSearch = link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           link.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           link.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    let filtered = reviewerLinks.filter((link) => {
+      const matchesSearch =
+        link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        link.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        link.tags.some((tag) =>
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       const matchesSubject = !filterSubject || link.subject === filterSubject;
-      const matchesFileType = !filterFileType || link.fileType === filterFileType;
-      
+      const matchesFileType =
+        !filterFileType || link.fileType === filterFileType;
+
       return matchesSearch && matchesSubject && matchesFileType;
     });
 
     // Sort
     filtered.sort((a, b) => {
-      const [field, direction] = sortBy.startsWith('-') ? [sortBy.slice(1), 'desc'] : [sortBy, 'asc'];
-      
+      const [field, direction] = sortBy.startsWith("-")
+        ? [sortBy.slice(1), "desc"]
+        : [sortBy, "asc"];
+
       let aValue = a[field];
       let bValue = b[field];
-      
-      if (field === 'createdAt') {
+
+      if (field === "createdAt") {
         aValue = new Date(aValue);
         bValue = new Date(bValue);
-      } else if (typeof aValue === 'string') {
+      } else if (typeof aValue === "string") {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
-      
-      if (direction === 'desc') {
+
+      if (direction === "desc") {
         return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
       return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
@@ -187,53 +231,63 @@ const ReviewerLinks = () => {
 
   // Form handlers
   const handleInputChange = (field, value) => {
-    if (field === 'tags') {
-      value = value.split(',').map(tag => tag.trim()).filter(Boolean);
+    if (field === "tags") {
+      value = value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
     }
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
     setFormData({
-      link: '',
-      fileType: 'pdf',
-      title: '',
-      description: '',
+      link: "",
+      fileType: "pdf",
+      title: "",
+      description: "",
       subject: SUBJECTS[0],
-      tags: []
+      tags: [],
     });
     setEditingId(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsSubmitting(true);
-    
+
     try {
-      const token = localStorage.getItem('token');
-      const url = editingId 
+      const token = localStorage.getItem("token");
+      const url = editingId
         ? `${backendUrl}/api/admin/reviewer-links/${editingId}`
         : `${backendUrl}/api/admin/reviewer-links`;
-      
+
       const response = await fetch(url, {
-        method: editingId ? 'PUT' : 'POST',
+        method: editingId ? "PUT" : "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
-      if (!response.ok) throw new Error(`Failed to ${editingId ? 'update' : 'add'} reviewer link`);
-      
+
+      if (!response.ok)
+        throw new Error(
+          `Failed to ${editingId ? "update" : "add"} reviewer link`
+        );
+
       await fetchLinks();
       resetForm();
-      setSuccess(`Reviewer link ${editingId ? 'updated' : 'added'} successfully!`);
-      setActiveTab('list');
+      setSuccess(
+        `Reviewer link ${editingId ? "updated" : "added"} successfully!`
+      );
+      setActiveTab("list");
     } catch (err) {
-      console.error('Error submitting form:', err);
-      setError(err.message || `Failed to ${editingId ? 'update' : 'add'} reviewer link`);
+      console.error("Error submitting form:", err);
+      setError(
+        err.message || `Failed to ${editingId ? "update" : "add"} reviewer link`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -246,97 +300,101 @@ const ReviewerLinks = () => {
       title: link.title,
       description: link.description,
       subject: link.subject,
-      tags: link.tags || []
+      tags: link.tags || [],
     });
     setEditingId(link._id);
-    setActiveTab('form');
+    setActiveTab("form");
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this reviewer link?')) return;
-    
+    if (!window.confirm("Are you sure you want to delete this reviewer link?"))
+      return;
+
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/admin/reviewer-links/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete reviewer link');
-      
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${backendUrl}/api/admin/reviewer-links/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to delete reviewer link");
+
       await fetchLinks();
-      setSuccess('Reviewer link deleted successfully!');
+      setSuccess("Reviewer link deleted successfully!");
     } catch (err) {
-      console.error('Error deleting link:', err);
-      setError(err.message || 'Failed to delete reviewer link');
+      console.error("Error deleting link:", err);
+      setError(err.message || "Failed to delete reviewer link");
     }
   };
 
   // Bulk operations
   const handleBulkSelect = (type) => {
-    if (type === 'all') {
-      setSelectedLinks(filteredAndSortedLinks.map(link => link._id));
-    } else if (type === 'none') {
+    if (type === "all") {
+      setSelectedLinks(filteredAndSortedLinks.map((link) => link._id));
+    } else if (type === "none") {
       setSelectedLinks([]);
-    } else if (type === 'page') {
-      setSelectedLinks(paginatedLinks.map(link => link._id));
+    } else if (type === "page") {
+      setSelectedLinks(paginatedLinks.map((link) => link._id));
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedLinks.length === 0) {
-      setError('No links selected');
+      setError("No links selected");
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to delete ${selectedLinks.length} reviewer links?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedLinks.length} reviewer links?`
+      )
+    ) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const promises = selectedLinks.map(id => 
+      const token = localStorage.getItem("token");
+      const promises = selectedLinks.map((id) =>
         fetch(`${backendUrl}/api/admin/reviewer-links/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
         })
       );
 
       await Promise.all(promises);
       await fetchLinks();
       setSelectedLinks([]);
-      setSuccess(`${selectedLinks.length} reviewer links deleted successfully!`);
+      setSuccess(
+        `${selectedLinks.length} reviewer links deleted successfully!`
+      );
     } catch (err) {
-      console.error('Error in bulk delete:', err);
-      setError('Failed to delete some reviewer links');
+      console.error("Error in bulk delete:", err);
+      setError("Failed to delete some reviewer links");
     }
   };
 
-
-
   const clearFilters = () => {
-    setSearchTerm('');
-    setFilterSubject('');
-    setFilterFileType('');
-    setSortBy('-createdAt');
+    setSearchTerm("");
+    setFilterSubject("");
+    setFilterFileType("");
+    setSortBy("-createdAt");
     setCurrentPage(1);
   };
 
   const getFileIcon = (fileType) => {
     switch (fileType) {
-      case 'pdf': return <FaFilePdf className="text-red-500" />;
-      case 'docx': return <FaFileWord className="text-blue-500" />;
-      case 'pptx': return <FaFilePowerpoint className="text-orange-500" />;
-      default: return <MdLink className="text-gray-500" />;
+      case "pdf":
+        return <FaFilePdf className="text-red-500" />;
+      case "docx":
+        return <FaFileWord className="text-blue-500" />;
+      case "pptx":
+        return <FaFilePowerpoint className="text-orange-500" />;
+      default:
+        return <MdLink className="text-gray-500" />;
     }
-  };
-
-  const toggleExpanded = (linkId) => {
-    setExpandedLinks(prev => 
-      prev.includes(linkId) 
-        ? prev.filter(id => id !== linkId)
-        : [...prev, linkId]
-    );
   };
 
   // Dashboard component
@@ -384,7 +442,9 @@ const ReviewerLinks = () => {
           <div className="card-body">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold">{stats.mostActiveSubject?.name || 'N/A'}</h3>
+                <h3 className="text-lg font-bold">
+                  {stats.mostActiveSubject?.name || "N/A"}
+                </h3>
                 <p className="text-orange-100">Most Active Subject</p>
               </div>
               <MdAnalytics className="text-4xl text-orange-200" />
@@ -397,7 +457,9 @@ const ReviewerLinks = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
-            <h3 className="card-title text-lg font-bold mb-4">Links by Subject</h3>
+            <h3 className="card-title text-lg font-bold mb-4">
+              Links by Subject
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -410,7 +472,10 @@ const ReviewerLinks = () => {
                   label={({ name, value }) => `${name}: ${value}`}
                 >
                   {stats.linksBySubject.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -421,7 +486,9 @@ const ReviewerLinks = () => {
 
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
-            <h3 className="card-title text-lg font-bold mb-4">Links by File Type</h3>
+            <h3 className="card-title text-lg font-bold mb-4">
+              Links by File Type
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={stats.linksByFileType}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -451,16 +518,20 @@ const ReviewerLinks = () => {
                 </tr>
               </thead>
               <tbody>
-                {reviewerLinks.slice(0, 5).map(link => (
+                {reviewerLinks.slice(0, 5).map((link) => (
                   <tr key={link._id}>
                     <td className="font-semibold">{link.title}</td>
                     <td>
-                      <span className="badge badge-outline">{link.subject}</span>
+                      <span className="badge badge-outline">
+                        {link.subject}
+                      </span>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
                         {getFileIcon(link.fileType)}
-                        <span className="text-sm">{link.fileType.toUpperCase()}</span>
+                        <span className="text-sm">
+                          {link.fileType.toUpperCase()}
+                        </span>
                       </div>
                     </td>
                     <td className="text-sm text-base-content/70">
@@ -468,15 +539,15 @@ const ReviewerLinks = () => {
                     </td>
                     <td>
                       <div className="flex gap-1">
-                        <button 
+                        <button
                           className="btn btn-xs btn-ghost"
                           onClick={() => handleEdit(link)}
                         >
                           <MdEdit />
                         </button>
-                        <a 
-                          href={link.link} 
-                          target="_blank" 
+                        <a
+                          href={link.link}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-xs btn-ghost"
                         >
@@ -501,9 +572,9 @@ const ReviewerLinks = () => {
         <div className="card-body">
           <h2 className="card-title text-2xl font-bold text-primary mb-6">
             <MdAdd className="text-3xl" />
-            {editingId ? 'Edit Reviewer Link' : 'Add New Reviewer Link'}
+            {editingId ? "Edit Reviewer Link" : "Add New Reviewer Link"}
           </h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div className="form-control">
@@ -513,7 +584,7 @@ const ReviewerLinks = () => {
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 required
                 placeholder="Enter title for the reviewer link"
                 className="input input-bordered w-full"
@@ -528,7 +599,7 @@ const ReviewerLinks = () => {
               <input
                 type="url"
                 value={formData.link}
-                onChange={(e) => handleInputChange('link', e.target.value)}
+                onChange={(e) => handleInputChange("link", e.target.value)}
                 required
                 placeholder="https://example.com/document.pdf"
                 className="input input-bordered w-full"
@@ -543,12 +614,14 @@ const ReviewerLinks = () => {
                 </label>
                 <select
                   value={formData.subject}
-                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  onChange={(e) => handleInputChange("subject", e.target.value)}
                   className="select select-bordered w-full"
                   required
                 >
-                  {SUBJECTS.map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
+                  {SUBJECTS.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -559,12 +632,16 @@ const ReviewerLinks = () => {
                 </label>
                 <select
                   value={formData.fileType}
-                  onChange={(e) => handleInputChange('fileType', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("fileType", e.target.value)
+                  }
                   className="select select-bordered w-full"
                   required
                 >
-                  {FILE_TYPES.map(type => (
-                    <option key={type} value={type}>{type.toUpperCase()}</option>
+                  {FILE_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type.toUpperCase()}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -577,7 +654,9 @@ const ReviewerLinks = () => {
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 required
                 placeholder="Describe the content and purpose of this reviewer material"
                 className="textarea textarea-bordered w-full h-24"
@@ -592,8 +671,8 @@ const ReviewerLinks = () => {
               </label>
               <input
                 type="text"
-                value={formData.tags.join(', ')}
-                onChange={(e) => handleInputChange('tags', e.target.value)}
+                value={formData.tags.join(", ")}
+                onChange={(e) => handleInputChange("tags", e.target.value)}
                 placeholder="algebra, exam, 2024, midterm"
                 className="input input-bordered w-full"
               />
@@ -601,20 +680,22 @@ const ReviewerLinks = () => {
 
             {/* Buttons */}
             <div className="flex gap-4 pt-4">
-              <button 
-                type="submit" 
-                className={`btn btn-primary flex-1 ${isSubmitting ? 'loading' : ''}`}
+              <button
+                type="submit"
+                className={`btn btn-primary flex-1 ${
+                  isSubmitting ? "loading" : ""
+                }`}
                 disabled={isSubmitting}
               >
                 <MdSave className="text-lg" />
-                {editingId ? 'Update Link' : 'Add Link'}
+                {editingId ? "Update Link" : "Add Link"}
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-ghost flex-1"
                 onClick={() => {
                   resetForm();
-                  setActiveTab('list');
+                  setActiveTab("list");
                 }}
               >
                 <MdClose className="text-lg" />
@@ -640,8 +721,17 @@ const ReviewerLinks = () => {
                     <input
                       type="checkbox"
                       className="checkbox"
-                      checked={selectedLinks.length === paginatedLinks.length && paginatedLinks.length > 0}
-                      onChange={() => handleBulkSelect(selectedLinks.length === paginatedLinks.length ? 'none' : 'page')}
+                      checked={
+                        selectedLinks.length === paginatedLinks.length &&
+                        paginatedLinks.length > 0
+                      }
+                      onChange={() =>
+                        handleBulkSelect(
+                          selectedLinks.length === paginatedLinks.length
+                            ? "none"
+                            : "page"
+                        )
+                      }
                     />
                   </label>
                 </th>
@@ -655,7 +745,7 @@ const ReviewerLinks = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedLinks.map(link => (
+              {paginatedLinks.map((link) => (
                 <tr key={link._id}>
                   <td>
                     <label>
@@ -664,9 +754,9 @@ const ReviewerLinks = () => {
                         className="checkbox"
                         checked={selectedLinks.includes(link._id)}
                         onChange={() => {
-                          setSelectedLinks(prev => 
+                          setSelectedLinks((prev) =>
                             prev.includes(link._id)
-                              ? prev.filter(id => id !== link._id)
+                              ? prev.filter((id) => id !== link._id)
                               : [...prev, link._id]
                           );
                         }}
@@ -685,13 +775,15 @@ const ReviewerLinks = () => {
                   <td>
                     <div className="flex items-center gap-2">
                       {getFileIcon(link.fileType)}
-                      <span className="text-sm">{link.fileType.toUpperCase()}</span>
+                      <span className="text-sm">
+                        {link.fileType.toUpperCase()}
+                      </span>
                     </div>
                   </td>
                   <td>
-                    <a 
-                      href={link.link} 
-                      target="_blank" 
+                    <a
+                      href={link.link}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-xs btn-outline btn-primary"
                     >
@@ -701,10 +793,17 @@ const ReviewerLinks = () => {
                   <td>
                     <div className="flex flex-wrap gap-1">
                       {link.tags.slice(0, 2).map((tag, index) => (
-                        <span key={index} className="badge badge-sm badge-ghost">{tag}</span>
+                        <span
+                          key={index}
+                          className="badge badge-sm badge-ghost"
+                        >
+                          {tag}
+                        </span>
                       ))}
                       {link.tags.length > 2 && (
-                        <span className="badge badge-sm">+{link.tags.length - 2}</span>
+                        <span className="badge badge-sm">
+                          +{link.tags.length - 2}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -740,14 +839,19 @@ const ReviewerLinks = () => {
 
   const GridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {paginatedLinks.map(link => (
-        <div key={link._id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+      {paginatedLinks.map((link) => (
+        <div
+          key={link._id}
+          className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"
+        >
           <div className="card-body p-4">
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 {getFileIcon(link.fileType)}
-                <span className="text-sm font-medium">{link.fileType.toUpperCase()}</span>
+                <span className="text-sm font-medium">
+                  {link.fileType.toUpperCase()}
+                </span>
               </div>
               <label>
                 <input
@@ -755,9 +859,9 @@ const ReviewerLinks = () => {
                   className="checkbox checkbox-sm"
                   checked={selectedLinks.includes(link._id)}
                   onChange={() => {
-                    setSelectedLinks(prev => 
+                    setSelectedLinks((prev) =>
                       prev.includes(link._id)
-                        ? prev.filter(id => id !== link._id)
+                        ? prev.filter((id) => id !== link._id)
                         : [...prev, link._id]
                     );
                   }}
@@ -770,7 +874,9 @@ const ReviewerLinks = () => {
 
             {/* Subject */}
             <div className="mb-2">
-              <span className="badge badge-outline badge-sm">{link.subject}</span>
+              <span className="badge badge-outline badge-sm">
+                {link.subject}
+              </span>
             </div>
 
             {/* Description */}
@@ -782,10 +888,14 @@ const ReviewerLinks = () => {
             {link.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 {link.tags.slice(0, 3).map((tag, index) => (
-                  <span key={index} className="badge badge-xs badge-ghost">{tag}</span>
+                  <span key={index} className="badge badge-xs badge-ghost">
+                    {tag}
+                  </span>
                 ))}
                 {link.tags.length > 3 && (
-                  <span className="badge badge-xs">+{link.tags.length - 3}</span>
+                  <span className="badge badge-xs">
+                    +{link.tags.length - 3}
+                  </span>
                 )}
               </div>
             )}
@@ -796,9 +906,9 @@ const ReviewerLinks = () => {
                 {new Date(link.createdAt).toLocaleDateString()}
               </span>
               <div className="flex gap-1">
-                <a 
-                  href={link.link} 
-                  target="_blank" 
+                <a
+                  href={link.link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-xs btn-primary"
                   title="View Link"
@@ -857,8 +967,10 @@ const ReviewerLinks = () => {
             onChange={(e) => setFilterSubject(e.target.value)}
           >
             <option value="">All Subjects</option>
-            {SUBJECTS.map(subject => (
-              <option key={subject} value={subject}>{subject}</option>
+            {SUBJECTS.map((subject) => (
+              <option key={subject} value={subject}>
+                {subject}
+              </option>
             ))}
           </select>
 
@@ -868,8 +980,10 @@ const ReviewerLinks = () => {
             onChange={(e) => setFilterFileType(e.target.value)}
           >
             <option value="">All Types</option>
-            {FILE_TYPES.map(type => (
-              <option key={type} value={type}>{type.toUpperCase()}</option>
+            {FILE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type.toUpperCase()}
+              </option>
             ))}
           </select>
 
@@ -878,8 +992,10 @@ const ReviewerLinks = () => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            {SORT_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -887,14 +1003,14 @@ const ReviewerLinks = () => {
         {/* View Toggle */}
         <div className="btn-group">
           <button
-            className={`btn btn-sm ${viewMode === 'grid' ? 'btn-active' : ''}`}
-            onClick={() => setViewMode('grid')}
+            className={`btn btn-sm ${viewMode === "grid" ? "btn-active" : ""}`}
+            onClick={() => setViewMode("grid")}
           >
             <MdGridView />
           </button>
           <button
-            className={`btn btn-sm ${viewMode === 'table' ? 'btn-active' : ''}`}
-            onClick={() => setViewMode('table')}
+            className={`btn btn-sm ${viewMode === "table" ? "btn-active" : ""}`}
+            onClick={() => setViewMode("table")}
           >
             <MdViewList />
           </button>
@@ -908,16 +1024,19 @@ const ReviewerLinks = () => {
             <span>{selectedLinks.length} items selected</span>
           </div>
           <div className="flex gap-2">
-            <button className="btn btn-sm" onClick={() => handleBulkSelect('all')}>
+            <button
+              className="btn btn-sm"
+              onClick={() => handleBulkSelect("all")}
+            >
               Select All ({filteredAndSortedLinks.length})
             </button>
-            <button className="btn btn-sm" onClick={() => handleBulkSelect('none')}>
+            <button
+              className="btn btn-sm"
+              onClick={() => handleBulkSelect("none")}
+            >
               Clear Selection
             </button>
-            <button 
-              className="btn btn-sm btn-error" 
-              onClick={handleBulkDelete}
-            >
+            <button className="btn btn-sm btn-error" onClick={handleBulkDelete}>
               Delete Selected
             </button>
           </div>
@@ -932,12 +1051,13 @@ const ReviewerLinks = () => {
       ) : filteredAndSortedLinks.length === 0 ? (
         <div className="text-center py-12">
           <MdInfo className="text-6xl text-base-content/30 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No reviewer links found</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            No reviewer links found
+          </h3>
           <p className="text-base-content/70 mb-4">
-            {searchTerm || filterSubject || filterFileType 
-              ? 'Try adjusting your search or filters'
-              : 'Get started by adding your first reviewer link'
-            }
+            {searchTerm || filterSubject || filterFileType
+              ? "Try adjusting your search or filters"
+              : "Get started by adding your first reviewer link"}
           </p>
           {(searchTerm || filterSubject || filterFileType) && (
             <button className="btn btn-outline" onClick={clearFilters}>
@@ -947,8 +1067,8 @@ const ReviewerLinks = () => {
         </div>
       ) : (
         <>
-          {viewMode === 'grid' ? <GridView /> : <TableView />}
-          
+          {viewMode === "grid" ? <GridView /> : <TableView />}
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center">
@@ -960,15 +1080,19 @@ const ReviewerLinks = () => {
                 >
                   Previous
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    className={`btn ${currentPage === page ? 'btn-active' : ''}`}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      className={`btn ${
+                        currentPage === page ? "btn-active" : ""
+                      }`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
                 <button
                   className="btn"
                   disabled={currentPage === totalPages}
@@ -989,10 +1113,14 @@ const ReviewerLinks = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-primary mb-2">Reviewer Links</h1>
-          <p className="text-base-content/70">Manage educational reviewer materials and resources</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">
+            Reviewer Links
+          </h1>
+          <p className="text-base-content/70">
+            Manage educational reviewer materials and resources
+          </p>
         </div>
-        
+
         <div className="flex gap-2 mt-4 lg:mt-0">
           <button
             className="btn btn-outline"
@@ -1005,7 +1133,7 @@ const ReviewerLinks = () => {
             className="btn btn-primary"
             onClick={() => {
               resetForm();
-              setActiveTab('form');
+              setActiveTab("form");
             }}
           >
             <MdAdd />
@@ -1021,7 +1149,7 @@ const ReviewerLinks = () => {
           <span>{error}</span>
         </div>
       )}
-      
+
       {success && (
         <div className="alert alert-success mb-6">
           <MdCheckCircle />
@@ -1032,35 +1160,37 @@ const ReviewerLinks = () => {
       {/* Navigation Tabs */}
       <div className="tabs tabs-boxed bg-base-200 mb-8 justify-center">
         <button
-          className={`tab tab-lg ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
+          className={`tab tab-lg ${
+            activeTab === "dashboard" ? "tab-active" : ""
+          }`}
+          onClick={() => setActiveTab("dashboard")}
         >
           <MdAnalytics className="mr-2" />
           Dashboard
         </button>
         <button
-          className={`tab tab-lg ${activeTab === 'list' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('list')}
+          className={`tab tab-lg ${activeTab === "list" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("list")}
         >
           <MdViewList className="mr-2" />
           All Links ({stats.total})
         </button>
         <button
-          className={`tab tab-lg ${activeTab === 'form' ? 'tab-active' : ''}`}
+          className={`tab tab-lg ${activeTab === "form" ? "tab-active" : ""}`}
           onClick={() => {
             if (!editingId) resetForm();
-            setActiveTab('form');
+            setActiveTab("form");
           }}
         >
           <MdAdd className="mr-2" />
-          {editingId ? 'Edit Link' : 'Add Link'}
+          {editingId ? "Edit Link" : "Add Link"}
         </button>
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'dashboard' && <DashboardView />}
-      {activeTab === 'list' && <ListView />}
-      {activeTab === 'form' && <FormView />}
+      {activeTab === "dashboard" && <DashboardView />}
+      {activeTab === "list" && <ListView />}
+      {activeTab === "form" && <FormView />}
     </div>
   );
 };

@@ -1,77 +1,64 @@
 import React from "react";
-import { FaTrophy, FaCrown, FaMedal, FaTimes } from "react-icons/fa";
-import "./VictoryModal.css";
+import {
+  FaTrophy,
+  FaRedo,
+  FaTimes,
+  FaStar,
+  FaArrowUp,
+  FaArrowDown,
+} from "react-icons/fa";
 
-const VictoryModal = ({ winner, players, onClose }) => {
-  const winnerPlayer = players?.find((p) => p.userId === winner);
-  const loserPlayer = players?.find((p) => p.userId !== winner);
+const VictoryModal = ({
+  winner,
+  onRestart,
+  onClose,
+  isVisible,
+  isWinner,
+  starChange,
+}) => {
+  if (!isVisible) return null;
 
   return (
-    <div className="victoryModalOverlay">
-      <div className="victoryModal">
-        <button className="closeButton" onClick={onClose}>
-          <FaTimes />
-        </button>
+    <div className="victoryModal">
+      <div className="victoryCard">
+        <div className="victoryIcon">
+          <FaTrophy />
+        </div>
+        <h2 className="victoryTitle">{winner} WINS!</h2>
+        <p className="victorySubtitle">Congratulations on your victory!</p>
 
-        <div className="victoryContent">
-          <div className="victoryHeader">
-            <FaTrophy className="trophyIcon" />
-            <h2>Game Over!</h2>
+        {/* Star Reward Section */}
+        <div className="starRewardSection">
+          <div className="starRewardTitle">
+            <FaStar className="starIcon" />
+            Star Rewards
           </div>
-
-          <div className="winnerSection">
-            <div className="winnerCrown">
-              <FaCrown />
-            </div>
-            <div className="winnerInfo">
-              <h3>{winnerPlayer?.username || "Unknown Player"}</h3>
-              <p className="winnerTitle">Victory!</p>
-            </div>
-          </div>
-
-          <div className="resultsSection">
-            <div className="playerResult winner">
-              <div className="playerName">
-                {winnerPlayer?.username || "Player 1"}
+          <div className="starChange">
+            {isWinner ? (
+              <div className="starGain">
+                <FaArrowUp className="arrowUp" />
+                <span className="starAmount">+8 Stars</span>
+                <span className="starMessage">Victory Bonus!</span>
               </div>
-              <div className="playerStats">
-                <span className="hp">HP: {winnerPlayer?.hp || 0}</span>
-                <span className="cards">
-                  Cards: {winnerPlayer?.cards?.length || 0}
-                </span>
+            ) : (
+              <div className="starLoss">
+                <FaArrowDown className="arrowDown" />
+                <span className="starAmount">-8 Stars</span>
+                <span className="starMessage">Better luck next time!</span>
               </div>
-            </div>
-
-            <div className="vsSeparator">VS</div>
-
-            <div className="playerResult loser">
-              <div className="playerName">
-                {loserPlayer?.username || "Player 2"}
-              </div>
-              <div className="playerStats">
-                <span className="hp">HP: {loserPlayer?.hp || 0}</span>
-                <span className="cards">
-                  Cards: {loserPlayer?.cards?.length || 0}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
+        </div>
 
-          <div className="gameStats">
-            <div className="statItem">
-              <FaMedal />
-              <span>Winner: {winnerPlayer?.username || "Unknown"}</span>
-            </div>
-            <div className="statItem">
-              <span>Final HP: {winnerPlayer?.hp || 0}</span>
-            </div>
-          </div>
-
-          <div className="actionButtons">
-            <button className="playAgainButton" onClick={onClose}>
-              Back to Lobby
-            </button>
-          </div>
+        <div className="victoryActions">
+          <button className="victoryBtn primary" onClick={onRestart}>
+            <FaRedo />
+            Play Again
+          </button>
+          <button className="victoryBtn secondary" onClick={onClose}>
+            <FaTimes />
+            Exit Game
+          </button>
         </div>
       </div>
     </div>

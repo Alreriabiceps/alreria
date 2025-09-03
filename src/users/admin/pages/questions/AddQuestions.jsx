@@ -17,6 +17,8 @@ import {
   MdCheckCircle,
   MdError,
   MdClear,
+  MdUpload,
+  MdDownload,
 } from "react-icons/md";
 import {
   FaRegLightbulb,
@@ -90,26 +92,41 @@ const AddQuestions = () => {
   const [aiLoading, setAILoading] = useState(false);
   const [aiError, setAIError] = useState("");
   const [aiGeneratedQuestions, setAIGeneratedQuestions] = useState([]);
-  const [aiNumQuestions, setAINumQuestions] = useState(2);
-  const [aiQuestionType, setAIQuestionType] = useState("multiple_choice");
+
+  const [bloomsLevelQuantities, setBloomsLevelQuantities] = useState({
+    Remembering: 0,
+    Understanding: 0,
+    Applying: 0,
+    Analyzing: 0,
+    Evaluating: 0,
+    Creating: 0,
+  });
+  const [bloomsLevelTopics, setBloomsLevelTopics] = useState({
+    Remembering: "",
+    Understanding: "",
+    Applying: "",
+    Analyzing: "",
+    Evaluating: "",
+    Creating: "",
+  });
+
   const [file, setFile] = useState(null);
   const [fileExtractedText, setFileExtractedText] = useState("");
   const [aiPrompt, setAIPrompt] = useState("");
   const [fileAICustomPrompt, setFileAICustomPrompt] = useState("");
-  const [showFileAIModal, setShowFileAIModal] = useState(false);
-  const [fileAIQuestions, setFileAIQuestions] = useState([]);
-  const [fileAILoading, setFileAILoading] = useState(false);
-  const [fileAIError, setFileAIError] = useState("");
-  const [fileAISubject, setFileAISubject] = useState("");
-  const [fileAIBloomsLevel, setFileAIBloomsLevel] = useState("");
-  const [fileAINumQuestions, setFileAINumQuestions] = useState(2);
-  const [showChatAIModal, setShowChatAIModal] = useState(false);
-  const [chatAIPrompt, setChatAIPrompt] = useState("");
-  const [chatAILoading, setChatAILoading] = useState(false);
-  const [chatAIError, setChatAIError] = useState("");
-  const [chatAIGeneratedQuestions, setChatAIGeneratedQuestions] = useState([]);
-  const [chatAINumQuestions, setChatAINumQuestions] = useState(2);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // Batch Upload States
+  const [showBatchUploadModal, setShowBatchUploadModal] = useState(false);
+  const [batchFile, setBatchFile] = useState(null);
+  const [batchSubject, setBatchSubject] = useState("");
+  const [batchBloomsLevel, setBatchBloomsLevel] = useState("");
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState("");
+  const [batchSuccess, setBatchSuccess] = useState("");
+  const [batchPreview, setBatchPreview] = useState([]);
+  const [batchValidationErrors, setBatchValidationErrors] = useState([]);
+
   const { guideMode } = useGuideMode();
   const autoSaveTimeoutRef = useRef(null);
 
@@ -184,11 +201,7 @@ const AddQuestions = () => {
         updatedQuestions[index].choices[value.choiceIndex] = value.choiceValue;
       } else if (field === "questionType") {
         updatedQuestions[index].questionType = value;
-        if (value === "true_false") {
-          updatedQuestions[index].choices = ["True", "False"];
-        } else {
-          updatedQuestions[index].choices = ["", "", "", ""];
-        }
+        updatedQuestions[index].choices = ["", "", "", ""];
         updatedQuestions[index].correctAnswer = ""; // Reset correct answer
       } else {
         updatedQuestions[index][field] = value;
@@ -510,120 +523,126 @@ const AddQuestions = () => {
         return;
       }
 
+      // Check if at least one Bloom's level has questions
+      const totalQuestions = Object.values(bloomsLevelQuantities).reduce(
+        (sum, qty) => sum + qty,
+        0
+      );
+      if (totalQuestions === 0) {
+        setAIError(
+          "Please specify at least one question for any Bloom's level."
+        );
+        setAILoading(false);
+        return;
+      }
+
       // Validation based on selected method
       if (aiGenerationMethod === AI_GENERATION_METHODS.TOPIC) {
-        if (!aiTopic || !aiBloomsLevel) {
+        // Check if all selected Bloom's levels have topics
+        const levelsWithQuestions = Object.entries(bloomsLevelQuantities)
+          .filter(([_, qty]) => qty > 0)
+          .map(([level, _]) => level);
+
+        const levelsWithoutTopics = levelsWithQuestions.filter(
+          (level) =>
+            !bloomsLevelTopics[level] || bloomsLevelTopics[level].trim() === ""
+        );
+
+        if (levelsWithoutTopics.length > 0) {
           setAIError(
-            "Please fill all required fields for Topic Based generation."
+            `Please enter topics for: ${levelsWithoutTopics.join(", ")}`
           );
           setAILoading(false);
           return;
         }
       } else if (aiGenerationMethod === AI_GENERATION_METHODS.FILE) {
-        if (!file || !aiBloomsLevel) {
-          setAIError(
-            "Please select a file and Bloom's level for File Upload generation."
-          );
+        if (!file) {
+          setAIError("Please select a file for File Upload generation.");
           setAILoading(false);
           return;
         }
       } else if (aiGenerationMethod === AI_GENERATION_METHODS.CHAT) {
-        if (!aiPrompt || !aiBloomsLevel) {
-          // Add check for aiBloomsLevel
-          setAIError(
-            "Please fill all required fields for Chat Style generation."
-          );
+        if (!aiPrompt) {
+          setAIError("Please enter a prompt for Chat Style generation.");
           setAILoading(false);
           return;
         }
       }
 
-      let endpoint = "";
-      let body = {};
+      // Generate questions for each Bloom's level that has a quantity > 0
+      const allGeneratedQuestions = [];
 
-      switch (aiGenerationMethod) {
-        case AI_GENERATION_METHODS.TOPIC:
-          endpoint = `${backendurl}/api/generate-questions`;
-          body = {
-            subjectId: aiSubject,
-            bloomsLevel: aiBloomsLevel,
-            topic: aiTopic,
-            numQuestions: aiNumQuestions,
-            questionType: aiQuestionType,
+      for (const [bloomsLevel, quantity] of Object.entries(
+        bloomsLevelQuantities
+      )) {
+        if (quantity > 0) {
+          let endpoint = "";
+          let body = {};
+
+          switch (aiGenerationMethod) {
+            case AI_GENERATION_METHODS.TOPIC:
+              endpoint = `${backendurl}/api/generate-questions`;
+              body = {
+                subjectId: aiSubject,
+                bloomsLevel: bloomsLevel,
+                topic: bloomsLevelTopics[bloomsLevel],
+                numQuestions: quantity,
+              };
+              break;
+            case AI_GENERATION_METHODS.FILE: {
+              endpoint = `${backendurl}/api/questions/generate-questions-from-file`;
+              const formData = new FormData();
+              formData.append("file", file);
+              formData.append("subjectId", aiSubject);
+              formData.append("bloomsLevel", bloomsLevel);
+              formData.append("numQuestions", quantity);
+              if (fileAICustomPrompt)
+                formData.append("customPrompt", fileAICustomPrompt);
+              body = formData;
+              break;
+            }
+            case AI_GENERATION_METHODS.CHAT:
+              endpoint = `${backendurl}/api/generate-questions-chat`;
+              body = {
+                subjectId: aiSubject,
+                bloomsLevel: bloomsLevel,
+                prompt: aiPrompt,
+                numQuestions: quantity,
+              };
+              break;
+          }
+
+          const headers = {
+            Authorization: `Bearer ${token}`,
           };
-          break;
-        case AI_GENERATION_METHODS.FILE: {
-          endpoint = `${backendurl}/api/questions/generate-questions-from-file`;
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("subjectId", aiSubject);
-          formData.append("bloomsLevel", aiBloomsLevel); // Ensure using unified state
-          formData.append("numQuestions", aiNumQuestions);
-          formData.append("questionType", aiQuestionType);
-          if (fileAICustomPrompt)
-            formData.append("customPrompt", fileAICustomPrompt);
-          body = formData;
-          break;
-        }
-        case AI_GENERATION_METHODS.CHAT:
-          endpoint = `${backendurl}/api/generate-questions-chat`;
-          body = {
-            subjectId: aiSubject,
-            bloomsLevel: aiBloomsLevel, // Add bloomsLevel for Chat
-            prompt: aiPrompt,
-            numQuestions: aiNumQuestions,
-            questionType: aiQuestionType,
-          };
-          break;
-      }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
+          if (aiGenerationMethod !== AI_GENERATION_METHODS.FILE) {
+            headers["Content-Type"] = "application/json";
+          }
 
-      if (aiGenerationMethod !== AI_GENERATION_METHODS.FILE) {
-        headers["Content-Type"] = "application/json";
-      }
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: headers,
+            body:
+              aiGenerationMethod === AI_GENERATION_METHODS.FILE
+                ? body
+                : JSON.stringify(body),
+          });
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: headers,
-        body:
-          aiGenerationMethod === AI_GENERATION_METHODS.FILE
-            ? body
-            : JSON.stringify(body),
-      });
+          if (!res.ok)
+            throw new Error(`Failed to generate questions for ${bloomsLevel}`);
+          const data = await res.json();
 
-      if (!res.ok) throw new Error("Failed to generate questions");
-      const data = await res.json();
-
-      if (
-        aiGenerationMethod === AI_GENERATION_METHODS.FILE &&
-        data.extractedText
-      ) {
-        setFileExtractedText(data.extractedText.slice(0, 3000));
-      } else {
-        setFileExtractedText(""); // Clear extracted text if not file method
-      }
-
-      // Ensure the generated questions match the selected question type
-      const processedQuestions = (data.questions || data).map((q) => {
-        if (aiQuestionType === "true_false") {
-          let correct =
-            q.correctAnswer === true || q.correctAnswer === "True"
-              ? "True"
-              : "False";
-          // If the questionText itself is a statement, keep as is, else try to extract
-          return {
+          // Process the generated questions and add them to the collection
+          const processedQuestions = (data.questions || data).map((q) => ({
             ...q,
-            choices: ["True", "False"],
-            correctAnswer: correct,
-          };
+            bloomsLevel: bloomsLevel, // Explicitly set the Bloom's level
+          }));
+          allGeneratedQuestions.push(...processedQuestions);
         }
-        return q;
-      });
+      }
 
-      setAIGeneratedQuestions(processedQuestions);
+      setAIGeneratedQuestions(allGeneratedQuestions);
     } catch (err) {
       setAIError(err.message || "Error generating questions");
     } finally {
@@ -631,32 +650,72 @@ const AddQuestions = () => {
     }
   };
 
+  // Reset AI form when switching methods
+  const handleAIMethodChange = (method) => {
+    setAIGenerationMethod(method);
+    // Reset method-specific fields
+    setAITopic("");
+    setAIPrompt("");
+    setFileAICustomPrompt("");
+    setFile(null);
+    setFileExtractedText("");
+    setAIError("");
+    setAIGeneratedQuestions([]);
+    // Reset Bloom's level quantities and topics
+    setBloomsLevelQuantities({
+      Remembering: 0,
+      Understanding: 0,
+      Applying: 0,
+      Analyzing: 0,
+      Evaluating: 0,
+      Creating: 0,
+    });
+    setBloomsLevelTopics({
+      Remembering: "",
+      Understanding: "",
+      Applying: "",
+      Analyzing: "",
+      Evaluating: "",
+      Creating: "",
+    });
+  };
+
   // Add generated questions to main questions list
   const handleAddAIGenerated = () => {
     setSelectedSubject(aiSubject);
     if (aiGeneratedQuestions.length > 0) {
-      setQuestions([
-        ...questions,
-        ...aiGeneratedQuestions.map((q) => {
-          if (aiQuestionType === "true_false") {
-            return {
-              questionText: q.questionText || "",
-              choices: ["True", "False"],
-              correctAnswer:
-                q.correctAnswer === true || q.correctAnswer === "True"
-                  ? "True"
-                  : "False",
-              bloomsLevel: q.bloomsLevel || aiBloomsLevel || "",
-            };
-          }
-          return {
+      // Check if the first question is empty and should be replaced
+      const firstQuestionEmpty =
+        questions.length === 1 &&
+        !questions[0].questionText.trim() &&
+        !questions[0].correctAnswer &&
+        !questions[0].bloomsLevel;
+
+      let updatedQuestions;
+      if (firstQuestionEmpty) {
+        // Replace the empty first question with AI generated questions
+        updatedQuestions = aiGeneratedQuestions.map((q) => ({
+          questionText: q.questionText || "",
+          questionType: "multiple_choice",
+          choices: q.choices || ["", "", "", ""],
+          correctAnswer: q.correctAnswer || "",
+          bloomsLevel: q.bloomsLevel || "",
+        }));
+      } else {
+        // Append AI generated questions to existing questions
+        updatedQuestions = [
+          ...questions,
+          ...aiGeneratedQuestions.map((q) => ({
             questionText: q.questionText || "",
+            questionType: "multiple_choice",
             choices: q.choices || ["", "", "", ""],
             correctAnswer: q.correctAnswer || "",
-            bloomsLevel: q.bloomsLevel || aiBloomsLevel || "",
-          };
-        }),
-      ]);
+            bloomsLevel: q.bloomsLevel || "",
+          })),
+        ];
+      }
+
+      setQuestions(updatedQuestions);
     }
     setAIGeneratedQuestions([]);
     setShowAIModal(false);
@@ -668,7 +727,204 @@ const AddQuestions = () => {
     setFile(null);
     setFileExtractedText("");
     setAIError("");
-    setAINumQuestions(2);
+    setAIGenerationMethod(AI_GENERATION_METHODS.TOPIC);
+    // Reset Bloom's level quantities and topics
+    setBloomsLevelQuantities({
+      Remembering: 0,
+      Understanding: 0,
+      Applying: 0,
+      Analyzing: 0,
+      Evaluating: 0,
+      Creating: 0,
+    });
+    setBloomsLevelTopics({
+      Remembering: "",
+      Understanding: "",
+      Applying: "",
+      Analyzing: "",
+      Evaluating: "",
+      Creating: "",
+    });
+  };
+
+  // Batch Upload Functions
+  const downloadTemplate = () => {
+    const csvContent = `Question Text,Choice A,Choice B,Choice C,Choice D,Correct Answer,Bloom's Level
+"What is the capital of France?",Paris,London,Berlin,Madrid,Choice A,Remembering
+"Which of the following is a primary color?",Red,Green,Brown,Purple,Choice A,Understanding
+"Calculate 15% of 200",25,30,35,40,Choice B,Applying
+"Analyze the impact of supply and demand on prices",Supply increase causes price decrease,Demand increase causes price increase,Both A and B,Neither A nor B,Choice C,Analyzing
+"Evaluate the effectiveness of online learning",Very effective,Somewhat effective,Not effective,Depends on circumstances,Choice D,Evaluating
+"Create a study schedule for exam preparation",Monday: Math, Tuesday: Science,Wednesday: History,Thursday: English,Friday: Review,All of the above,Creating`;
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "questions_template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const parseCSV = (csvText) => {
+    const lines = csvText.split("\n").filter((line) => line.trim());
+
+    const questions = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""));
+      if (values.length >= 7) {
+        questions.push({
+          questionText: values[0],
+          choices: [values[1], values[2], values[3], values[4]],
+          correctAnswer: values[5],
+          bloomsLevel: values[6],
+        });
+      }
+    }
+    return questions;
+  };
+
+  const validateBatchQuestions = (questions) => {
+    const errors = [];
+
+    questions.forEach((q, index) => {
+      if (!q.questionText.trim()) {
+        errors.push(`Row ${index + 2}: Question text is required`);
+      }
+      if (q.choices.some((choice) => !choice.trim())) {
+        errors.push(`Row ${index + 2}: All choices must be filled`);
+      }
+      if (!q.correctAnswer) {
+        errors.push(`Row ${index + 2}: Correct answer is required`);
+      }
+      if (!q.bloomsLevel || !BLOOMS_LEVELS.includes(q.bloomsLevel)) {
+        errors.push(`Row ${index + 2}: Valid Bloom's level is required`);
+      }
+
+      // Validate correct answer format
+      const validAnswers = ["Choice A", "Choice B", "Choice C", "Choice D"];
+      if (!validAnswers.includes(q.correctAnswer)) {
+        errors.push(
+          `Row ${
+            index + 2
+          }: Correct answer must be "Choice A", "Choice B", "Choice C", or "Choice D"`
+        );
+      }
+    });
+
+    return errors;
+  };
+
+  const handleBatchFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+      setBatchError("Please select a valid CSV file");
+      setBatchFile(null);
+      return;
+    }
+
+    setBatchFile(file);
+    setBatchError("");
+
+    // Preview the file
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const csvText = event.target.result;
+        const parsedQuestions = parseCSV(csvText);
+        setBatchPreview(parsedQuestions);
+
+        // Validate questions
+        const errors = validateBatchQuestions(parsedQuestions);
+        setBatchValidationErrors(errors);
+
+        if (errors.length === 0) {
+          setBatchSuccess(
+            `Successfully parsed ${parsedQuestions.length} questions`
+          );
+        } else {
+          setBatchSuccess("");
+        }
+      } catch (error) {
+        setBatchError("Error parsing CSV file: " + error.message);
+        setBatchPreview([]);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBatchUpload = async () => {
+    if (!batchSubject || !batchBloomsLevel) {
+      setBatchError("Please select subject and Bloom's level");
+      return;
+    }
+
+    if (batchValidationErrors.length > 0) {
+      setBatchError("Please fix validation errors before uploading");
+      return;
+    }
+
+    if (batchPreview.length === 0) {
+      setBatchError("No valid questions to upload");
+      return;
+    }
+
+    setBatchLoading(true);
+    setBatchError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
+
+      const formattedData = {
+        subjectId: batchSubject,
+        questions: batchPreview.map((q) => ({
+          questionText: q.questionText,
+          choices: q.choices,
+          correctAnswer: q.correctAnswer,
+          bloomsLevel: q.bloomsLevel,
+        })),
+      };
+
+      const response = await fetch(`${backendurl}/api/questions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) throw new Error("Failed to upload questions");
+
+      setBatchSuccess(
+        `Successfully uploaded ${batchPreview.length} questions!`
+      );
+
+      // Add to current questions list
+      setQuestions([...questions, ...batchPreview]);
+      setSelectedSubject(batchSubject);
+
+      // Clear batch upload
+      setTimeout(() => {
+        setShowBatchUploadModal(false);
+        setBatchFile(null);
+        setBatchSubject("");
+        setBatchBloomsLevel("");
+        setBatchPreview([]);
+        setBatchValidationErrors([]);
+        setBatchSuccess("");
+        setBatchError("");
+      }, 2000);
+    } catch (err) {
+      setBatchError("Upload failed: " + err.message);
+    } finally {
+      setBatchLoading(false);
+    }
   };
 
   if (loading) {
@@ -726,6 +982,13 @@ const AddQuestions = () => {
               Clear Draft
             </button>
           )}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowBatchUploadModal(true)}
+          >
+            <MdUpload className="w-4 h-4" />
+            Batch Upload
+          </button>
           <button
             className="btn btn-primary btn-sm"
             onClick={() => setShowAIModal(true)}
@@ -1082,7 +1345,6 @@ const AddQuestions = () => {
                               <option value="multiple_choice">
                                 Multiple Choice
                               </option>
-                              <option value="true_false">True/False</option>
                             </select>
                           </div>
 
@@ -1120,13 +1382,7 @@ const AddQuestions = () => {
                               Answer Choices
                             </span>
                           </label>
-                          <div
-                            className={`grid ${
-                              question.questionType === "true_false"
-                                ? "grid-cols-1 sm:grid-cols-2"
-                                : "grid-cols-1 sm:grid-cols-2"
-                            } gap-3`}
-                          >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {question.choices.map((choice, choiceIndex) => (
                               <div
                                 key={choiceIndex}
@@ -1148,9 +1404,6 @@ const AddQuestions = () => {
                                         choiceIndex,
                                         choiceValue: e.target.value,
                                       })
-                                    }
-                                    disabled={
-                                      question.questionType === "true_false"
                                     }
                                   />
                                   <input
@@ -1193,6 +1446,15 @@ const AddQuestions = () => {
                     onClick={() => setShowAIModal(true)}
                   >
                     🤖 Generate with AI
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary gap-2"
+                    onClick={() => setShowBatchUploadModal(true)}
+                  >
+                    <MdUpload className="w-4 h-4" />
+                    Batch Upload
                   </button>
 
                   <button
@@ -1245,6 +1507,16 @@ const AddQuestions = () => {
                   setShowAIModal(false);
                   setAIGeneratedQuestions([]);
                   setAIError("");
+                  setAISubject("");
+                  setAIBloomsLevel("");
+                  setAITopic("");
+                  setAIPrompt("");
+                  setFileAICustomPrompt("");
+                  setFile(null);
+                  setFileExtractedText("");
+                  setAINumQuestions(2);
+                  setAIQuestionType("multiple_choice");
+                  setAIGenerationMethod(AI_GENERATION_METHODS.TOPIC);
                 }}
                 aria-label="Close"
               >
@@ -1260,7 +1532,7 @@ const AddQuestions = () => {
                     : "bg-base-200"
                 }`}
                 onClick={() =>
-                  setAIGenerationMethod(AI_GENERATION_METHODS.TOPIC)
+                  handleAIMethodChange(AI_GENERATION_METHODS.TOPIC)
                 }
               >
                 <FaRegLightbulb className="inline mr-2" /> Topic
@@ -1271,9 +1543,7 @@ const AddQuestions = () => {
                     ? "tab-active bg-secondary/10 border-secondary text-secondary"
                     : "bg-base-200"
                 }`}
-                onClick={() =>
-                  setAIGenerationMethod(AI_GENERATION_METHODS.FILE)
-                }
+                onClick={() => handleAIMethodChange(AI_GENERATION_METHODS.FILE)}
               >
                 <FaFileAlt className="inline mr-2" /> File
               </button>
@@ -1283,9 +1553,7 @@ const AddQuestions = () => {
                     ? "tab-active bg-info/10 border-info text-info"
                     : "bg-base-200"
                 }`}
-                onClick={() =>
-                  setAIGenerationMethod(AI_GENERATION_METHODS.CHAT)
-                }
+                onClick={() => handleAIMethodChange(AI_GENERATION_METHODS.CHAT)}
               >
                 <FaComments className="inline mr-2" /> Chat
               </button>
@@ -1357,45 +1625,116 @@ const AddQuestions = () => {
                   </select>
                 </div>
 
-                <div className="form-control">
-                  <label className="label font-semibold">Question Type</label>
-                  <select
-                    className="select select-bordered w-full bg-base-100"
-                    value={aiQuestionType}
-                    onChange={(e) => setAIQuestionType(e.target.value)}
-                  >
-                    <option value="multiple_choice">Multiple Choice</option>
-                    <option value="true_false">True or False</option>
-                  </select>
-                </div>
-
                 {aiGenerationMethod === AI_GENERATION_METHODS.TOPIC && (
                   <>
                     <div className="form-control">
                       <label className="label font-semibold">
-                        Bloom's Taxonomy Level
+                        Questions per Bloom's Level
                       </label>
-                      <select
-                        className="select select-bordered w-full bg-base-100"
-                        value={aiBloomsLevel}
-                        onChange={(e) => setAIBloomsLevel(e.target.value)}
-                      >
-                        <option value="">-- Select Level --</option>
+                      <div className="space-y-3">
                         {BLOOMS_LEVELS.map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
+                          <div
+                            key={level}
+                            className="border border-base-300 rounded-lg p-3"
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="w-24 text-sm font-medium">
+                                {level}
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                className="input input-bordered input-sm w-20"
+                                value={bloomsLevelQuantities[level]}
+                                onChange={(e) =>
+                                  setBloomsLevelQuantities((prev) => ({
+                                    ...prev,
+                                    [level]: parseInt(e.target.value) || 0,
+                                  }))
+                                }
+                              />
+                              <span className="text-xs text-base-content/70">
+                                questions
+                              </span>
+                            </div>
+                            {bloomsLevelQuantities[level] > 0 && (
+                              <div className="form-control">
+                                <input
+                                  type="text"
+                                  className="input input-bordered input-sm"
+                                  placeholder={`Topic for ${level} questions (e.g., Basic concepts, Complex analysis)`}
+                                  value={bloomsLevelTopics[level]}
+                                  onChange={(e) =>
+                                    setBloomsLevelTopics((prev) => ({
+                                      ...prev,
+                                      [level]: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                            )}
+                          </div>
                         ))}
-                      </select>
-                    </div>
-                    <div className="form-control">
-                      <label className="label font-semibold">Topic</label>
-                      <input
-                        className="input input-bordered w-full bg-base-100"
-                        value={aiTopic}
-                        onChange={(e) => setAITopic(e.target.value)}
-                        placeholder="e.g. Law of Demand"
-                      />
+                      </div>
+                      <div className="text-xs text-base-content/70 mt-2">
+                        Total:{" "}
+                        {Object.values(bloomsLevelQuantities).reduce(
+                          (sum, qty) => sum + qty,
+                          0
+                        )}{" "}
+                        questions
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-outline"
+                          onClick={() => {
+                            setBloomsLevelQuantities({
+                              Remembering: 2,
+                              Understanding: 2,
+                              Applying: 2,
+                              Analyzing: 1,
+                              Evaluating: 1,
+                              Creating: 1,
+                            });
+                            setBloomsLevelTopics({
+                              Remembering: "Basic concepts and definitions",
+                              Understanding: "Key principles and explanations",
+                              Applying: "Practical applications and examples",
+                              Analyzing: "Complex analysis and comparisons",
+                              Evaluating: "Critical evaluation and judgments",
+                              Creating: "Original solutions and innovations",
+                            });
+                          }}
+                        >
+                          Set Balanced (9)
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-outline"
+                          onClick={() => {
+                            setBloomsLevelQuantities({
+                              Remembering: 0,
+                              Understanding: 0,
+                              Applying: 0,
+                              Analyzing: 0,
+                              Evaluating: 0,
+                              Creating: 0,
+                            });
+                            setBloomsLevelTopics({
+                              Remembering: "",
+                              Understanding: "",
+                              Applying: "",
+                              Analyzing: "",
+                              Evaluating: "",
+                              Creating: "",
+                            });
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -1404,20 +1743,112 @@ const AddQuestions = () => {
                   <>
                     <div className="form-control">
                       <label className="label font-semibold">
-                        Bloom's Taxonomy Level
+                        Questions per Bloom's Level
                       </label>
-                      <select
-                        className="select select-bordered w-full bg-base-100"
-                        value={aiBloomsLevel}
-                        onChange={(e) => setAIBloomsLevel(e.target.value)}
-                      >
-                        <option value="">-- Select Level --</option>
+                      <div className="space-y-3">
                         {BLOOMS_LEVELS.map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
+                          <div
+                            key={level}
+                            className="border border-base-300 rounded-lg p-3"
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="w-24 text-sm font-medium">
+                                {level}
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                className="input input-bordered input-sm w-20"
+                                value={bloomsLevelQuantities[level]}
+                                onChange={(e) =>
+                                  setBloomsLevelQuantities((prev) => ({
+                                    ...prev,
+                                    [level]: parseInt(e.target.value) || 0,
+                                  }))
+                                }
+                              />
+                              <span className="text-xs text-base-content/70">
+                                questions
+                              </span>
+                            </div>
+                            {bloomsLevelQuantities[level] > 0 && (
+                              <div className="form-control">
+                                <input
+                                  type="text"
+                                  className="input input-bordered input-sm"
+                                  placeholder={`Topic for ${level} questions (e.g., Basic concepts, Complex analysis)`}
+                                  value={bloomsLevelTopics[level]}
+                                  onChange={(e) =>
+                                    setBloomsLevelTopics((prev) => ({
+                                      ...prev,
+                                      [level]: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                            )}
+                          </div>
                         ))}
-                      </select>
+                      </div>
+                      <div className="text-xs text-base-content/70 mt-2">
+                        Total:{" "}
+                        {Object.values(bloomsLevelQuantities).reduce(
+                          (sum, qty) => sum + qty,
+                          0
+                        )}{" "}
+                        questions
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-outline"
+                          onClick={() => {
+                            setBloomsLevelQuantities({
+                              Remembering: 2,
+                              Understanding: 2,
+                              Applying: 2,
+                              Analyzing: 1,
+                              Evaluating: 1,
+                              Creating: 1,
+                            });
+                            setBloomsLevelTopics({
+                              Remembering: "Basic concepts and definitions",
+                              Understanding: "Key principles and explanations",
+                              Applying: "Practical applications and examples",
+                              Analyzing: "Complex analysis and comparisons",
+                              Evaluating: "Critical evaluation and judgments",
+                              Creating: "Original solutions and innovations",
+                            });
+                          }}
+                        >
+                          Set Balanced (9)
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-outline"
+                          onClick={() => {
+                            setBloomsLevelQuantities({
+                              Remembering: 0,
+                              Understanding: 0,
+                              Applying: 0,
+                              Analyzing: 0,
+                              Evaluating: 0,
+                              Creating: 0,
+                            });
+                            setBloomsLevelTopics({
+                              Remembering: "",
+                              Understanding: "",
+                              Applying: "",
+                              Analyzing: "",
+                              Evaluating: "",
+                              Creating: "",
+                            });
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      </div>
                     </div>
                     <div className="form-control">
                       <label className="label font-semibold">Upload File</label>
@@ -1481,24 +1912,6 @@ const AddQuestions = () => {
                   </>
                 )}
 
-                <div className="form-control">
-                  <label className="label font-semibold">
-                    How many questions? (1-15)
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={15}
-                    className="input input-bordered w-full bg-base-100"
-                    value={aiNumQuestions}
-                    onChange={(e) =>
-                      setAINumQuestions(
-                        Math.max(1, Math.min(15, Number(e.target.value)))
-                      )
-                    }
-                  />
-                </div>
-
                 {aiError && (
                   <div className="alert alert-error py-2">{aiError}</div>
                 )}
@@ -1532,7 +1945,7 @@ const AddQuestions = () => {
               {aiGeneratedQuestions.length > 0 && (
                 <div className="mt-6">
                   <h3 className="font-semibold mb-2 text-lg text-primary">
-                    Generated Questions
+                    Generated Questions ({aiGeneratedQuestions.length})
                   </h3>
                   <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
                     {aiGeneratedQuestions.map((q, idx) => {
@@ -1540,6 +1953,7 @@ const AddQuestions = () => {
                         Array.isArray(q.choices) && q.choices.length === 4
                           ? q.choices
                           : ["", "", "", ""];
+
                       return (
                         <div
                           key={idx}
@@ -1580,35 +1994,41 @@ const AddQuestions = () => {
                               ))}
                             </select>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                            {choices.map((choice, cidx) => (
-                              <div
-                                key={cidx}
-                                className="flex items-center gap-2"
-                              >
-                                <input
-                                  type="radio"
-                                  name={`ai-correct-${idx}`}
-                                  className="radio radio-primary"
-                                  checked={q.correctAnswer === choice}
-                                  onChange={() => {
-                                    const updated = [...aiGeneratedQuestions];
-                                    updated[idx].correctAnswer = choice;
-                                    setAIGeneratedQuestions(updated);
-                                  }}
-                                />
-                                <input
-                                  className="input input-bordered w-full bg-base-100"
-                                  value={choice}
-                                  onChange={(e) => {
-                                    const updated = [...aiGeneratedQuestions];
-                                    updated[idx].choices = [...choices];
-                                    updated[idx].choices[cidx] = e.target.value;
-                                    setAIGeneratedQuestions(updated);
-                                  }}
-                                />
-                              </div>
-                            ))}
+                          <div className="form-control mb-2">
+                            <label className="label font-semibold">
+                              Answer Choices
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {choices.map((choice, cidx) => (
+                                <div
+                                  key={cidx}
+                                  className="flex items-center gap-2"
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`ai-correct-${idx}`}
+                                    className="radio radio-primary"
+                                    checked={q.correctAnswer === choice}
+                                    onChange={() => {
+                                      const updated = [...aiGeneratedQuestions];
+                                      updated[idx].correctAnswer = choice;
+                                      setAIGeneratedQuestions(updated);
+                                    }}
+                                  />
+                                  <input
+                                    className="input input-bordered w-full bg-base-100"
+                                    value={choice}
+                                    onChange={(e) => {
+                                      const updated = [...aiGeneratedQuestions];
+                                      updated[idx].choices = [...choices];
+                                      updated[idx].choices[cidx] =
+                                        e.target.value;
+                                      setAIGeneratedQuestions(updated);
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       );
@@ -1622,6 +2042,273 @@ const AddQuestions = () => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Upload Modal */}
+      {showBatchUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 backdrop-blur-sm bg-black/40 -z-10"></div>
+          <div className="bg-base-100 rounded-2xl shadow-2xl p-0 w-full max-w-4xl relative overflow-y-auto max-h-[90vh] border border-secondary/30">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-base-200">
+              <div>
+                <h2 className="text-2xl font-bold text-secondary flex items-center gap-2">
+                  <MdUpload className="text-secondary" /> Batch Question Upload
+                </h2>
+                <p className="text-base-content/70 text-sm mt-1">
+                  Upload multiple questions at once using a CSV file. Download
+                  the template to see the required format.
+                </p>
+              </div>
+              <button
+                className="btn btn-ghost btn-circle text-xl"
+                onClick={() => {
+                  setShowBatchUploadModal(false);
+                  setBatchFile(null);
+                  setBatchSubject("");
+                  setBatchBloomsLevel("");
+                  setBatchPreview([]);
+                  setBatchValidationErrors([]);
+                  setBatchError("");
+                  setBatchSuccess("");
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-6 py-4 space-y-6">
+              {/* Template Download Section */}
+              <div className="card bg-base-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg">Download Template</h3>
+                    <p className="text-sm text-base-content/70">
+                      Download the CSV template to see the exact format required
+                      for batch upload.
+                    </p>
+                  </div>
+                  <button
+                    className="btn btn-outline btn-secondary"
+                    onClick={downloadTemplate}
+                  >
+                    <MdDownload className="w-4 h-4 mr-2" />
+                    Download Template
+                  </button>
+                </div>
+              </div>
+
+              {/* Upload Form */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column - Upload Form */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Upload Questions</h3>
+
+                  <div className="form-control">
+                    <label className="label font-semibold">Subject</label>
+                    <select
+                      className="select select-bordered w-full bg-base-100"
+                      value={batchSubject}
+                      onChange={(e) => setBatchSubject(e.target.value)}
+                    >
+                      <option value="">-- Select Subject --</option>
+                      {subjects.map((subject) => (
+                        <option key={subject._id} value={subject._id}>
+                          {subject.subject}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label font-semibold">
+                      Bloom's Taxonomy Level
+                    </label>
+                    <select
+                      className="select select-bordered w-full bg-base-100"
+                      value={batchBloomsLevel}
+                      onChange={(e) => setBatchBloomsLevel(e.target.value)}
+                    >
+                      <option value="">-- Select Level --</option>
+                      {BLOOMS_LEVELS.map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label font-semibold">CSV File</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      className="file-input file-input-bordered w-full bg-base-100"
+                      onChange={handleBatchFileChange}
+                    />
+                    <div className="label">
+                      <span className="label-text-alt text-base-content/70">
+                        Only CSV files are supported
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Alerts */}
+                  {batchError && (
+                    <div className="alert alert-error py-2">
+                      <MdError className="w-4 h-4" />
+                      <span>{batchError}</span>
+                    </div>
+                  )}
+
+                  {batchSuccess && (
+                    <div className="alert alert-success py-2">
+                      <MdCheckCircle className="w-4 h-4" />
+                      <span>{batchSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  <button
+                    className="btn btn-secondary w-full"
+                    onClick={handleBatchUpload}
+                    disabled={
+                      batchLoading ||
+                      !batchFile ||
+                      !batchSubject ||
+                      !batchBloomsLevel ||
+                      batchValidationErrors.length > 0
+                    }
+                  >
+                    {batchLoading ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm"></span>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <MdUpload className="w-4 h-4 mr-2" />
+                        Upload Questions
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Right Column - Preview & Validation */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">
+                    Preview & Validation
+                  </h3>
+
+                  {batchFile && (
+                    <div className="card bg-base-200 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">
+                          File: {batchFile.name}
+                        </span>
+                        <span className="badge badge-outline">
+                          {batchPreview.length} questions
+                        </span>
+                      </div>
+
+                      {batchValidationErrors.length > 0 && (
+                        <div className="alert alert-warning py-2 mb-3">
+                          <MdWarning className="w-4 h-4" />
+                          <div>
+                            <p className="font-medium mb-1">
+                              Validation Errors:
+                            </p>
+                            <ul className="text-xs list-disc list-inside space-y-1">
+                              {batchValidationErrors.map((error, idx) => (
+                                <li key={idx}>{error}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {batchPreview.length > 0 && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {batchPreview.slice(0, 5).map((question, idx) => (
+                            <div
+                              key={idx}
+                              className="card bg-base-100 p-3 shadow-sm"
+                            >
+                              <h4 className="font-medium text-sm mb-2 line-clamp-2">
+                                {question.questionText}
+                              </h4>
+                              <div className="space-y-1">
+                                {question.choices.map((choice, cIdx) => (
+                                  <div
+                                    key={cIdx}
+                                    className="flex items-center gap-2 text-xs"
+                                  >
+                                    <span
+                                      className={`badge badge-xs ${
+                                        question.correctAnswer ===
+                                        `Choice ${String.fromCharCode(
+                                          65 + cIdx
+                                        )}`
+                                          ? "badge-success"
+                                          : "badge-outline"
+                                      }`}
+                                    >
+                                      {String.fromCharCode(65 + cIdx)}
+                                    </span>
+                                    <span className="line-clamp-1">
+                                      {choice}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="badge badge-xs badge-primary">
+                                  {question.bloomsLevel}
+                                </span>
+                                <span className="badge badge-xs badge-secondary">
+                                  {question.correctAnswer}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          {batchPreview.length > 5 && (
+                            <div className="text-center text-sm text-base-content/70">
+                              +{batchPreview.length - 5} more questions...
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Instructions */}
+                  <div className="card bg-base-200 p-4">
+                    <h4 className="font-medium mb-2">
+                      CSV Format Requirements:
+                    </h4>
+                    <ul className="text-sm text-base-content/70 space-y-1 list-disc list-inside">
+                      <li>First row must contain headers</li>
+                      <li>
+                        7 columns: Question Text, Choice A, Choice B, Choice C,
+                        Choice D, Correct Answer, Bloom's Level
+                      </li>
+                      <li>
+                        Correct Answer must be exactly: "Choice A", "Choice B",
+                        "Choice C", or "Choice D"
+                      </li>
+                      <li>
+                        Bloom's Level must be one of: {BLOOMS_LEVELS.join(", ")}
+                      </li>
+                      <li>All fields are required</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
