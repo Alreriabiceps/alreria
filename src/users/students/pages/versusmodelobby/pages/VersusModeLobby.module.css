@@ -7,8 +7,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Montserrat:wght@400;600;700&display=swap");
 
 /* ==========================================================================
-     CSS Variables (Scoped to Container) - Dashboard Aligned
-     ========================================================================== */
+    CSS Variables (Scoped to Container) - Dashboard Aligned Theme
+    ========================================================================== */
 .pvpContainer {
   /* Dashboard Theme Variables */
   --dbz-orange: #f39c12;
@@ -47,7 +47,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 15px 40px 15px; /* Reduced top/bottom padding (from 25px/50px) */
+  padding: 20px 15px 40px 15px;
   font-family: var(--font-body);
   background-color: var(--blueprint-bg); /* Match dashboard background */
   background-image: none; /* Plain background */
@@ -58,6 +58,10 @@
   opacity: 1; /* Ensure visible, as old animation had opacity 0 start */
   overflow-x: hidden;
 }
+
+/* ==========================================================================
+    Animations & Keyframes - Dashboard Aligned
+    ========================================================================== */
 
 @keyframes powerUpBg {
   /* Match dashboard animation */
@@ -71,19 +75,110 @@
   }
 }
 
+@keyframes titleSmash {
+  0% {
+    opacity: 0;
+    transform: scale(1.5) translateY(-20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* ==========================================================================
-     Header Section - New Layout
+    Layout Structure
+    ========================================================================== */
+
+.backgroundEffects {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.contentWrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.gameContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--shadow-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--shadow-glow), 0 0 60px var(--shadow-glow);
+  }
+}
+
+/* ==========================================================================
+     Header Section - Dashboard Style
      ========================================================================== */
 
 .header {
   width: 100%;
-  max-width: 1200px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 30px;
   gap: 20px;
   flex-wrap: wrap;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .titleSection {
@@ -111,21 +206,6 @@
   font-size: 3rem;
   color: var(--blueprint-accent);
   filter: drop-shadow(0 0 10px var(--blueprint-accent));
-}
-
-@keyframes titleSmash {
-  0% {
-    opacity: 0;
-    transform: scale(1.5) translateY(-20px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(0.9) translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .pageSubtitle {
@@ -180,7 +260,7 @@
 }
 
 /* ==========================================================================
-     Error and Warning Banners
+     Error and Warning Banners - Dashboard Style
      ========================================================================== */
 
 .errorBanner,
@@ -277,170 +357,239 @@
 }
 
 /* ==========================================================================
-     Quick Actions Bar
+     Quick Actions Bar - Dashboard Style
      ========================================================================== */
 
-.quickActions {
+.quickActionsContainer {
   width: 100%;
   max-width: 1200px;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.6s backwards;
 }
 
-.quickActionBtn {
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.primaryActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.actionCard {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: 2px solid;
-  border-radius: 8px;
+  gap: 16px;
+  padding: 20px 24px;
   background: var(--blueprint-panel-bg);
-  color: var(--blueprint-text);
-  font-family: var(--font-header);
-  font-size: 1rem;
-  font-weight: 600;
+  border: 2px solid var(--blueprint-panel-border);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-align: left;
   backdrop-filter: blur(3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px var(--blueprint-shadow);
 }
 
-.quickActionBtn:hover:not(:disabled) {
+.actionCard:hover:not(:disabled) {
+  border-color: var(--blueprint-accent);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.quickActionBtn:disabled {
+.actionCard:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
-.createBtn {
-  border-color: var(--dbz-blue);
-  color: var(--dbz-blue);
+.actionIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
-.createBtn:hover:not(:disabled) {
+.actionContent {
+  flex: 1;
+}
+
+.actionContent h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--blueprint-text);
+  font-family: var(--font-header);
+  letter-spacing: 1px;
+}
+
+.actionContent p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  font-family: var(--font-accent);
+}
+
+/* Create Button Styles */
+.createBtn .actionIcon {
   background: var(--dbz-blue);
   color: white;
 }
 
-.queueBtn {
-  border-color: var(--blueprint-accent);
-  color: var(--blueprint-accent);
+.createBtn:hover:not(:disabled) .actionIcon {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  transform: scale(1.1);
 }
 
-.queueBtn:hover:not(:disabled) {
+/* Queue Button Styles */
+.queueBtn .actionIcon {
   background: var(--blueprint-accent);
   color: var(--blueprint-accent-text-dark);
 }
 
-.inviteBtn {
-  border-color: var(--dbz-orange);
-  color: var(--dbz-orange);
-}
-
-.inviteBtn:hover:not(:disabled) {
+.queueBtn:hover:not(:disabled) .actionIcon {
   background: var(--dbz-orange);
   color: white;
+  transform: scale(1.1);
 }
 
-.inviteSection {
-  flex: 1;
-  min-width: 300px;
+.queueBtn.active {
+  border-color: var(--dbz-red);
 }
 
-.inviteForm {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.inviteInput {
-  flex: 1;
-  padding: 12px 16px;
-  border: 2px solid var(--blueprint-panel-border);
-  border-radius: 8px;
-  background: var(--blueprint-panel-bg);
-  color: var(--blueprint-text);
-  font-size: 0.95rem;
-  backdrop-filter: blur(3px);
-  transition: all 0.2s ease;
-}
-
-.inviteInput:focus {
-  outline: none;
-  border-color: var(--dbz-orange);
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
-}
-
-.inviteInput::placeholder {
-  color: var(--blueprint-text);
-  opacity: 0.6;
+.queueBtn.active .actionIcon {
+  background: var(--dbz-red);
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* ==========================================================================
      Main Content Area
      ========================================================================== */
 
+/* ==========================================================================
+     Main Content Area - Dashboard Layout
+     ========================================================================== */
+
 .mainContent {
   width: 100%;
   max-width: 1200px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 30px;
-  align-items: start;
+  animation: fadeInUp 1s ease-out 0.8s backwards;
 }
 
-.lobbySection {
+.lobbyBrowser {
   background: var(--blueprint-panel-bg);
   border: 2px solid var(--blueprint-panel-border);
   border-radius: 12px;
   padding: 25px;
   backdrop-filter: blur(3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
-.sectionHeader {
+/* Browser Header */
+.browserHeader {
+  margin-bottom: 25px;
+}
+
+.headerContent {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
+  align-items: flex-start;
+  margin-bottom: 20px;
   gap: 20px;
   flex-wrap: wrap;
 }
 
-.sectionTitle {
+.titleSection {
+  flex: 1;
+  min-width: 300px;
+}
+
+.browserTitle {
   font-family: var(--font-header);
   font-size: 1.8rem;
   color: var(--blueprint-accent);
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0;
+  margin: 0 0 8px 0;
   text-shadow: 2px 2px 0 var(--dbz-black);
 }
 
-.lobbyControls {
+.titleIcon {
+  font-size: 1.3em;
+  color: var(--blueprint-accent);
+}
+
+.browserSubtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  font-family: var(--font-accent);
+  opacity: 0.8;
+}
+
+.headerStats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lobbyCount {
+  padding: 6px 12px;
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Search Controls */
+.searchControls {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--blueprint-text);
+  opacity: 0.6;
+  font-size: 1rem;
+  z-index: 2;
 }
 
 .searchInput {
-  padding: 10px 16px;
+  width: 100%;
+  padding: 10px 16px 10px 48px;
   border: 2px solid var(--blueprint-panel-border);
   border-radius: 8px;
   background: var(--dbz-dark-gray);
   color: var(--blueprint-text);
   font-size: 0.9rem;
-  min-width: 250px;
   transition: all 0.2s ease;
 }
 
@@ -450,8 +599,14 @@
   box-shadow: 0 0 0 3px rgba(241, 196, 15, 0.1);
 }
 
+.searchInput::placeholder {
+  color: var(--blueprint-text);
+  opacity: 0.6;
+}
+
 .refreshBtn {
-  padding: 10px;
+  width: 40px;
+  height: 40px;
   border: 2px solid var(--blueprint-panel-border);
   border-radius: 8px;
   background: var(--blueprint-panel-bg);
@@ -461,6 +616,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .refreshBtn:hover:not(:disabled) {
@@ -473,6 +629,11 @@
      Lobby Grid and Cards
      ========================================================================== */
 
+/* Lobby Container and Grid */
+.lobbyContainer {
+  margin-top: 20px;
+}
+
 .lobbyGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -480,6 +641,7 @@
   margin-bottom: 25px;
 }
 
+/* Loading and Empty States */
 .loadingState,
 .emptyState {
   grid-column: 1 / -1;
@@ -493,19 +655,21 @@
   opacity: 0.8;
 }
 
-.loadingState svg,
-.emptyState svg {
+.loadingSpinner svg,
+.emptyIcon svg {
   font-size: 3rem;
   margin-bottom: 15px;
   color: var(--blueprint-accent);
 }
 
+.loadingState h3,
 .emptyState h3 {
   margin: 0 0 10px 0;
   font-size: 1.3rem;
   color: var(--blueprint-text);
 }
 
+.loadingState p,
 .emptyState p {
   margin: 0;
   font-size: 0.95rem;
@@ -513,6 +677,7 @@
   max-width: 400px;
 }
 
+/* Dashboard-Style Lobby Cards */
 .lobbyCard {
   background: var(--dbz-dark-gray);
   border: 2px solid var(--blueprint-panel-border);
@@ -550,12 +715,21 @@
   opacity: 1;
 }
 
-.lobbyHeader {
+/* Card Header */
+.cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 15px;
   gap: 10px;
+}
+
+.lobbyTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .lobbyName {
@@ -581,15 +755,49 @@
   flex-shrink: 0;
 }
 
-.lobbyInfo {
+.lobbyStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blueprint-accent);
+  box-shadow: 0 0 12px var(--blueprint-accent);
+}
+
+.statusDot.online {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--blueprint-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-accent);
+}
+
+/* Card Body */
+.cardBody {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 20px;
 }
 
-.lobbyHost,
-.lobbyPlayers {
+.lobbyDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hostInfo,
+.playersInfo {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -597,20 +805,48 @@
   font-size: 0.9rem;
 }
 
-.lobbyHost svg,
-.lobbyPlayers svg {
+.hostIcon,
+.playersIcon {
   color: var(--blueprint-accent);
   font-size: 1rem;
 }
 
-.lobbyActions {
+.hostDetails,
+.playersDetails {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hostLabel,
+.playersLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.hostName,
+.playersCount {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--blueprint-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Footer */
+.cardFooter {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
 }
 
-.joinBtn,
-.deleteBtn {
+.actionBtn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -661,134 +897,85 @@
      Pagination
      ========================================================================== */
 
+.paginationWrapper {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-secondary);
+}
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
-  margin-top: 20px;
-  padding: 20px 0;
-  border-top: 1px solid var(--blueprint-panel-border);
+  gap: 24px;
 }
 
 .pageBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 2px solid var(--blueprint-panel-border);
-  border-radius: 8px;
-  background: var(--blueprint-panel-bg);
-  color: var(--blueprint-text);
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
 }
 
 .pageBtn:hover:not(:disabled) {
-  border-color: var(--blueprint-accent);
-  color: var(--blueprint-accent);
-  transform: scale(1.1);
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-2px);
 }
 
 .pageBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.pageInfo {
-  font-size: 0.9rem;
-  color: var(--blueprint-text);
-  font-weight: 500;
-}
-
-/* ==========================================================================
-     Active Lobby Sidebar
-     ========================================================================== */
-
-.activeLobby {
-  width: 300px;
-  background: var(--blueprint-panel-bg);
-  border: 2px solid var(--blueprint-accent);
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  position: sticky;
-  top: 20px;
-}
-
-.activeLobbyHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.activeLobbyHeader h3 {
-  margin: 0;
-  font-family: var(--font-header);
-  font-size: 1.2rem;
-  color: var(--blueprint-accent);
-  text-shadow: 1px 1px 0 var(--dbz-black);
-}
-
-.statusBadge {
-  padding: 4px 8px;
-  background: var(--dbz-blue);
-  color: white;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.activeLobbyInfo {
-  margin-bottom: 20px;
-}
-
-.activeLobbyInfo p {
-  margin: 8px 0;
-  color: var(--blueprint-text);
-  font-size: 0.9rem;
-}
-
-.activeLobbyInfo strong {
-  color: var(--blueprint-accent);
-}
-
-.deleteLobbyBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--dbz-red);
-  border: 2px solid var(--dbz-red);
-  border-radius: 8px;
-  color: white;
-  font-family: var(--font-header);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.deleteLobbyBtn:hover:not(:disabled) {
-  background: #c82333;
-  border-color: #c82333;
-  transform: scale(1.02);
-}
-
-.deleteLobbyBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.pageBtn svg {
+  font-size: 0.8rem;
+}
+
+.prevBtn svg {
+  margin-right: 2px;
+}
+
+.nextBtn svg {
+  margin-left: 2px;
+}
+
+.pageInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.currentPage {
+  padding: 8px 12px;
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: 8px;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+}
+
+.pageSeparator {
+  color: var(--text-muted);
+}
+
+.totalPages {
+  color: var(--text-secondary);
 }
 
 /* ==========================================================================
@@ -910,11 +1097,7 @@
 .gameButton {
   composes: themedButton;
 }
-.inviteButton {
-  composes: themedButton;
-  font-size: 1rem;
-  padding: 8px 20px;
-} /* Example of customization */
+/* Example of customization */
 .createButton {
   composes: themedButton;
 }
@@ -1017,55 +1200,11 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25),
     0 0 8px var(--blueprint-accent); /* Glow effect */
 }
-/* Apply .textInputBase to specific inputs */
-.inviteInput {
-  composes: textInputBase;
-}
 .lobbySearchInput {
   composes: textInputBase;
 }
 .modalInput {
   composes: textInputBase;
-}
-
-/* ==========================================================================
-     Invite Friend Panel
-     ========================================================================== */
-
-.inviteForm {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  flex-grow: 1;
-}
-
-.inviteInput:focus {
-  border: 2px solid #ff6961 !important;
-  background: #fff0c2 !important;
-  box-shadow: 0 0 0 4px #ffb34744, 0 2px 12px 0 #ffb34722 !important;
-}
-
-.inviteInput:hover:not(:focus) {
-  background: #fff0c2 !important;
-  border: 2px solid #ffb347 !important;
-  box-shadow: 0 4px 16px 0 #ffb34733 !important;
-}
-
-.inviteInput::placeholder {
-  color: #a88a5a !important;
-  font-size: 1.08rem !important;
-  opacity: 1 !important;
-  font-family: var(--font-body) !important;
-  letter-spacing: 0.5px !important;
-}
-
-.inviteButton {
-  composes: gameButton;
-  align-self: flex-start;
-  margin-top: auto; /* Push to bottom */
-  animation: fadeInUpPop 1.1s cubic-bezier(0.4, 0, 0.2, 1) 0.36s both;
-  opacity: 0;
-  display: inline-block;
 }
 
 /* ==========================================================================
@@ -1523,6 +1662,36 @@
 .proceedButton:active {
   transform: translateY(0);
   box-shadow: 2px 2px 0 0 var(--blueprint-shadow);
+}
+
+.autoJoinMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(
+    135deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  );
+  color: var(--blueprint-accent-text-dark);
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
 }
 
 .modalOverlay {
@@ -2030,18 +2199,38 @@
     align-items: stretch;
   }
 
-  .inviteSection {
-    min-width: auto;
-  }
-
-  .mainContent {
+  .primaryActions {
     grid-template-columns: 1fr;
-    gap: 25px;
+    gap: 15px;
   }
 
-  .activeLobby {
-    width: 100%;
-    position: static;
+  .actionCard {
+    padding: 16px 20px;
+  }
+
+  .searchControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .searchWrapper {
+    min-width: auto;
+    max-width: none;
+  }
+
+  .contentWrapper {
+    padding: 16px;
+  }
+
+  .lobbyBrowser {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .lobbyGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .lobbyGrid {
@@ -2143,11 +2332,6 @@
     padding: 10px 16px;
   }
 
-  .inviteInput {
-    font-size: 0.9rem;
-    padding: 10px 14px;
-  }
-
   .searchInput {
     min-width: 200px;
     font-size: 0.85rem;
@@ -2243,7 +2427,6 @@
     letter-spacing: 1px;
   }
   /* Specific button overrides if needed */
-  .inviteButton,
   .queueButton,
   .createButton {
     font-size: 0.9rem;
@@ -2293,7 +2476,7 @@
   }
 
   .pageTitle {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     letter-spacing: 1.5px;
     flex-direction: column;
     gap: 8px;
@@ -2312,20 +2495,13 @@
     gap: 10px;
   }
 
-  .quickActionBtn {
-    font-size: 0.8rem;
-    padding: 8px 12px;
-    letter-spacing: 0.5px;
+  .actionCard {
+    padding: 12px 16px;
   }
 
-  .inviteForm {
+  .inputWrapper {
     flex-direction: column;
     gap: 8px;
-  }
-
-  .inviteInput {
-    font-size: 0.85rem;
-    padding: 8px 12px;
   }
 
   .searchInput {
@@ -2382,7 +2558,6 @@
   }
 
   .textInputBase,
-  .inviteInput,
   .modalInput,
   .lobbySearchInput {
     font-size: 0.8rem;
@@ -2404,7 +2579,6 @@
   }
 
   .themedButton,
-  .inviteButton,
   .createButton,
   .queueButton,
   .cancelQueueButton,
@@ -2660,7 +2834,6 @@
 
 /* Staggered buttons inside panels */
 .panel .gameButton,
-.panel .inviteButton,
 .panel .createButton,
 .panel .queueButton,
 .panel .cancelQueueButton {
@@ -2669,21 +2842,18 @@
   opacity: 0;
 }
 .panel .gameButton:nth-child(1),
-.panel .inviteButton:nth-child(1),
 .panel .createButton:nth-child(1),
 .panel .queueButton:nth-child(1),
 .panel .cancelQueueButton:nth-child(1) {
   --button-delay: 0.25s;
 }
 .panel .gameButton:nth-child(2),
-.panel .inviteButton:nth-child(2),
 .panel .createButton:nth-child(2),
 .panel .queueButton:nth-child(2),
 .panel .cancelQueueButton:nth-child(2) {
   --button-delay: 0.38s;
 }
 .panel .gameButton:nth-child(3),
-.panel .inviteButton:nth-child(3),
 .panel .createButton:nth-child(3),
 .panel .queueButton:nth-child(3),
 .panel .cancelQueueButton:nth-child(3) {

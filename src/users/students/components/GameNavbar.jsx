@@ -15,7 +15,6 @@ import {
   FaVolumeMute,
   FaBookOpen,
   FaUserNinja,
-  FaDice,
 } from "react-icons/fa";
 import {
   GiCrossedSwords,
@@ -37,7 +36,6 @@ const Icons = {
   MenuClose: <FaTimes />,
   Mute: <FaVolumeUp />,
   Unmute: <FaVolumeMute />,
-  MtgDemo: <FaDice />,
 };
 
 const MUSIC_MAP = {
@@ -258,10 +256,6 @@ const GameNavbar = () => {
         )}{" "}
         Reviewers
       </NavLink>
-      <NavLink to="/student/demo" className={navLinkClass} onClick={closeMenus}>
-        {isMobile && <span className={styles.panelIcon}>{Icons.MtgDemo}</span>}{" "}
-        Demo
-      </NavLink>
       <NavLink
         to="/student/ranking"
         className={navLinkClass}
@@ -283,14 +277,6 @@ const GameNavbar = () => {
           <span className={styles.panelIcon}>{Icons.PartyQueue}</span>
         )}{" "}
         Messenger
-      </NavLink>
-      <NavLink
-        to="/student/mtg-demo"
-        className={navLinkClass}
-        onClick={closeMenus}
-      >
-        {isMobile && <span className={styles.panelIcon}>{Icons.MtgDemo}</span>}{" "}
-        MTG Demo
       </NavLink>
       <NavLink
         to="/student/profile"

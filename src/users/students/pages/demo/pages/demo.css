@@ -208,13 +208,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(0, 0, 0, 0.8);
+  gap: 10px;
+  padding: 16px 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 35, 50, 0.95) 0%,
+    rgba(30, 50, 70, 0.95) 100%
+  );
   border: 2px solid var(--field-border);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  min-width: 200px;
+  border-radius: 16px;
+  backdrop-filter: blur(15px);
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(74, 144, 226, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.playerInfo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(74, 144, 226, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Special styling for current player */
+.myPlayerInfo {
+  border-color: var(--legendary-gold);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(236, 201, 75, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.myPlayerInfo:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(236, 201, 75, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Special styling for opponent */
+.opponentInfo {
+  border-color: var(--field-border);
+}
+
+.opponentInfo .playerName {
+  color: var(--text-primary);
+  text-shadow: 0 0 10px var(--text-primary), 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .playerZone.topPlayer .playerInfo {
@@ -231,12 +266,78 @@
 
 .playerName {
   font-family: var(--font-header);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--legendary-gold);
-  text-shadow: 0 0 10px var(--legendary-gold);
+  text-shadow: 0 0 15px var(--legendary-gold), 2px 2px 4px rgba(0, 0, 0, 0.8);
   margin: 0;
-  text-align: center;
   letter-spacing: 1px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.playerRole {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-top: -2px;
+}
+
+.playerStats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(20, 30, 40, 0.7) 100%
+  );
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  min-width: 90px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.statItem:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(30, 40, 50, 0.8) 100%
+  );
+  border-color: var(--field-glow);
+}
+
+.statLabel {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-family: var(--font-accent);
+  font-size: 1rem;
+  color: var(--legendary-gold);
+  font-weight: 700;
+  text-shadow: 0 0 8px var(--legendary-gold);
+  min-width: 20px;
+  text-align: right;
 }
 
 /* HP Bar */
@@ -475,32 +576,66 @@
 
 /* Card Styles */
 .gameCard {
-  width: 150px;
-  height: 220px;
-  background: linear-gradient(145deg, #2d3748, #1a202c);
+  width: 160px;
+  height: 240px;
+  background: linear-gradient(135deg, #1a202c, #0f1419);
   border: 2px solid var(--card-border);
-  border-radius: 15px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 2, 0.6, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  margin: 6px;
+  backdrop-filter: blur(10px);
+  margin: 8px;
+}
+
+/* Modern Card Styling */
+.gameCard.modernCard {
+  background: linear-gradient(
+    135deg,
+    rgba(20, 30, 40, 0.95),
+    rgba(10, 15, 25, 0.98)
+  );
+  border: 2px solid transparent;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.gameCard.modernCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 14px;
+  padding: 2px;
+  background: linear-gradient(135deg, currentColor, transparent, currentColor);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0.6;
 }
 
 .gameCard:hover {
   z-index: 10;
-  transform: translateY(-14px) scale(1.08);
-  box-shadow: 0 0 32px 0 currentColor, 0 8px 32px 0 rgba(0, 0, 0, 0.35),
+  transform: translateY(-16px) scale(1.05);
+  box-shadow: 0 0 40px 0 currentColor, 0 12px 40px 0 rgba(0, 0, 0, 0.4),
     0 0 0 4px var(--card-glow, #fff2);
   border-width: 2.5px;
   filter: brightness(1.08) saturate(1.2);
   outline: none;
+}
+
+.gameCard.modernCard:hover {
+  transform: translateY(-18px) scale(1.08);
+  box-shadow: 0 0 50px 0 currentColor, 0 16px 50px 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .gameCard.selected {
@@ -530,7 +665,7 @@
   padding: 12px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -561,42 +696,140 @@
   text-shadow: 0 0 8px currentColor;
 }
 
+/* Modern Card Components */
+.bloomBadge {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: currentColor;
+  color: #1a202c;
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.bloomBadge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.6s;
+}
+
+.gameCard:hover .bloomBadge::before {
+  left: 100%;
+}
+
+.damageIcon {
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 4px currentColor);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.damageValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-accent);
+  font-weight: 700;
+}
+
+.damageNumber {
+  font-size: 1.1rem;
+  text-shadow: 0 0 8px currentColor;
+}
+
+.damageValue .damageIcon {
+  font-size: 1rem;
+}
+
+.subjectText {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  opacity: 0.9;
+}
+
+.bloomLevelText {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px currentColor;
+}
+
 /* Card Content */
 .cardContent {
   flex: 1 1 auto;
-  padding: 12px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 .cardQuestion {
-  font-size: 0.85rem;
-  line-height: 1.3;
+  font-size: 0.9rem;
+  line-height: 1.4;
   color: var(--text-primary);
   text-align: center;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  font-weight: 500;
+  margin: 0;
+}
+
+.cardDescription {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cardFooter {
   width: 100%;
-  padding: 8px 0 6px 0;
+  padding: 12px 16px;
   font-family: var(--font-accent);
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.1);
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px currentColor;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.2));
+  position: relative;
+  z-index: 2;
 }
 
 /* Power-ups Panel */
@@ -1398,6 +1631,7 @@
   .cardQuestion {
     font-size: 0.7rem;
     -webkit-line-clamp: 4;
+    line-clamp: 4;
   }
 
   .bloomType {
@@ -2183,31 +2417,116 @@
 
 /* Mobile Responsive Styles for Modals */
 @media (max-width: 768px) {
+  /* Question Modal - Mobile */
+  .questionModalOverlay {
+    padding: 10px;
+  }
+
   .questionModal {
     width: 95vw;
     max-width: 95vw;
     padding: 15px;
-    max-height: 80vh;
+    max-height: 85vh;
+    border-radius: 12px;
   }
 
   .questionModalHeader {
     margin-bottom: 12px;
     padding-bottom: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .questionModalTitle {
     font-size: 1.1rem;
     gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
+  .bloomLevel {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .damageValue {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .closeButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+
+  .questionModalContent {
+    padding: 0;
+  }
+
+  .questionText {
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+
+  .choicesContainer {
+    gap: 8px;
+  }
+
+  .choiceButton {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    min-height: 48px;
+  }
+
+  .choiceButton:hover {
+    transform: translateY(-2px);
+  }
+
+  .submitButton {
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 8px;
+    margin-top: 16px;
+  }
+
+  /* Result Section - Mobile */
   .resultSection {
     padding: 12px 0;
   }
 
   .resultMessage {
     padding: 12px;
+    border-radius: 8px;
   }
 
+  .resultMessage.correct {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .resultMessage.incorrect {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .answer-section,
+  .correct-answer-section {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  /* Quick Result Popup - Mobile */
   .quick-result-popup {
     top: 10px;
     right: 10px;
@@ -2215,6 +2534,7 @@
     width: auto;
     max-width: none;
     transform: translateY(-100%);
+    border-radius: 8px;
   }
 
   .quick-result-popup.show {
@@ -2248,20 +2568,25 @@
   .question-info {
     margin-bottom: 10px;
   }
-
-  .answer-section,
-  .correct-answer-section {
-    margin-bottom: 10px;
-    padding: 10px;
-  }
 }
 
 @media (max-width: 480px) {
+  /* Question Modal - Extra Small Mobile */
+  .questionModalOverlay {
+    padding: 5px;
+  }
+
   .questionModal {
     width: 98vw;
     max-width: 98vw;
     padding: 12px;
-    max-height: 85vh;
+    max-height: 90vh;
+    border-radius: 8px;
+  }
+
+  .questionModalHeader {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
   }
 
   .questionModalTitle {
@@ -2269,8 +2594,49 @@
     gap: 8px;
   }
 
+  .bloomLevel {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+
+  .damageValue {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+
+  .closeButton {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .questionText {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin-bottom: 16px;
+  }
+
+  .choicesContainer {
+    gap: 6px;
+  }
+
+  .choiceButton {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    min-height: 44px;
+  }
+
+  .submitButton {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    margin-top: 12px;
+  }
+
   .resultMessage {
     padding: 10px;
+    border-radius: 6px;
   }
 
   .popup-content {
@@ -2290,6 +2656,127 @@
   .answer-section,
   .correct-answer-section {
     padding: 8px;
+    border-radius: 4px;
+  }
+}
+
+/* ========================================
+   MOBILE TOUCH INTERACTIONS & UX
+   ======================================== */
+
+/* Touch-friendly interactions */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  .gameCard {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  .choiceButton {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .submitButton {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .closeButton {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Disable text selection on interactive elements */
+  .gameCard,
+  .choiceButton,
+  .submitButton,
+  .closeButton {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scrolling for card hands */
+  .cardHand {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent zoom on double tap */
+  .gameCard:active {
+    transform: scale(0.98);
+  }
+
+  .choiceButton:active {
+    transform: scale(0.98);
+  }
+
+  .submitButton:active {
+    transform: scale(0.98);
+  }
+
+  /* Better focus states for accessibility */
+  .gameCard:focus,
+  .choiceButton:focus,
+  .submitButton:focus {
+    outline: 2px solid var(--legendary-gold);
+    outline-offset: 2px;
+  }
+
+  /* Improved modal backdrop for mobile */
+  .questionModalOverlay {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  /* Prevent body scroll when modal is open */
+  .modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Reduce animations on mobile for better performance */
+  .gameCard {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .gameCard:hover {
+    transition: none;
+  }
+
+  .gameCard.modernCard:hover {
+    transition: none;
+  }
+
+  /* Optimize text rendering */
+  .cardQuestion,
+  .questionText,
+  .playerName {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Reduce repaints */
+  .gameCard,
+  .playerInfo,
+  .battleField {
+    will-change: transform;
+  }
+
+  /* Optimize backdrop filters for mobile */
+  .playerInfo,
+  .questionModal,
+  .gameStatusBar {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }
 

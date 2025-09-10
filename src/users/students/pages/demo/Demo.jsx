@@ -1,9 +1,16 @@
 // React and routing imports
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useLocation } from "react-router-dom";
 
 // CSS imports
 import "./pages/demo.css";
+import "./pages/mobile.css";
 
 // Icon imports
 import { FaDice } from "react-icons/fa";
@@ -14,39 +21,247 @@ import FloatingStars from "../../components/FloatingStars/FloatingStars";
 
 // Contexts and hooks
 import { useAuth } from "../../../../contexts/AuthContext";
-import useSocket from "../../../../shared/hooks/useSocket";
+import socketManager from "../../../../shared/utils/socketManager";
+
+// Performance utilities
+import LoadTester from "../../../../utils/loadTesting";
+import MemoryProfiler from "../../../../utils/memoryProfiler";
+import NetworkOptimizer from "../../../../utils/networkOptimizer";
+import IntelligentCache from "../../../../utils/intelligentCache";
+import BundleOptimizer from "../../../../utils/bundleOptimizer";
 
 // Import custom hooks and components
 import { QuestionModal, VictoryModal, BattleField } from "./components";
 import QuickResultPopup from "./components/QuickResultPopup";
+
+// Mobile detection hook
+const useMobileDetection = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      const touch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      setIsMobile(mobile);
+      setIsTouch(touch);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return { isMobile, isTouch };
+};
 
 // Main Demo Component - REAL-TIME PVP MODE
 const Demo = () => {
   // Extract game data from location state (passed from VersusModeLobby)
   const location = useLocation();
   const { user } = useAuth();
-  const socketRef = useSocket();
+  const socketRef = useRef(null);
+  const { isMobile } = useMobileDetection();
 
   // Game initialization data from lobby
   const gameData = location.state || {};
   const {
     gameId,
     players: lobbyPlayers = [],
-    roomId,
+    roomId: initialRoomId,
     gameMode = "demo",
     lobbyId,
   } = gameData;
 
+  // Room ID state that can be updated
+  const [roomId, setRoomId] = useState(
+    initialRoomId || localStorage.getItem("currentGameRoomId")
+  );
+
+  // Debug roomId on component mount
+  useEffect(() => {
+    console.log("🔍 RoomId debug:", {
+      initialRoomId,
+      localStorageRoomId: localStorage.getItem("currentGameRoomId"),
+      finalRoomId: roomId,
+      hasRoomId: !!roomId,
+    });
+  }, [initialRoomId, roomId]);
+
   // Real-time game state
   const [gameState, setGameState] = useState("initializing"); // initializing, playing, finished
+
+  // Save roomId to localStorage when it changes
+  useEffect(() => {
+    if (roomId) {
+      localStorage.setItem("currentGameRoomId", roomId);
+    }
+  }, [roomId]);
+
+  // Clear localStorage when game ends
+  useEffect(() => {
+    if (gameState === "finished") {
+      localStorage.removeItem("currentGameRoomId");
+    }
+  }, [gameState]);
   const [gamePhase, setGamePhase] = useState("setup"); // setup, cardSelection, answering, result
   const [currentTurnUserId, setCurrentTurnUserId] = useState(null);
   const [players, setPlayers] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(null); // null = unknown, true = connected, false = disconnected
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [questionPhase, setQuestionPhase] = useState(false);
   const [winner, setWinner] = useState(null);
   const [error, setError] = useState(null);
+
+  // Error handling and reconnection state
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [connectionLost, setConnectionLost] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Performance optimization: debounce timer refs
+  const gameStateUpdateTimeoutRef = useRef(null);
+  const playerUpdateTimeoutRef = useRef(null);
+
+  // Performance monitoring
+  const renderCountRef = useRef(0);
+  const lastRenderTimeRef = useRef(Date.now());
+  const loadTesterRef = useRef(null);
+  const memoryProfilerRef = useRef(null);
+  const networkOptimizerRef = useRef(null);
+  const intelligentCacheRef = useRef(null);
+  const bundleOptimizerRef = useRef(null);
+
+  // Track render performance
+  useEffect(() => {
+    renderCountRef.current += 1;
+    const now = Date.now();
+    const timeSinceLastRender = now - lastRenderTimeRef.current;
+    lastRenderTimeRef.current = now;
+
+    if (renderCountRef.current > 1) {
+      console.log(
+        `🔄 Demo render #${renderCountRef.current} (${timeSinceLastRender}ms since last render)`
+      );
+    }
+  });
+
+  // Initialize performance monitoring tools
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.location.hostname === "localhost"
+    ) {
+      // Initialize load tester
+      loadTesterRef.current = new LoadTester();
+      loadTesterRef.current.startMemoryMonitoring();
+
+      // Initialize memory profiler
+      memoryProfilerRef.current = new MemoryProfiler();
+      memoryProfilerRef.current.startMonitoring(3000); // Check every 3 seconds
+
+      // Initialize network optimizer
+      networkOptimizerRef.current = new NetworkOptimizer();
+      if (socketRef.current) {
+        networkOptimizerRef.current.initialize(socketRef.current);
+        networkOptimizerRef.current.optimizeGameEvents();
+      }
+
+      // Initialize intelligent cache
+      intelligentCacheRef.current = new IntelligentCache({
+        maxSize: 200,
+        defaultTTL: 300000, // 5 minutes
+        cleanupInterval: 30000, // 30 seconds
+      });
+
+      // Initialize bundle optimizer
+      bundleOptimizerRef.current = new BundleOptimizer();
+      bundleOptimizerRef.current.initialize();
+      bundleOptimizerRef.current.preloadCriticalResources();
+      bundleOptimizerRef.current.monitorPerformance();
+
+      // Add development controls to window
+      window.startLoadTest = (count = 10) => {
+        loadTesterRef.current.simulatePlayers(count);
+      };
+
+      window.startMemoryProfiling = () => {
+        memoryProfilerRef.current.startMonitoring();
+      };
+
+      window.stopMemoryProfiling = () => {
+        memoryProfilerRef.current.stopMonitoring();
+      };
+
+      window.getMemoryStats = () => {
+        return memoryProfilerRef.current.getStats();
+      };
+
+      window.getNetworkStats = () => {
+        return networkOptimizerRef.current.getStats();
+      };
+
+      window.generateNetworkReport = () => {
+        networkOptimizerRef.current.generateReport();
+      };
+
+      window.getCacheStats = () => {
+        return intelligentCacheRef.current.getStats();
+      };
+
+      window.generateCacheReport = () => {
+        intelligentCacheRef.current.generateReport();
+      };
+
+      window.clearCache = () => {
+        intelligentCacheRef.current.clear();
+      };
+
+      window.getBundleStats = () => {
+        return bundleOptimizerRef.current.getStats();
+      };
+
+      window.generateBundleReport = () => {
+        bundleOptimizerRef.current.generateReport();
+      };
+
+      window.optimizeBundle = () => {
+        bundleOptimizerRef.current.analyzeBundle();
+      };
+
+      console.log("🧪 Performance tools available:");
+      console.log("  - window.startLoadTest(10)");
+      console.log("  - window.startMemoryProfiling()");
+      console.log("  - window.stopMemoryProfiling()");
+      console.log("  - window.getMemoryStats()");
+      console.log("  - window.getNetworkStats()");
+      console.log("  - window.generateNetworkReport()");
+      console.log("  - window.getCacheStats()");
+      console.log("  - window.generateCacheReport()");
+      console.log("  - window.clearCache()");
+      console.log("  - window.getBundleStats()");
+      console.log("  - window.generateBundleReport()");
+      console.log("  - window.optimizeBundle()");
+    }
+
+    return () => {
+      if (loadTesterRef.current) {
+        loadTesterRef.current.cleanup();
+      }
+      if (memoryProfilerRef.current) {
+        memoryProfilerRef.current.cleanup();
+      }
+      if (networkOptimizerRef.current) {
+        networkOptimizerRef.current.cleanup();
+      }
+      if (intelligentCacheRef.current) {
+        intelligentCacheRef.current.cleanup();
+      }
+      if (bundleOptimizerRef.current) {
+        bundleOptimizerRef.current.cleanup();
+      }
+    };
+  }, [socketRef]);
 
   // Track opponent card count for visual display
   const [opponentCardCount, setOpponentCardCount] = useState(0);
@@ -77,11 +292,82 @@ const Demo = () => {
     currentTurnRef.current = currentTurnUserId;
   }, [gameState, players, currentTurnUserId]);
 
-  // Determine player indices
-  const myPlayerIndex = players.findIndex((p) => p.userId === user?.id);
-  const opponentIndex = myPlayerIndex === 0 ? 1 : 0;
-  const myPlayerId = user?.id;
-  const isMyTurn = currentTurnUserId === myPlayerId;
+  // Memoize expensive player calculations
+  const playerCalculations = useMemo(() => {
+    const myPlayerIndex = players.findIndex((p) => p.userId === user?.id);
+    const opponentIndex = myPlayerIndex === 0 ? 1 : 0;
+    const myPlayerId = user?.id;
+    const isMyTurn = currentTurnUserId === myPlayerId;
+
+    return {
+      myPlayerIndex,
+      opponentIndex,
+      myPlayerId,
+      isMyTurn,
+    };
+  }, [players, user?.id, currentTurnUserId]);
+
+  // Destructure for easier access
+  const { myPlayerIndex, opponentIndex, isMyTurn } = playerCalculations;
+
+  // Error handling and reconnection functions
+  const handleConnectionError = useCallback(
+    (error) => {
+      console.error("❌ Connection error:", error);
+      setConnectionLost(true);
+      setIsConnected(false);
+
+      // Attempt reconnection if we haven't exceeded max attempts
+      if (reconnectAttempts < 3) {
+        setIsReconnecting(true);
+        setReconnectAttempts((prev) => prev + 1);
+
+        // Attempt reconnection after a delay
+        setTimeout(() => {
+          console.log(
+            `🔄 Attempting reconnection ${reconnectAttempts + 1}/3...`
+          );
+          if (socketRef.current) {
+            socketRef.current.connect();
+          }
+        }, 2000 * (reconnectAttempts + 1)); // Exponential backoff
+      } else {
+        setError("Connection lost. Please refresh the page to reconnect.");
+      }
+    },
+    [reconnectAttempts, socketRef]
+  );
+
+  const handleReconnectionSuccess = useCallback(() => {
+    console.log("✅ Reconnection successful!");
+    setIsReconnecting(false);
+    setConnectionLost(false);
+    setReconnectAttempts(0);
+    setError(null);
+  }, []);
+
+  // Optimized game state validation function
+  const validateGameState = useCallback((gameState) => {
+    // Quick null check
+    if (!gameState) {
+      throw new Error("Game state is null or undefined");
+    }
+
+    // Quick array check
+    if (!Array.isArray(gameState.players) || gameState.players.length !== 2) {
+      throw new Error("Invalid game state: missing or invalid players array");
+    }
+
+    // Validate only essential fields for performance
+    for (let i = 0; i < gameState.players.length; i++) {
+      const player = gameState.players[i];
+      if (!player.userId || typeof player.hp !== "number" || player.hp < 0) {
+        throw new Error(`Invalid player ${i}: missing userId or invalid HP`);
+      }
+    }
+
+    return true;
+  }, []);
 
   // Cards are now created by the backend game engine
 
@@ -92,6 +378,119 @@ const Demo = () => {
   }, []);
 
   // Card replacement is now handled by the backend game engine
+
+  // Get socket connection from global manager
+  useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        console.log("🔌 Initializing socket connection...");
+        const socket = await socketManager.getSocket();
+        socketRef.current = socket;
+        console.log("🔌 Socket obtained from manager:", socket.id);
+
+        // Set connected status based on socket state
+        console.log("🔌 Socket connection state:", socket.connected);
+        setIsConnected(socket.connected);
+
+        // If socket is already connected, set connected state
+        if (socket.connected) {
+          console.log("🔌 Socket already connected, setting connected state");
+          setIsConnected(true);
+        } else {
+          console.log("🔌 Socket not yet connected, waiting for connect event");
+        }
+      } catch (error) {
+        console.error("❌ Failed to get socket from manager:", error);
+        setIsConnected(false);
+      }
+    };
+
+    initializeSocket();
+  }, []);
+
+  // Restore game state from backend after page refresh
+  const restoreGameState = useCallback(
+    async (roomId) => {
+      if (!roomId || !user?.id) {
+        console.log(
+          "❌ Cannot restore game state - missing roomId or userId:",
+          {
+            roomId,
+            userId: user?.id,
+          }
+        );
+        return false;
+      }
+
+      try {
+        console.log("🔄 Attempting to restore game state for room:", roomId);
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/game/state/${roomId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("📡 API response status:", response.status);
+        console.log("📡 API response ok:", response.ok);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("📡 API response data:", data);
+
+          if (data.success && data.data) {
+            console.log("✅ Game state restored from backend:", data.data);
+            const gameState = data.data;
+
+            // Update players with restored data
+            if (gameState.players) {
+              console.log("🎮 Restoring players:", gameState.players);
+              console.log(
+                "🎮 Player 1 cards:",
+                gameState.players[0]?.cards?.length || 0
+              );
+              console.log(
+                "🎮 Player 2 cards:",
+                gameState.players[1]?.cards?.length || 0
+              );
+              console.log("🎮 Player 1 HP:", gameState.players[0]?.hp);
+              console.log("🎮 Player 2 HP:", gameState.players[1]?.hp);
+
+              setPlayers(gameState.players);
+              setGameState(gameState.gameState || "playing");
+              setGamePhase(gameState.gamePhase || "cardSelection");
+              setCurrentTurnUserId(gameState.currentTurn);
+              setWaitingForOpponent(false);
+
+              // Update room ID if different
+              if (gameState.roomId && gameState.roomId !== roomId) {
+                setRoomId(gameState.roomId);
+              }
+
+              console.log("🎮 Game state restored successfully");
+              return true;
+            } else {
+              console.log("❌ No players data in restored game state");
+            }
+          } else {
+            console.log("❌ API response not successful:", data);
+          }
+        } else {
+          console.log("❌ API request failed with status:", response.status);
+          const errorText = await response.text();
+          console.log("❌ Error response:", errorText);
+        }
+      } catch (error) {
+        console.error("❌ Failed to restore game state:", error);
+      }
+
+      return false;
+    },
+    [user?.id]
+  );
 
   // Initialize game from lobby data
   const initializeGame = useCallback(() => {
@@ -156,6 +555,45 @@ const Demo = () => {
     });
   }, [lobbyPlayers, user?.id, gameId, roomId, gameMode, lobbyId]);
 
+  // Helper function to reset all modal states
+  const resetAllModalStates = useCallback(() => {
+    console.log("🔄 Resetting all modal states");
+    setQuestionPhase(false);
+    setOpponentQuestion(null);
+    setShowResultsModal(false);
+    setResultData(null);
+  }, []);
+
+  // Memoized question data validation
+  const validateQuestionData = useCallback((card) => {
+    if (!card) return null;
+
+    // If card already has proper questionData, return it
+    if (
+      card.questionData &&
+      card.questionData._id &&
+      card.questionData.questionText
+    ) {
+      return card;
+    }
+
+    // Otherwise, create proper questionData structure
+    const fixedCard = {
+      ...card,
+      questionData: {
+        _id: card.id || card._id || `temp-${Date.now()}`,
+        questionText:
+          card.question || card.questionText || "Question not available",
+        choices: card.choices || ["A", "B", "C", "D"],
+        correctAnswer: card.answer || card.correctAnswer || "A",
+        bloomsLevel: card.bloomLevel || "Remembering",
+      },
+    };
+
+    console.log("🔧 Fixed question data structure:", fixedCard);
+    return fixedCard;
+  }, []);
+
   // Socket event handlers
   const handleSocketEvents = useCallback(() => {
     if (!socketRef.current) return;
@@ -167,97 +605,279 @@ const Demo = () => {
       console.log("🔌 Socket connected to game");
       setIsConnected(true);
       setError(null);
+      handleReconnectionSuccess();
+
+      // Rejoin game room if we have a roomId
+      if (roomId) {
+        console.log("🔄 Reconnecting to game room:", roomId);
+        // Add a small delay to ensure socket is fully connected
+        setTimeout(() => {
+          socket.emit("join_game_room", { roomId });
+          console.log("✅ Rejoined game room:", roomId);
+        }, 500);
+      }
     });
 
-    socket.on("disconnect", () => {
-      console.log("🔌 Socket disconnected from game");
+    // Server can proactively ask this client to join the room
+    socket.on("server:request_join_room", ({ roomId: requestedRoomId }) => {
+      if (!requestedRoomId) return;
+      console.log("📥 Server requested join for room:", requestedRoomId);
+      socket.emit("join_game_room", { roomId: requestedRoomId });
+    });
+
+    // Confirmation from server that we joined
+    socket.on("server:joined_room", ({ roomId: joinedRoom }) => {
+      console.log("✅ Confirmed joined room:", joinedRoom);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("🔌 Socket disconnected from game:", reason);
       setIsConnected(false);
+
+      // Handle different disconnect reasons
+      if (reason === "io client disconnect") {
+        console.log(
+          "Client initiated disconnect - not attempting reconnection"
+        );
+        // Don't show error for client-initiated disconnects
+      } else if (reason === "transport close") {
+        console.log("Transport closed - attempting reconnection");
+        handleConnectionError(new Error(`Transport closed: ${reason}`));
+      } else if (reason === "io server disconnect") {
+        console.log("Server initiated disconnect - attempting reconnection");
+        handleConnectionError(new Error(`Server disconnect: ${reason}`));
+      } else {
+        console.log("Unexpected disconnect - attempting reconnection");
+        handleConnectionError(new Error(`Unexpected disconnect: ${reason}`));
+      }
     });
 
     socket.on("connect_error", (error) => {
       console.error("❌ Socket connection error:", error);
-      setError("Connection lost. Please refresh the page.");
-      setIsConnected(false);
+      handleConnectionError(error);
     });
 
-    // Game state events
+    // Game initialization event (for second player)
+    socket.on("game:initialized", (data) => {
+      console.log("🎮 Game initialized event received:", data);
+
+      if (data.success && data.data) {
+        const { roomId: newRoomId, gameState } = data.data;
+
+        // Update room ID if different
+        if (newRoomId && newRoomId !== roomId) {
+          console.log("🔄 Updating room ID from", roomId, "to", newRoomId);
+          // Update the room ID state
+          setRoomId(newRoomId);
+          // Join the new room
+          socket.emit("join_game_room", { roomId: newRoomId });
+        }
+
+        // Update game state with initialized data
+        if (gameState) {
+          console.log("🎯 Updating game state from initialization:", {
+            players: gameState.players?.length || 0,
+            currentTurn: gameState.currentTurn,
+            gamePhase: gameState.gamePhase,
+          });
+
+          if (gameState.players) {
+            // Preserve existing names when updating from game:initialized
+            setPlayers((prevPlayers) => {
+              return gameState.players.map((newPlayer) => {
+                const prevPlayer = prevPlayers.find(
+                  (p) => p.userId === newPlayer.userId
+                );
+
+                // Preserve frontend's formatted name if backend sends generic name
+                const preservedName =
+                  prevPlayer &&
+                  prevPlayer.name &&
+                  prevPlayer.name !== "Player" &&
+                  newPlayer.name === "Player"
+                    ? prevPlayer.name
+                    : newPlayer.name;
+
+                console.log(
+                  `🎯 Game initialized - Name for ${newPlayer.userId}:`,
+                  {
+                    prevName: prevPlayer?.name,
+                    newName: newPlayer.name,
+                    preservedName: preservedName,
+                  }
+                );
+
+                return {
+                  ...newPlayer,
+                  name: preservedName,
+                };
+              });
+            });
+
+            // Track opponent card count
+            const myPlayerIndex = gameState.players.findIndex(
+              (p) => p.userId === user?.id
+            );
+            const opponentIndex = myPlayerIndex === 0 ? 1 : 0;
+            const opponent = gameState.players[opponentIndex];
+
+            if (opponent && opponent.cards) {
+              setOpponentCardCount(opponent.cards.length);
+            }
+          }
+
+          if (gameState.currentTurn)
+            setCurrentTurnUserId(gameState.currentTurn);
+          if (gameState.gamePhase) setGamePhase(gameState.gamePhase);
+          if (gameState.gameState) setGameState(gameState.gameState);
+        }
+
+        // Mark as no longer waiting
+        setWaitingForOpponent(false);
+      }
+    });
+
+    // Game state events with debouncing
     socket.on("game_state_update", (data) => {
       console.log("🔄 Game state update received:", data);
 
-      // Extract gameState from the data object
-      const gameState = data.gameState || data;
+      // Clear previous timeout
+      if (gameStateUpdateTimeoutRef.current) {
+        clearTimeout(gameStateUpdateTimeoutRef.current);
+      }
 
-      if (gameState.players) {
-        console.log("🔄 Updating players from backend game state:", {
-          players: gameState.players.map((p) => ({
-            userId: p.userId,
-            name: p.name,
-            hp: p.hp,
-            maxHp: p.maxHp,
-          })),
-        });
+      // Debounce game state updates to prevent excessive re-renders
+      gameStateUpdateTimeoutRef.current = setTimeout(() => {
+        try {
+          // Extract gameState from the data object
+          const gameState = data.gameState || data;
 
-        setPlayers(gameState.players);
+          // Validate game state before processing
+          validateGameState(gameState);
 
-        // Track opponent card count for visual display
-        const myPlayerIndex = gameState.players.findIndex(
-          (p) => p.userId === user?.id
-        );
-        const opponentIndex = myPlayerIndex === 0 ? 1 : 0;
-        const opponent = gameState.players[opponentIndex];
+          if (gameState.players) {
+            console.log("🔄 Updating players from backend game state:", {
+              players: gameState.players.map((p) => ({
+                userId: p.userId,
+                name: p.name,
+                username: p.username,
+                firstName: p.firstName,
+                lastName: p.lastName,
+                hp: p.hp,
+                maxHp: p.maxHp,
+              })),
+            });
 
-        if (opponent) {
-          // If opponent has cards, use that count, otherwise maintain current count
-          if (opponent.cards && opponent.cards.length > 0) {
-            setOpponentCardCount(opponent.cards.length);
+            // Update players with detailed HP logging and validation
+            setPlayers((prevPlayers) => {
+              // Check if players actually changed to avoid unnecessary re-renders
+              const hasChanges = gameState.players.some((newPlayer, index) => {
+                const prevPlayer = prevPlayers[index];
+                return (
+                  !prevPlayer ||
+                  prevPlayer.hp !== newPlayer.hp ||
+                  prevPlayer.name !== newPlayer.name ||
+                  prevPlayer.userId !== newPlayer.userId
+                );
+              });
+
+              if (!hasChanges) {
+                console.log("🔄 No player changes detected, skipping update");
+                return prevPlayers;
+              }
+
+              const updatedPlayers = gameState.players.map((newPlayer) => {
+                const prevPlayer = prevPlayers.find(
+                  (p) => p.userId === newPlayer.userId
+                );
+
+                // Log HP changes with validation
+                if (prevPlayer && prevPlayer.hp !== newPlayer.hp) {
+                  console.log(
+                    `💥 HP Change for ${newPlayer.name}: ${prevPlayer.hp} → ${newPlayer.hp}`
+                  );
+
+                  // Validate HP values
+                  if (newPlayer.hp < 0 || newPlayer.hp > newPlayer.maxHp) {
+                    console.warn(
+                      `⚠️ Invalid HP value for ${newPlayer.name}: ${newPlayer.hp}`
+                    );
+                  }
+                }
+
+                // Preserve frontend's formatted name if backend sends generic name
+                const preservedName =
+                  prevPlayer &&
+                  prevPlayer.name &&
+                  prevPlayer.name !== "Player" &&
+                  newPlayer.name === "Player"
+                    ? prevPlayer.name
+                    : newPlayer.name;
+
+                // Debug name preservation
+                if (prevPlayer && prevPlayer.name !== newPlayer.name) {
+                  console.log(`🔄 Name update for ${newPlayer.userId}:`, {
+                    prevName: prevPlayer.name,
+                    newName: newPlayer.name,
+                    preservedName: preservedName,
+                    reason:
+                      prevPlayer.name !== "Player" &&
+                      newPlayer.name === "Player"
+                        ? "Preserved frontend name"
+                        : "Using backend name",
+                  });
+                }
+
+                // Ensure HP is within valid range
+                const validatedPlayer = {
+                  ...newPlayer,
+                  name: preservedName, // Use preserved name
+                  hp: Math.max(
+                    0,
+                    Math.min(newPlayer.hp || 0, newPlayer.maxHp || 100)
+                  ),
+                };
+
+                return validatedPlayer;
+              });
+              return updatedPlayers;
+            });
+
+            // Track opponent card count for visual display
+            const myPlayerIndex = gameState.players.findIndex(
+              (p) => p.userId === user?.id
+            );
+            const opponentIndex = myPlayerIndex === 0 ? 1 : 0;
+            const opponent = gameState.players[opponentIndex];
+
+            if (opponent) {
+              // If opponent has cards, use that count, otherwise maintain current count
+              if (opponent.cards && opponent.cards.length > 0) {
+                setOpponentCardCount(opponent.cards.length);
+              }
+              // If opponent cards are empty (hidden by backend), don't change the count
+            }
           }
-          // If opponent cards are empty (hidden by backend), don't change the count
+          if (gameState.currentTurn)
+            setCurrentTurnUserId(gameState.currentTurn);
+          if (gameState.gamePhase) setGamePhase(gameState.gamePhase);
+          if (gameState.gameState) setGameState(gameState.gameState);
+          if (gameState.winner) setWinner(gameState.winner);
+        } catch (error) {
+          console.error("❌ Error processing game state update:", error);
+          setError(`Game state error: ${error.message}`);
+          // Don't throw - continue with current state
         }
-      }
-      if (gameState.currentTurn) setCurrentTurnUserId(gameState.currentTurn);
-      if (gameState.gamePhase) setGamePhase(gameState.gamePhase);
-      if (gameState.gameState) setGameState(gameState.gameState);
-      if (gameState.winner) setWinner(gameState.winner);
-    });
-
-    // Card selection events
-    socket.on("game:card_selected", (data) => {
-      console.log("🎴 Card selected by opponent:", data);
-      if (data.targetPlayerId === user?.id) {
-        // First, reset any existing modal state to ensure clean start
-        resetQuestionModalState();
-
-        // Validate and fix the card data structure
-        const validatedCard = validateQuestionData(data.card);
-
-        if (!validatedCard) {
-          console.error("❌ Invalid card data received:", data.card);
-          return;
-        }
-
-        console.log(
-          "🎯 Setting opponent question with validated card data:",
-          validatedCard
-        );
-
-        // Opponent selected a card to challenge me with
-        setOpponentQuestion(validatedCard);
-        setGamePhase("answer");
-        setQuestionPhase(true);
-
-        // Replace the opponent's used card with a new one
-        replaceUsedCard(data.card, data.playerId);
-
-        // Decrease opponent card count when they use a card
-        setOpponentCardCount((prev) => Math.max(0, prev - 1));
-
-        console.log("🎯 Opponent is challenging me with:", validatedCard);
-      }
+      }, 100); // 100ms debounce delay
     });
 
     // Listen for question challenge events from the game engine
     socket.on("question_challenge", (data) => {
       console.log("🎯 Question challenge received:", data);
+      console.log("🎯 Current user ID:", user?.id);
+      console.log("🎯 Target player ID:", data.targetPlayerId);
+      console.log("🎯 Should show question:", data.targetPlayerId === user?.id);
+
       if (data.targetPlayerId === user?.id) {
         // Reset any existing modal state
         resetQuestionModalState();
@@ -281,18 +901,28 @@ const Demo = () => {
         setQuestionPhase(true);
 
         console.log("❓ Question challenge activated for opponent's card");
+      } else {
+        console.log("🎯 Not the target player, ignoring question challenge");
       }
     });
 
     // Answer submission events
     socket.on("game:answer_submitted", (data) => {
+      console.log("📝 Answer submitted event received:", data);
+
       // Prevent duplicate processing
       if (isProcessingAnswer) {
         console.log("🚫 Already processing answer, ignoring duplicate event");
         return;
       }
 
-      console.log("📝 Answer submitted:", data);
+      // Validate data
+      if (!data || !data.playerId || !data.challengerId) {
+        console.error("❌ Invalid answer submission data:", data);
+        return;
+      }
+
+      console.log("📝 Processing answer submission:", data);
       setIsProcessingAnswer(true);
       console.log(
         "🔍 Debug - challengerId:",
@@ -312,6 +942,12 @@ const Demo = () => {
           "✅ Answer submitted by user - QuestionModal will show result and auto-close"
         );
         // QuestionModal will handle its own closing after showing result
+
+        // Reset processing flag after a short delay for the answerer
+        setTimeout(() => {
+          setIsProcessingAnswer(false);
+          console.log("✅ Answer processing completed for answerer");
+        }, 2000);
       }
 
       // Show results modal to the challenger (the one who sent the question)
@@ -341,44 +977,38 @@ const Demo = () => {
         setResultData(newResultData);
         setShowResultsModal(true);
         console.log("🔍 Show results modal set to true");
+
+        // Reset processing flag after a short delay for the challenger
+        setTimeout(() => {
+          setIsProcessingAnswer(false);
+          console.log("✅ Answer processing completed for challenger");
+        }, 2000);
       } else {
         console.log("❌ Not showing results modal - not the challenger");
+
+        // Reset processing flag even if not showing results modal
+        setTimeout(() => {
+          setIsProcessingAnswer(false);
+          console.log("✅ Answer processing completed (no modal shown)");
+        }, 1000);
       }
 
-      // Handle answer result and damage calculation
-      if (data.isCorrect) {
-        // Answer was correct, the person who asked the question takes damage
-        // (This means the challenger takes damage when opponent answers correctly)
-        setPlayers((prev) =>
-          prev.map((p) =>
-            p.userId === data.challengerId
-              ? { ...p, hp: Math.max(0, p.hp - data.damage) }
-              : p
-          )
-        );
-        console.log("✅ Correct answer! Challenger takes damage:", data.damage);
-      } else {
-        // Answer was incorrect, the person who answered takes damage
-        setPlayers((prev) =>
-          prev.map((p) =>
-            p.userId === data.playerId
-              ? { ...p, hp: Math.max(0, p.hp - data.damage) }
-              : p
-          )
-        );
-        console.log("❌ Incorrect answer! Answerer takes damage:", data.damage);
-      }
+      // Handle answer result - HP updates come from backend game state
+      console.log("🎯 Answer result processing:", {
+        isCorrect: data.isCorrect,
+        damage: data.damage,
+        challengerId: data.challengerId,
+        playerId: data.playerId,
+        currentPlayers: players.map((p) => ({
+          userId: p.userId,
+          name: p.name,
+          hp: p.hp,
+        })),
+      });
 
-      // Update HP with values from backend if available (more accurate)
-      if (data.updatedHp) {
-        setPlayers((prevPlayers) =>
-          prevPlayers.map((player) => ({
-            ...player,
-            hp: data.updatedHp[player.userId] || player.hp,
-          }))
-        );
-        console.log("🔄 Updated HP from backend:", data.updatedHp);
-      }
+      // HP updates are handled by game_state_update event from backend
+      // No local HP calculation needed - backend is the source of truth
+      console.log("🔄 HP updates will come from game_state_update event");
 
       // Turn switching is now handled by game_state_update event
       // Only reset question modal if we're not currently showing a question
@@ -397,11 +1027,8 @@ const Demo = () => {
         );
       }
 
-      // Reset processing flag after a delay to allow for proper state updates
-      setTimeout(() => {
-        setIsProcessingAnswer(false);
-        console.log("✅ Answer processing completed, ready for next event");
-      }, 2000);
+      // Processing flag is now managed in the game:answer_submitted handler
+      // No need to reset it here to avoid conflicts
     });
 
     // Game over events
@@ -429,55 +1056,194 @@ const Demo = () => {
     // Error events
     socket.on("game:error", (error) => {
       console.error("❌ Game error:", error);
-      setError(error.message || "Game error occurred");
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error error:", error.error);
+      console.error("❌ Error details:", error.errorDetails);
+      console.error("❌ Room ID:", error.roomId);
+      console.error("❌ Game ID:", error.gameId);
+      console.error("❌ Full error object:", JSON.stringify(error, null, 2));
+      setError(error.message || error.error || "Game error occurred");
     });
-  }, [socketRef, user?.id, replaceUsedCard, questionPhase, isProcessingAnswer]);
+  }, [
+    socketRef,
+    user?.id,
+    questionPhase,
+    isProcessingAnswer,
+    roomId,
+    handleConnectionError,
+    handleReconnectionSuccess,
+    validateGameState,
+    players,
+    resetAllModalStates,
+    validateQuestionData,
+  ]);
 
   // Initialize socket events
   useEffect(() => {
     handleSocketEvents();
+
+    // Capture ref values at the beginning of the effect
+    const socket = socketRef.current;
+    const gameStateTimeout = gameStateUpdateTimeoutRef.current;
+    const playerTimeout = playerUpdateTimeoutRef.current;
+
+    // Cleanup function to remove all event listeners
+    return () => {
+      if (socket) {
+        console.log("🧹 Cleaning up socket event listeners");
+        // Remove all event listeners to prevent memory leaks
+        socket.removeAllListeners();
+      }
+
+      // Clear debounce timeouts
+      if (gameStateTimeout) {
+        clearTimeout(gameStateTimeout);
+      }
+      if (playerTimeout) {
+        clearTimeout(playerTimeout);
+      }
+    };
   }, [handleSocketEvents]);
 
   // Join game room when component mounts
   useEffect(() => {
-    if (socketRef.current && roomId) {
+    if (socketRef.current && roomId && socketRef.current.connected) {
       console.log("🏠 Joining game room:", roomId);
       socketRef.current.emit("join_game_room", { roomId });
+    } else if (socketRef.current && roomId && !socketRef.current.connected) {
+      console.log("⏳ Socket not connected yet, waiting for connection...");
+      // Wait for connection before joining room
+      const handleConnect = () => {
+        console.log("🏠 Socket connected, joining game room:", roomId);
+        socketRef.current.emit("join_game_room", { roomId });
+        socketRef.current.off("connect", handleConnect);
+      };
+      socketRef.current.on("connect", handleConnect);
     }
-  }, [socketRef, roomId]);
+  }, [roomId]);
 
-  // Initialize game when data is available
+  // Initialize game when data is available or restore from backend on refresh
   useEffect(() => {
-    if (lobbyPlayers.length > 0 && user?.id) {
-      initializeGame();
-    }
-  }, [initializeGame, lobbyPlayers.length, user?.id]);
+    const checkForGameRestore = async () => {
+      console.log("🔍 Game restoration check:", {
+        roomId,
+        lobbyPlayersLength: lobbyPlayers.length,
+        userId: user?.id,
+        hasRoomId: !!roomId,
+        hasLobbyPlayers: lobbyPlayers.length > 0,
+        isConnected,
+      });
+
+      // Wait for socket connection if we're trying to restore
+      if (roomId && (!lobbyPlayers.length || lobbyPlayers.length === 0)) {
+        if (isConnected === false) {
+          console.log(
+            "⏳ Waiting for socket connection before restoring game state..."
+          );
+          return;
+        }
+
+        console.log(
+          "🔄 Page refresh detected, attempting to restore game state..."
+        );
+        const restored = await restoreGameState(roomId);
+        if (restored) {
+          console.log("✅ Game state restored from backend");
+          return;
+        } else {
+          console.log("❌ Failed to restore game state from backend");
+        }
+      }
+
+      // Otherwise, initialize normally if we have lobby players
+      if (lobbyPlayers.length > 0 && user?.id) {
+        console.log("🎮 Initializing game with lobby players");
+        initializeGame();
+      }
+    };
+
+    checkForGameRestore();
+  }, [
+    roomId,
+    lobbyPlayers.length,
+    user?.id,
+    initializeGame,
+    restoreGameState,
+    isConnected,
+  ]);
+
+  // Mobile cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup mobile-specific state when component unmounts
+      if (isMobile) {
+        document.body.classList.remove("modal-open");
+      }
+    };
+  }, [isMobile]);
 
   // Cards are now managed by the backend game state, not locally
 
-  // Game action handlers
-  const handleCardClick = (card, playerIndex) => {
-    console.log("🎴 Card clicked:", card, playerIndex);
+  // Mobile-specific state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Only allow clicking on current player's cards during their turn
-    if (
-      playerIndex === myPlayerIndex &&
-      isMyTurn &&
-      gamePhase === "cardSelection"
-    ) {
-      // Show preview modal to see the question before challenging
-      setPreviewCard(card);
-      setShowPreviewModal(true);
-      console.log("👀 Previewing card:", card);
-    }
-  };
+  // Use isModalOpen for debugging/logging if needed
+  console.log("Mobile modal state:", { isMobile, isModalOpen });
+
+  // Mobile-optimized card click handler
+  const handleCardClick = useCallback(
+    (card, playerIndex) => {
+      console.log("🎴 Card clicked:", card, playerIndex);
+
+      // Prevent double-clicks and processing during other operations
+      if (isProcessing) {
+        console.log("⏳ Click ignored - processing in progress");
+        return;
+      }
+
+      // Only allow clicking on current player's cards during their turn
+      if (
+        playerIndex === myPlayerIndex &&
+        isMyTurn &&
+        gamePhase === "cardSelection"
+      ) {
+        // Handle question cards
+        setIsProcessing(true);
+
+        // Mobile optimization: prevent body scroll when modal opens
+        if (isMobile) {
+          document.body.classList.add("modal-open");
+          setIsModalOpen(true);
+        }
+
+        // Show preview modal to see the question before challenging
+        setPreviewCard(card);
+        setShowPreviewModal(true);
+        console.log("👀 Previewing card:", card);
+
+        // Reset processing flag after a short delay
+        setTimeout(
+          () => {
+            setIsProcessing(false);
+          },
+          isMobile ? 300 : 500
+        ); // Shorter delay on mobile
+      }
+    },
+    [isProcessing, myPlayerIndex, isMyTurn, gamePhase, isMobile]
+  );
 
   // Handle submitting the challenge to opponent
   const handleSubmitChallenge = () => {
-    if (!socketRef.current || !previewCard) return;
+    if (!socketRef.current || !previewCard || isProcessing) return;
 
     console.log("🎯 Submitting challenge to opponent:", previewCard);
     console.log("🔍 Card questionData:", previewCard.questionData);
+    console.log("🔍 Current players:", players);
+    console.log("🔍 Opponent index:", opponentIndex);
+    console.log("🔍 Target player ID:", players[opponentIndex]?.userId);
+
+    setIsProcessing(true);
 
     // Store the card before clearing it
     const cardToChallenge = previewCard;
@@ -496,14 +1262,18 @@ const Demo = () => {
 
     console.log("🔍 Sending card with questionData:", cardWithQuestionData);
 
-    // Send the card selection to the server to notify the opponent
-    socketRef.current.emit("game:card_selected", {
+    const emitData = {
       roomId,
       gameId,
       playerId: user?.id,
       card: cardWithQuestionData,
       targetPlayerId: players[opponentIndex]?.userId,
-    });
+    };
+
+    console.log("📤 Emitting game:card_selected with data:", emitData);
+
+    // Send the card selection to the server to notify the opponent
+    socketRef.current.emit("game:card_selected", emitData);
 
     // Replace the used card with a new one
     replaceUsedCard(cardToChallenge, user?.id);
@@ -512,39 +1282,98 @@ const Demo = () => {
     setShowPreviewModal(false);
     setPreviewCard(null);
 
-    // Opponent gets a new card when I use one
-    setOpponentCardCount((prev) => Math.min(7, prev + 1));
+    // Mobile cleanup: restore body scroll
+    if (isMobile) {
+      document.body.classList.remove("modal-open");
+      setIsModalOpen(false);
+    }
+
+    // Backend now handles card drawing - opponent gets a card when current player uses one
+    // Card counts will be updated via game_state_update events from the backend
 
     // Don't show the question modal to ourselves - only the opponent should see it
     // The opponent will receive the socket event and show the modal on their side
     setGamePhase("waiting"); // Change to waiting phase while opponent answers
 
     console.log("✅ Challenge sent to opponent! Waiting for their answer...");
+
+    // Reset processing flag after a delay
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 1000);
   };
 
   const handleAnswerSubmit = (result) => {
     console.log("📝 Answer submitted:", result);
 
-    if (!socketRef.current || !opponentQuestion) return;
+    if (!socketRef.current || !opponentQuestion) {
+      console.error("❌ Cannot submit answer: missing socket or question data");
+      setError("Missing game data. Please refresh the page.");
+      return;
+    }
+
+    // Validate socket connection
+    if (!socketRef.current.connected) {
+      console.error("❌ Socket not connected, cannot submit answer");
+      setError("Connection lost. Please refresh the page.");
+      return;
+    }
 
     // Find who challenged me (the person whose turn it was before)
     const challengerId = players.find((p) => p.userId !== user?.id)?.userId;
+
+    if (!challengerId) {
+      console.error("❌ Cannot find challenger ID");
+      setError("Cannot identify opponent. Please refresh the page.");
+      return;
+    }
+
+    // Prevent duplicate submissions
+    if (isProcessingAnswer) {
+      console.warn(
+        "⚠️ Answer already being processed, ignoring duplicate submission"
+      );
+      return;
+    }
+
+    // Set processing flag immediately to prevent duplicate submissions
+    setIsProcessingAnswer(true);
+
+    // Set a timeout to reset processing flag if no response is received
+    const submissionTimeout = setTimeout(() => {
+      console.warn("⚠️ Answer submission timeout - no response received");
+      setIsProcessingAnswer(false);
+      setError("Answer submission timed out. Please try again.");
+    }, 10000); // 10 second timeout
 
     // Delay the socket emission to allow QuestionModal to show result first
     // The QuestionModal will auto-close after 3 seconds, then we send the answer
     setTimeout(() => {
       console.log("📤 Sending answer to server after modal display delay");
-      socketRef.current.emit("game:submit_answer", {
-        roomId,
-        gameId,
-        playerId: user?.id,
-        challengerId: challengerId,
-        card: opponentQuestion,
-        answer: result.selectedAnswer,
-        isCorrect: result.isCorrect,
-        damage: opponentQuestion.damage,
-      });
-    }, 5500); // Wait 5.5 seconds to allow modal to show result and close
+
+      try {
+        socketRef.current.emit("game:submit_answer", {
+          roomId,
+          gameId,
+          playerId: user?.id,
+          challengerId: challengerId,
+          card: opponentQuestion,
+          answer: result.selectedAnswer,
+          isCorrect: result.isCorrect,
+          // Let backend calculate damage - don't send damage from frontend
+        });
+
+        console.log("✅ Answer successfully sent to server");
+
+        // Clear the timeout since we successfully sent the answer
+        clearTimeout(submissionTimeout);
+      } catch (error) {
+        console.error("❌ Error sending answer to server:", error);
+        setError("Failed to submit answer. Please try again.");
+        setIsProcessingAnswer(false);
+        clearTimeout(submissionTimeout);
+      }
+    }, 3000); // Reduced delay to 3 seconds for better responsiveness
 
     // Don't close modal here - let the QuestionModal handle its own closing
     // This prevents race conditions and ensures proper state management
@@ -554,8 +1383,8 @@ const Demo = () => {
 
   // Test function removed - was for debugging only
 
-  // Helper function to get HP color based on percentage
-  const getHpColor = (currentHp, maxHp) => {
+  // Memoized HP color calculation
+  const getHpColor = useCallback((currentHp, maxHp) => {
     const percentage = (currentHp / maxHp) * 100;
 
     if (percentage >= 70) {
@@ -571,43 +1400,15 @@ const Demo = () => {
       // Dark red for critical HP (0-19%)
       return "#dc2626";
     }
-  };
-
-  // Helper function to validate and fix question data structure
-  const validateQuestionData = (card) => {
-    if (!card) return null;
-
-    // If card already has proper questionData, return it
-    if (
-      card.questionData &&
-      card.questionData._id &&
-      card.questionData.questionText
-    ) {
-      return card;
-    }
-
-    // Otherwise, create proper questionData structure
-    const fixedCard = {
-      ...card,
-      questionData: {
-        _id: card.id || card._id || `temp-${Date.now()}`,
-        questionText:
-          card.question || card.questionText || "Question not available",
-        choices: card.choices || ["A", "B", "C", "D"],
-        correctAnswer: card.answer || card.correctAnswer || "A",
-        bloomsLevel: card.bloomLevel || "Remembering",
-      },
-    };
-
-    console.log("🔧 Fixed question data structure:", fixedCard);
-    return fixedCard;
-  };
+  }, []);
 
   // Helper function to reset question modal state only
   const resetQuestionModalState = () => {
     console.log("🔄 Resetting question modal state");
     setQuestionPhase(false);
     setOpponentQuestion(null);
+    // Also reset processing flag when modal is closed
+    setIsProcessingAnswer(false);
   };
 
   // Helper function to reset results modal state only
@@ -617,14 +1418,7 @@ const Demo = () => {
     setResultData(null);
   };
 
-  // Helper function to reset all modal states
-  const resetAllModalStates = () => {
-    console.log("🔄 Resetting all modal states");
-    setQuestionPhase(false);
-    setOpponentQuestion(null);
-    setShowResultsModal(false);
-    setResultData(null);
-  };
+  // Note: Card rendering is handled inline in the JSX for better performance
 
   // Power-ups not currently implemented
 
@@ -742,7 +1536,12 @@ const Demo = () => {
               alignItems: "center",
               gap: "10px",
               fontSize: "14px",
-              color: isConnected ? "#22c55e" : "#ef4444",
+              color:
+                isConnected === true
+                  ? "#22c55e"
+                  : isConnected === false
+                  ? "#ef4444"
+                  : "#f59e0b",
             }}
           >
             <div
@@ -750,10 +1549,29 @@ const Demo = () => {
                 width: "8px",
                 height: "8px",
                 borderRadius: "50%",
-                backgroundColor: isConnected ? "#22c55e" : "#ef4444",
+                backgroundColor:
+                  isConnected === true
+                    ? "#22c55e"
+                    : isConnected === false
+                    ? "#ef4444"
+                    : "#f59e0b",
               }}
             ></div>
-            {isConnected ? "Connected" : "Disconnected"}
+            {isConnected === true
+              ? "Connected"
+              : isConnected === false
+              ? "Disconnected"
+              : "Connecting..."}
+            {isReconnecting && (
+              <span style={{ color: "#f59e0b", marginLeft: "10px" }}>
+                🔄 Reconnecting... ({reconnectAttempts}/3)
+              </span>
+            )}
+            {connectionLost && !isReconnecting && (
+              <span style={{ color: "#ef4444", marginLeft: "10px" }}>
+                ⚠️ Connection Lost
+              </span>
+            )}
           </div>
         </div>
 
@@ -775,9 +1593,20 @@ const Demo = () => {
           {/* Player Areas */}
           <div className="playerZone topPlayer">
             {/* Top Player Info */}
-            <div className="playerInfo">
+            <div className="playerInfo opponentInfo">
               <div className="playerName">
-                {players[opponentIndex]?.name || "Opponent"}
+                {players[opponentIndex]?.name ||
+                  players[opponentIndex]?.username ||
+                  "Opponent"}
+              </div>
+              <div className="playerRole">OPPONENT</div>
+              <div className="playerStats">
+                <div className="statItem">
+                  <span className="statLabel">Correct:</span>
+                  <span className="statValue">
+                    {players[opponentIndex]?.correctAnswers || 0}
+                  </span>
+                </div>
               </div>
               <div className="hpBar">
                 <div className="hpBarBackground">
@@ -836,85 +1665,100 @@ const Demo = () => {
           {/* Current Player Area */}
           <div className="playerZone bottomPlayer">
             <div className="cardHand">
+              {/* Debug: Log player and cards info */}
+              {console.log("Player cards debug:", {
+                myPlayerIndex,
+                player: players[myPlayerIndex],
+                cards: players[myPlayerIndex]?.cards,
+                cardsLength: players[myPlayerIndex]?.cards?.length,
+                playerName: players[myPlayerIndex]?.name,
+                playerUsername: players[myPlayerIndex]?.username,
+                allPlayers: players.map((p) => ({
+                  userId: p.userId,
+                  name: p.name,
+                  username: p.username,
+                })),
+              })}
               {players[myPlayerIndex]?.cards?.map((card, index) => {
-                // Handle spell cards differently
-                if (card.type === "spell") {
+                // Debug: Log card data
+                console.log(`Card ${index}:`, {
+                  id: card.id,
+                  type: card.type,
+                  name: card.name,
+                  description: card.description,
+                  color: card.color,
+                  bgColor: card.bgColor,
+                  fullCard: card,
+                });
+
+                // Log the full card object to see what's actually there
+                console.log(
+                  `Card ${index} FULL DATA:`,
+                  JSON.stringify(card, null, 2)
+                );
+
+                // Filter out invalid cards - only filter out cards without question text
+                if (!card.question && !card.questionText) {
+                  console.log(
+                    "🚨 FRONTEND FILTERING OUT CARD WITHOUT QUESTION:",
+                    {
+                      id: card.id,
+                      type: card.type,
+                      hasQuestion: !!card.question,
+                      hasQuestionText: !!card.questionText,
+                      allKeys: Object.keys(card),
+                    }
+                  );
+                  return null; // Don't render this card
+                }
+
+                // Handle empty or undefined cards
+                if (!card || !card.type) {
+                  console.warn(`Card ${index} is empty or undefined:`, card);
                   return (
                     <div
-                      key={card.id || index}
-                      className="gameCard spellCard"
-                      onClick={() => handleCardClick(card, myPlayerIndex)}
+                      key={`empty_${index}`}
+                      className="gameCard emptyCard"
                       style={{
-                        borderColor: card.color || "#7c3aed",
-                        color: card.color || "#7c3aed",
-                        background: `linear-gradient(145deg, ${
-                          card.bgColor || "rgba(124, 58, 237, 0.2)"
-                        }, rgba(45, 55, 72, 0.9))`,
-                        cursor:
-                          isMyTurn && gamePhase === "cardSelection"
-                            ? "pointer"
-                            : "default",
-                        opacity:
-                          isMyTurn && gamePhase === "cardSelection" ? 1 : 0.7,
+                        borderColor: "#6b7280",
+                        color: "#6b7280",
+                        background: "rgba(107, 114, 128, 0.1)",
+                        opacity: 0.5,
                       }}
                     >
                       <div className="cardHeader">
-                        <div
-                          className="spellType"
-                          style={{ color: card.color || "#7c3aed" }}
-                        >
-                          SPELL
-                        </div>
-                        <div
-                          className="cardDamage"
-                          style={{ color: card.color || "#7c3aed" }}
-                        >
-                          ⚡
-                        </div>
+                        <div className="cardType">EMPTY</div>
+                        <div className="cardDamage">?</div>
                       </div>
                       <div className="cardContent">
-                        <div
-                          className="cardQuestion"
-                          style={{
-                            color: card.color || "#7c3aed",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {card.name || "Spell Card"}
-                        </div>
-                        <div
-                          className="spellDescription"
-                          style={{
-                            color: "#e5e7eb",
-                            fontSize: "0.7rem",
-                            marginTop: "4px",
-                          }}
-                        >
-                          {card.description || "A powerful spell"}
-                        </div>
+                        <div className="cardQuestion">Empty Slot</div>
+                        <div className="cardDescription">No card data</div>
                       </div>
-                      <div
-                        className="cardFooter"
-                        style={{
-                          color: card.color || "#7c3aed",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {card.spellType || "utility"}
-                      </div>
+                      <div className="cardFooter">EMPTY</div>
                     </div>
                   );
                 }
 
                 // Regular question cards
+                const bloomLevel =
+                  card.bloom_level || card.bloomLevel || "Remembering";
+                const bloomColor = `var(--bloom-${bloomLevel.toLowerCase()})`;
+                const damage = card.damage || 0;
+
+                // Get simple damage icon
+                const getDamageIcon = () => {
+                  return "⚔️";
+                };
+
                 return (
                   <div
                     key={card.id || index}
-                    className="gameCard"
+                    className="gameCard modernCard"
                     onClick={() => handleCardClick(card, myPlayerIndex)}
                     style={{
-                      borderColor: `var(--${card.type})`,
-                      color: `var(--${card.type})`,
+                      borderColor: bloomColor,
+                      color: bloomColor,
+                      background: `linear-gradient(135deg, ${bloomColor}15, rgba(20, 30, 40, 0.95), ${bloomColor}08)`,
                       cursor:
                         isMyTurn && gamePhase === "cardSelection"
                           ? "pointer"
@@ -922,34 +1766,72 @@ const Demo = () => {
                       opacity:
                         isMyTurn && gamePhase === "cardSelection" ? 1 : 0.7,
                     }}
+                    // Mobile-specific attributes
+                    role="button"
+                    tabIndex={
+                      isMyTurn && gamePhase === "cardSelection" ? 0 : -1
+                    }
+                    aria-label={`${bloomLevel} card with ${damage} damage: ${
+                      card.question ||
+                      card.questionText ||
+                      "Question not available"
+                    }`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleCardClick(card, myPlayerIndex);
+                      }
+                    }}
                   >
+                    {/* Card Header with Damage */}
                     <div className="cardHeader">
                       <div
-                        className="bloomType"
-                        style={{ color: `var(--${card.type})` }}
+                        className="damageValue"
+                        style={{ color: bloomColor }}
                       >
-                        {card.bloomLevel}
-                      </div>
-                      <div
-                        className="cardDamage"
-                        style={{ color: `var(--${card.type})` }}
-                      >
-                        {card.damage}
+                        <span className="damageNumber">{damage}</span>
+                        <span className="damageIcon">{getDamageIcon()}</span>
                       </div>
                     </div>
+
+                    {/* Card Content */}
                     <div className="cardContent">
-                      <div className="cardQuestion">{card.question}</div>
+                      <div className="cardQuestion">
+                        {card.question ||
+                          card.questionText ||
+                          "Question not available"}
+                      </div>
                     </div>
-                    <div className="cardFooter">{card.bloomLevel}</div>
+
+                    {/* Card Footer with Bloom Level */}
+                    <div className="cardFooter">
+                      <div
+                        className="bloomLevelText"
+                        style={{ color: bloomColor }}
+                      >
+                        {bloomLevel.toUpperCase()}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             {/* Bottom Player Info */}
-            <div className="playerInfo">
+            <div className="playerInfo myPlayerInfo">
               <div className="playerName">
-                {players[myPlayerIndex]?.name || "You"}
+                {players[myPlayerIndex]?.name ||
+                  players[myPlayerIndex]?.username ||
+                  "You"}
+              </div>
+              <div className="playerRole">YOU</div>
+              <div className="playerStats">
+                <div className="statItem">
+                  <span className="statLabel">Correct:</span>
+                  <span className="statValue">
+                    {players[myPlayerIndex]?.correctAnswers || 0}
+                  </span>
+                </div>
               </div>
               <div className="hpBar">
                 <div className="hpBarBackground">
@@ -993,21 +1875,43 @@ const Demo = () => {
                 <h2 className="questionModalTitle">Preview Challenge</h2>
                 <div
                   className="bloomLevel"
-                  style={{ color: `var(--${previewCard.type})` }}
+                  style={{
+                    color: `var(--bloom-${(
+                      previewCard.bloom_level ||
+                      previewCard.bloomLevel ||
+                      "remembering"
+                    ).toLowerCase()})`,
+                  }}
                 >
-                  {previewCard.bloomLevel}
+                  {(
+                    previewCard.bloom_level ||
+                    previewCard.bloomLevel ||
+                    "Remembering"
+                  ).toUpperCase()}
                 </div>
                 <div
                   className="damageValue"
-                  style={{ color: `var(--${previewCard.type})` }}
+                  style={{
+                    color: `var(--bloom-${(
+                      previewCard.bloom_level ||
+                      previewCard.bloomLevel ||
+                      "remembering"
+                    ).toLowerCase()})`,
+                  }}
                 >
-                  {previewCard.damage} DMG
+                  {previewCard.damage || 0} DMG
                 </div>
                 <button
                   className="closeButton"
                   onClick={() => {
                     setShowPreviewModal(false);
                     setPreviewCard(null);
+
+                    // Mobile cleanup: restore body scroll
+                    if (isMobile) {
+                      document.body.classList.remove("modal-open");
+                      setIsModalOpen(false);
+                    }
                   }}
                 >
                   ✕
@@ -1037,7 +1941,11 @@ const Demo = () => {
                     className="submitButton challengeButton"
                     onClick={handleSubmitChallenge}
                     style={{
-                      background: `var(--${previewCard.type})`,
+                      background: `var(--bloom-${(
+                        previewCard.bloom_level ||
+                        previewCard.bloomLevel ||
+                        "remembering"
+                      ).toLowerCase()})`,
                       color: "#1f2937",
                       fontWeight: "700",
                     }}
@@ -1062,6 +1970,7 @@ const Demo = () => {
           cardData={opponentQuestion}
           onAnswerSubmit={handleAnswerSubmit}
           playerName={players[myPlayerIndex]?.name || "Player"}
+          isProcessing={isProcessingAnswer}
         />
 
         {/* Quick Result Popup - Show Opponent's Answer and Damage */}

@@ -123,10 +123,10 @@ const MatchFoundModal = ({
         </div>
 
         <div className={styles.vsModalFooter}>
-          <button className={styles.proceedButton} onClick={onProceed}>
+          <div className={styles.autoJoinMessage}>
             <FaPlay />
-            Enter Battle Now
-          </button>
+            Joining battle automatically...
+          </div>
         </div>
       </div>
     </div>

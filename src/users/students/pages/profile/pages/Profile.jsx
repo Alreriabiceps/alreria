@@ -262,16 +262,24 @@ const Profile = () => {
       try {
         setPvpLoading(true);
         const token = localStorage.getItem("token");
+        const backendurl = import.meta.env.VITE_BACKEND_URL;
+
+        console.log("🔍 Fetching PvP data for user:", user.id);
+        console.log("🔍 Backend URL:", backendurl);
+        console.log("🔍 Token present:", !!token);
 
         // Fetch match history and stats in parallel
         const [historyResponse, statsResponse] = await Promise.all([
-          fetch(`/api/pvp/players/${user.id}/matches?days=3&limit=50`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }),
-          fetch(`/api/pvp/players/${user.id}/stats`, {
+          fetch(
+            `${backendurl}/api/pvp/players/${user.id}/matches?days=30&limit=50`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          ),
+          fetch(`${backendurl}/api/pvp/players/${user.id}/stats`, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
@@ -281,12 +289,32 @@ const Profile = () => {
 
         if (historyResponse.ok) {
           const historyData = await historyResponse.json();
+          console.log("PvP history data received:", historyData);
+          console.log(
+            "PvP matches count:",
+            historyData.data?.matches?.length || 0
+          );
           setPvpHistory(historyData.data.matches || []);
+        } else {
+          console.error(
+            "Failed to fetch PvP history:",
+            historyResponse.status,
+            historyResponse.statusText
+          );
+          const errorText = await historyResponse.text();
+          console.error("PvP history error response:", errorText);
         }
 
         if (statsResponse.ok) {
           const statsData = await statsResponse.json();
+          console.log("PvP stats data received:", statsData);
           setPvpStats(statsData.data);
+        } else {
+          console.error(
+            "Failed to fetch PvP stats:",
+            statsResponse.status,
+            statsResponse.statusText
+          );
         }
       } catch (error) {
         console.error("Error fetching PvP data:", error);

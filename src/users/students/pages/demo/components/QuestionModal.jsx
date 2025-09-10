@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaTimes, FaCheck } from "react-icons/fa";
 import questionService from "../services/questionService";
 
@@ -7,7 +7,7 @@ const QuestionModal = ({
   onClose,
   cardData,
   onAnswerSubmit,
-  playerName,
+  isProcessing = false,
 }) => {
   // Simple state - no complex refs or multiple flags
   const [question, setQuestion] = useState(null);
@@ -16,24 +16,7 @@ const QuestionModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load question when modal opens
-  useEffect(() => {
-    if (isOpen && cardData) {
-      loadQuestion();
-    }
-  }, [isOpen, cardData]);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setQuestion(null);
-      setSelectedAnswer(null);
-      setIsSubmitted(false);
-      setError(null);
-    }
-  }, [isOpen]);
-
-  const loadQuestion = async () => {
+  const loadQuestion = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -81,7 +64,24 @@ const QuestionModal = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [cardData]);
+
+  // Load question when modal opens
+  useEffect(() => {
+    if (isOpen && cardData) {
+      loadQuestion();
+    }
+  }, [isOpen, cardData, loadQuestion]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setQuestion(null);
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+      setError(null);
+    }
+  }, [isOpen]);
 
   const handleAnswerSelect = (answer) => {
     if (isSubmitted) return; // Prevent selection after submission
@@ -195,9 +195,9 @@ const QuestionModal = ({
                   <button
                     className="submitButton"
                     onClick={handleSubmit}
-                    disabled={!selectedAnswer}
+                    disabled={!selectedAnswer || isProcessing}
                   >
-                    Submit Answer
+                    {isProcessing ? "Submitting..." : "Submit Answer"}
                   </button>
                 </div>
               )}
