@@ -8,6 +8,7 @@ const QuestionModal = ({
   cardData,
   onAnswerSubmit,
   isProcessing = false,
+  deadlineTs = null, // absolute timestamp when timer ends
 }) => {
   // Simple state - no complex refs or multiple flags
   const [question, setQuestion] = useState(null);
@@ -15,6 +16,7 @@ const QuestionModal = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   const loadQuestion = useCallback(async () => {
     try {
@@ -80,8 +82,54 @@ const QuestionModal = ({
       setSelectedAnswer(null);
       setIsSubmitted(false);
       setError(null);
+      setTimeLeft(30);
     }
   }, [isOpen]);
+
+  // Start countdown based on absolute deadline when question is ready
+  useEffect(() => {
+    if (!isOpen || !question || isSubmitted) return;
+
+    // Determine initial remaining time from deadlineTs if provided
+    const computeRemaining = () => {
+      if (deadlineTs) {
+        const ms = Math.max(0, deadlineTs - Date.now());
+        return Math.ceil(ms / 1000);
+      }
+      return 30;
+    };
+
+    setTimeLeft(computeRemaining());
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const remaining = deadlineTs
+          ? Math.ceil(Math.max(0, deadlineTs - Date.now()) / 1000)
+          : prev - 1;
+
+        if (remaining <= 0) {
+          clearInterval(interval);
+          // Auto-submit as incorrect if time runs out and not submitted
+          if (!isSubmitted && onAnswerSubmit) {
+            setIsSubmitted(true);
+            onAnswerSubmit({
+              question: question,
+              selectedAnswer: null,
+              correctAnswer: question.correctAnswer,
+              isCorrect: false,
+              damage: 0,
+              isTimerTimeout: true, // Flag to indicate this is a timer timeout
+            });
+            setTimeout(() => {
+              onClose();
+            }, 5000);
+          }
+          return 0;
+        }
+        return remaining ?? prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isOpen, question, isSubmitted, onAnswerSubmit, onClose, deadlineTs]);
 
   const handleAnswerSelect = (answer) => {
     if (isSubmitted) return; // Prevent selection after submission
@@ -141,6 +189,20 @@ const QuestionModal = ({
       <div className="questionModal">
         <div className="modalHeader">
           <h2>Answer the Question</h2>
+          <div
+            style={{
+              marginLeft: "auto",
+              fontWeight: 700,
+              color:
+                timeLeft > 10
+                  ? "#22c55e"
+                  : timeLeft > 5
+                  ? "#f59e0b"
+                  : "#ef4444",
+            }}
+          >
+            {timeLeft}s
+          </div>
           <button className="closeButton" onClick={onClose}>
             <FaTimes />
           </button>

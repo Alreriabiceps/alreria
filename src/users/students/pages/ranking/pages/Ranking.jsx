@@ -208,8 +208,9 @@ const fetchLeaderboard = async ({ queryKey, pageParam = 1 }) => {
     ...filters,
   });
 
+  // Align with backend routes: /api/leaderboard/global for weekly totals
   const endpoint =
-    type === "pvp" ? "/api/pvp/leaderboard" : "/api/leaderboard/weekly";
+    type === "pvp" ? "/api/pvp/leaderboard" : "/api/leaderboard/global";
   const response = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}${endpoint}?${params}`,
     {
@@ -423,7 +424,7 @@ const Ranking = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showTrending, setShowTrending] = useState(false);
   const [showNearMyRank, setShowNearMyRank] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh] = useState(true);
   const [showRankTiers, setShowRankTiers] = useState(false);
 
   // Intersection observer for infinite scroll
@@ -488,15 +489,12 @@ const Ranking = () => {
 
   // Auto-refresh effect
   useEffect(() => {
-    if (!autoRefresh) return;
-
     const interval = setInterval(() => {
       queryClient.invalidateQueries(["leaderboard"]);
       queryClient.invalidateQueries(["myPosition"]);
     }, 30000); // Refresh every 30 seconds
-
     return () => clearInterval(interval);
-  }, [autoRefresh, queryClient]);
+  }, [queryClient]);
 
   // Infinite scroll effect
   useEffect(() => {
@@ -517,6 +515,8 @@ const Ranking = () => {
   }, [myPositionData, queryClient]);
 
   // Flatten all pages data
+  const isPvpLeaderboard = leaderboardType === "program";
+
   const allStudents = useMemo(() => {
     if (!leaderboardData?.pages) return [];
 
@@ -565,7 +565,6 @@ const Ranking = () => {
     sections: [],
   };
 
-  const isPvpLeaderboard = leaderboardType === "program";
   const scoreLabel = isPvpLeaderboard ? "Stars" : "Points";
   const activeRanks = isPvpLeaderboard ? pvpRanks : weeklyRanks;
 
@@ -618,17 +617,7 @@ const Ranking = () => {
               <FaLocationArrow /> Jump to My Position
             </motion.button>
 
-            <motion.button
-              className={`${styles.refreshButton} ${
-                autoRefresh ? styles.active : ""
-              }`}
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FaSync className={autoRefresh ? styles.spinning : ""} />
-              {autoRefresh ? "Auto" : "Manual"}
-            </motion.button>
+            {/* Auto-refresh is always on; button hidden */}
           </div>
         </div>
       </motion.div>

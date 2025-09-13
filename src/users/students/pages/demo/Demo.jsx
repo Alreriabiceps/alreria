@@ -33,6 +33,9 @@ import BundleOptimizer from "../../../../utils/bundleOptimizer";
 // Import custom hooks and components
 import { QuestionModal, VictoryModal, BattleField } from "./components";
 import QuickResultPopup from "./components/QuickResultPopup";
+import usePowerUps from "./powerups/usePowerUps";
+import PowerUpPanel from "./powerups/PowerUpPanel";
+import { PowerUpId, MAX_HP } from "./powerups/constants";
 
 // Mobile detection hook
 const useMobileDetection = () => {
@@ -270,6 +273,7 @@ const Demo = () => {
   const [opponentQuestion, setOpponentQuestion] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [questionDeadlineTs, setQuestionDeadlineTs] = useState(null);
 
   // Results Phase State
   const [showResultsModal, setShowResultsModal] = useState(false);
@@ -309,6 +313,45 @@ const Demo = () => {
 
   // Destructure for easier access
   const { myPlayerIndex, opponentIndex, isMyTurn } = playerCalculations;
+
+  // Local toast for power-up usage
+  const [powerUpToast, setPowerUpToast] = useState(null);
+  const showPowerUpToast = useCallback((text) => {
+    setPowerUpToast(text);
+    setTimeout(() => setPowerUpToast(null), 1800);
+  }, []);
+
+  // In-turn power-up indicators (cleared when turn changes)
+  const [opponentTurnPowerUp, setOpponentTurnPowerUp] = useState(null);
+  const [myTurnPowerUp, setMyTurnPowerUp] = useState(null);
+  const [armedDefense, setArmedDefense] = useState(null);
+
+  // Cosmetic taunt overlay
+  const [showTauntOverlay, setShowTauntOverlay] = useState(false);
+  const [tauntImgSrc, setTauntImgSrc] = useState("/222.png");
+
+  // Power-ups: availability and usage
+  const { availablePowerUpId, isAvailable, usePowerUp } = usePowerUps({
+    isMyTurn,
+    players,
+    myPlayerIndex,
+    opponentIndex,
+    socketRef,
+    roomId,
+    gameId,
+    onUsed: (powerUpId) => {
+      const nameMap = {
+        HEALTH_POTION: "Used Health Potion (+20 HP)",
+        DISCARD_DRAW_5: "Used Discard & Draw 5",
+        DOUBLE_DAMAGE: "Double Damage active (x2)",
+        DAMAGE_ROULETTE: "Rolled Damage Roulette",
+        HP_SWAP: "Swapped HP",
+      };
+      showPowerUpToast(nameMap[powerUpId] || "Power-up used");
+    },
+    availabilityChance: 1.0, // 100% chance for testing
+    // forcedPowerUpId: PowerUpId.HEALTH_POTION,
+  });
 
   // Error handling and reconnection functions
   const handleConnectionError = useCallback(
@@ -408,6 +451,36 @@ const Demo = () => {
     initializeSocket();
   }, []);
 
+  // Memoized question data validation (moved above restoreGameState to avoid TDZ)
+  const validateQuestionData = useCallback((card) => {
+    if (!card) return null;
+
+    // If card already has proper questionData, return it
+    if (
+      card.questionData &&
+      card.questionData._id &&
+      card.questionData.questionText
+    ) {
+      return card;
+    }
+
+    // Otherwise, create proper questionData structure
+    const fixedCard = {
+      ...card,
+      questionData: {
+        _id: card.id || card._id || `temp-${Date.now()}`,
+        questionText:
+          card.question || card.questionText || "Question not available",
+        choices: card.choices || ["A", "B", "C", "D"],
+        correctAnswer: card.answer || card.correctAnswer || "A",
+        bloomsLevel: card.bloomLevel || "Remembering",
+      },
+    };
+
+    console.log("🔧 Fixed question data structure:", fixedCard);
+    return fixedCard;
+  }, []);
+
   // Restore game state from backend after page refresh
   const restoreGameState = useCallback(
     async (roomId) => {
@@ -437,6 +510,13 @@ const Demo = () => {
         console.log("📡 API response status:", response.status);
         console.log("📡 API response ok:", response.ok);
 
+        if (response.status === 404) {
+          console.warn(
+            "⚠️ No saved game state for this room; skipping restore."
+          );
+          return false; // gracefully stop attempting restore
+        }
+
         if (response.ok) {
           const data = await response.json();
           console.log("📡 API response data:", data);
@@ -465,6 +545,41 @@ const Demo = () => {
               setCurrentTurnUserId(gameState.currentTurn);
               setWaitingForOpponent(false);
 
+              // Check if there's an active question that should show the modal for the opponent (answerer)
+              if (
+                gameState.gamePhase === "answering" &&
+                gameState.selectedCard &&
+                gameState.currentTurn !== user?.id
+              ) {
+                console.log(
+                  "❓ Active question detected, restoring question modal:",
+                  gameState.selectedCard
+                );
+
+                // Find the opponent (the one who sent the question)
+                const opponent = gameState.players.find(
+                  (p) => p.userId !== user?.id
+                );
+                if (opponent) {
+                  // Validate and set the question data
+                  const validatedCard = validateQuestionData(
+                    gameState.selectedCard
+                  );
+                  if (validatedCard) {
+                    setOpponentQuestion(validatedCard);
+                    setQuestionPhase(true);
+                    console.log(
+                      "✅ Question modal restored for opponent's card"
+                    );
+                  } else {
+                    console.error(
+                      "❌ Invalid selectedCard data during restoration:",
+                      gameState.selectedCard
+                    );
+                  }
+                }
+              }
+
               // Update room ID if different
               if (gameState.roomId && gameState.roomId !== roomId) {
                 setRoomId(gameState.roomId);
@@ -489,7 +604,7 @@ const Demo = () => {
 
       return false;
     },
-    [user?.id]
+    [user?.id, validateQuestionData]
   );
 
   // Initialize game from lobby data
@@ -562,36 +677,6 @@ const Demo = () => {
     setOpponentQuestion(null);
     setShowResultsModal(false);
     setResultData(null);
-  }, []);
-
-  // Memoized question data validation
-  const validateQuestionData = useCallback((card) => {
-    if (!card) return null;
-
-    // If card already has proper questionData, return it
-    if (
-      card.questionData &&
-      card.questionData._id &&
-      card.questionData.questionText
-    ) {
-      return card;
-    }
-
-    // Otherwise, create proper questionData structure
-    const fixedCard = {
-      ...card,
-      questionData: {
-        _id: card.id || card._id || `temp-${Date.now()}`,
-        questionText:
-          card.question || card.questionText || "Question not available",
-        choices: card.choices || ["A", "B", "C", "D"],
-        correctAnswer: card.answer || card.correctAnswer || "A",
-        bloomsLevel: card.bloomLevel || "Remembering",
-      },
-    };
-
-    console.log("🔧 Fixed question data structure:", fixedCard);
-    return fixedCard;
   }, []);
 
   // Socket event handlers
@@ -726,8 +811,17 @@ const Demo = () => {
             }
           }
 
-          if (gameState.currentTurn)
-            setCurrentTurnUserId(gameState.currentTurn);
+          if (gameState.currentTurn) {
+            // If turn changed, clear per-turn power-up indicators
+            setCurrentTurnUserId((prev) => {
+              if (prev && prev !== gameState.currentTurn) {
+                setOpponentTurnPowerUp(null);
+                setMyTurnPowerUp(null);
+                setArmedDefense(null);
+              }
+              return gameState.currentTurn;
+            });
+          }
           if (gameState.gamePhase) setGamePhase(gameState.gamePhase);
           if (gameState.gameState) setGameState(gameState.gameState);
         }
@@ -773,11 +867,18 @@ const Demo = () => {
               // Check if players actually changed to avoid unnecessary re-renders
               const hasChanges = gameState.players.some((newPlayer, index) => {
                 const prevPlayer = prevPlayers[index];
+                const prevCardsLen = Array.isArray(prevPlayer?.cards)
+                  ? prevPlayer.cards.length
+                  : 0;
+                const newCardsLen = Array.isArray(newPlayer?.cards)
+                  ? newPlayer.cards.length
+                  : 0;
                 return (
                   !prevPlayer ||
                   prevPlayer.hp !== newPlayer.hp ||
                   prevPlayer.name !== newPlayer.name ||
-                  prevPlayer.userId !== newPlayer.userId
+                  prevPlayer.userId !== newPlayer.userId ||
+                  prevCardsLen !== newCardsLen
                 );
               });
 
@@ -828,7 +929,7 @@ const Demo = () => {
                   });
                 }
 
-                // Ensure HP is within valid range
+                // Ensure HP is within valid range and preserve own cards where applicable
                 const validatedPlayer = {
                   ...newPlayer,
                   name: preservedName, // Use preserved name
@@ -836,6 +937,14 @@ const Demo = () => {
                     0,
                     Math.min(newPlayer.hp || 0, newPlayer.maxHp || 100)
                   ),
+                  // Preserve cards only for the local player if backend sent an empty array
+                  cards:
+                    String(newPlayer.userId) === String(user?.id)
+                      ? Array.isArray(newPlayer.cards) &&
+                        newPlayer.cards.length > 0
+                        ? newPlayer.cards
+                        : prevPlayer?.cards || []
+                      : newPlayer.cards || [],
                 };
 
                 return validatedPlayer;
@@ -863,6 +972,32 @@ const Demo = () => {
           if (gameState.gamePhase) setGamePhase(gameState.gamePhase);
           if (gameState.gameState) setGameState(gameState.gameState);
           if (gameState.winner) setWinner(gameState.winner);
+
+          // Restore QuestionModal from socket if opponent refreshed during answering
+          if (
+            gameState.gamePhase === "answering" &&
+            gameState.selectedCard &&
+            gameState.currentTurn !== user?.id
+          ) {
+            console.log(
+              "❓ Restoring question modal from socket update:",
+              gameState.selectedCard
+            );
+            const validatedCard = validateQuestionData(gameState.selectedCard);
+            if (validatedCard) {
+              setOpponentQuestion(validatedCard);
+              setQuestionPhase(true);
+              // Load persisted deadline for timer continuity
+              try {
+                const stored = localStorage.getItem(
+                  `questionDeadline_${roomId}`
+                );
+                if (stored) setQuestionDeadlineTs(Number(stored));
+              } catch (e) {
+                console.warn("Failed to read persisted question deadline", e);
+              }
+            }
+          }
         } catch (error) {
           console.error("❌ Error processing game state update:", error);
           setError(`Game state error: ${error.message}`);
@@ -897,8 +1032,17 @@ const Demo = () => {
 
         // Set the opponent's question data
         setOpponentQuestion(validatedCard);
-        setGamePhase("answer");
+        setGamePhase("answering");
         setQuestionPhase(true);
+
+        // Persist a 30s absolute deadline so timer survives refresh
+        const deadline = Date.now() + 30000;
+        try {
+          localStorage.setItem(`questionDeadline_${roomId}`, String(deadline));
+        } catch (e) {
+          console.warn("Failed to persist question deadline", e);
+        }
+        setQuestionDeadlineTs(deadline);
 
         console.log("❓ Question challenge activated for opponent's card");
       } else {
@@ -1031,6 +1175,72 @@ const Demo = () => {
       // No need to reset it here to avoid conflicts
     });
 
+    // Power-up used events
+    socket.on("powerup_used", (data) => {
+      try {
+        const { playerId: evtPlayerId, powerUpId, effect } = data || {};
+        const isMe = String(evtPlayerId) === String(user?.id);
+        const nameMap = {
+          health_potion: isMe
+            ? "You used Health Potion (+HP)"
+            : "Opponent used Health Potion",
+          discard_draw_5: isMe
+            ? "You used Discard & Draw 5"
+            : "Opponent used Discard & Draw 5",
+          double_damage: isMe
+            ? "Double Damage activated (x2)"
+            : "Opponent activated Double Damage",
+          damage_roulette: isMe
+            ? `Damage Roulette rolled${
+                effect?.damage ? ` (${effect.damage})` : ""
+              }`
+            : `Opponent used Damage Roulette${
+                effect?.damage ? ` (${effect.damage})` : ""
+              }`,
+          hp_swap: isMe ? "You swapped HP!" : "Opponent swapped HP!",
+        };
+        const text = nameMap[powerUpId] || "Power-up used";
+        showPowerUpToast(text);
+
+        // Set per-turn indicators
+        const labelMap = {
+          health_potion: "Health Potion",
+          discard_draw_5: "Discard & Draw 5",
+          double_damage: "Double Damage",
+          damage_roulette: "Damage Roulette",
+          hp_swap: "HP Swap",
+        };
+        const label = labelMap[powerUpId] || "Power-up";
+        if (isMe) {
+          setMyTurnPowerUp(label);
+        } else {
+          setOpponentTurnPowerUp(label);
+        }
+      } catch (e) {
+        console.warn("Failed processing powerup_used event", e);
+      }
+    });
+
+    // Private armed defense confirmation
+    socket.on("powerup_armed", ({ name }) => {
+      setArmedDefense(name || "Defense");
+      showPowerUpToast(`${name} armed`);
+    });
+
+    // Cosmetic taunt events (no gameplay effect)
+    socket.on("cosmetic:taunt", ({ playerId: evtPlayerId, durationMs }) => {
+      const isOpponent = String(evtPlayerId) !== String(user?.id);
+      // Show big bouncing overlay on opponent screen
+      if (isOpponent) {
+        setTauntImgSrc("/222.png");
+        setShowTauntOverlay(true);
+        setTimeout(
+          () => setShowTauntOverlay(false),
+          Math.min(durationMs || 3000, 5000)
+        );
+      }
+    });
+
     // Game over events
     socket.on("game:game_over", (data) => {
       console.log("🏁 Game over:", data);
@@ -1062,6 +1272,20 @@ const Demo = () => {
       console.error("❌ Room ID:", error.roomId);
       console.error("❌ Game ID:", error.gameId);
       console.error("❌ Full error object:", JSON.stringify(error, null, 2));
+
+      // Gracefully ignore non-critical answer submission errors that can happen
+      // during timing races (e.g., "Cannot answer your own question")
+      const benignMessages = new Set([
+        "Cannot answer your own question",
+        "Not your turn",
+        "No question to answer",
+      ]);
+      const msg = error?.error || error?.message || "";
+      if (benignMessages.has(msg)) {
+        console.warn("⚠️ Ignoring benign game error:", msg);
+        return;
+      }
+
       setError(error.message || error.error || "Game error occurred");
     });
   }, [
@@ -1076,6 +1300,7 @@ const Demo = () => {
     players,
     resetAllModalStates,
     validateQuestionData,
+    showPowerUpToast,
   ]);
 
   // Initialize socket events
@@ -1103,7 +1328,7 @@ const Demo = () => {
         clearTimeout(playerTimeout);
       }
     };
-  }, [handleSocketEvents]);
+  }, [handleSocketEvents, showPowerUpToast]);
 
   // Join game room when component mounts
   useEffect(() => {
@@ -1339,12 +1564,27 @@ const Demo = () => {
     // Set processing flag immediately to prevent duplicate submissions
     setIsProcessingAnswer(true);
 
-    // Set a timeout to reset processing flag if no response is received
-    const submissionTimeout = setTimeout(() => {
-      console.warn("⚠️ Answer submission timeout - no response received");
-      setIsProcessingAnswer(false);
-      setError("Answer submission timed out. Please try again.");
-    }, 10000); // 10 second timeout
+    // Clear persisted deadline once an answer is submitted
+    try {
+      localStorage.removeItem(`questionDeadline_${roomId}`);
+    } catch (e) {
+      console.warn("Failed to clear question deadline", e);
+    }
+    setQuestionDeadlineTs(null);
+
+    // Only set submission timeout for non-timer timeout cases
+    let submissionTimeout = null;
+    if (!result.isTimerTimeout) {
+      submissionTimeout = setTimeout(() => {
+        console.warn("⚠️ Answer submission timeout - no response received");
+        setIsProcessingAnswer(false);
+        setError("Answer submission timed out. Please try again.");
+      }, 10000); // 10 second timeout
+    } else {
+      console.log(
+        "⏰ Timer timeout - treating as wrong answer, no submission timeout needed"
+      );
+    }
 
     // Delay the socket emission to allow QuestionModal to show result first
     // The QuestionModal will auto-close after 3 seconds, then we send the answer
@@ -1366,12 +1606,16 @@ const Demo = () => {
         console.log("✅ Answer successfully sent to server");
 
         // Clear the timeout since we successfully sent the answer
-        clearTimeout(submissionTimeout);
+        if (submissionTimeout) {
+          clearTimeout(submissionTimeout);
+        }
       } catch (error) {
         console.error("❌ Error sending answer to server:", error);
         setError("Failed to submit answer. Please try again.");
         setIsProcessingAnswer(false);
-        clearTimeout(submissionTimeout);
+        if (submissionTimeout) {
+          clearTimeout(submissionTimeout);
+        }
       }
     }, 3000); // Reduced delay to 3 seconds for better responsiveness
 
@@ -1518,11 +1762,41 @@ const Demo = () => {
     }
 
     return (
-      <div className="demoContainer">
-        <TargetCursor spinDuration={2} hideDefaultCursor={true} />
+      <div
+        className="demoContainer"
+        style={{ position: "relative", zIndex: 2 }}
+      >
         <FloatingStars />
+        <TargetCursor spinDuration={2} hideDefaultCursor={true} />
 
-        {/* Power-ups Panel removed - not currently implemented */}
+        {/* Power-ups Panel */}
+        <PowerUpPanel
+          isMobile={isMobile}
+          availablePowerUpId={availablePowerUpId}
+          isAvailable={isAvailable}
+          onUse={usePowerUp}
+        />
+
+        {/* Power-up Toast */}
+        {powerUpToast && (
+          <div
+            style={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              background: "rgba(17,24,39,0.9)",
+              color: "var(--legendary-gold)",
+              border: "1px solid var(--legendary-gold)",
+              padding: "10px 14px",
+              borderRadius: 10,
+              zIndex: 50,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              fontWeight: 700,
+            }}
+          >
+            {powerUpToast}
+          </div>
+        )}
 
         {/* Header */}
         <div className="gameHeader">
@@ -1600,6 +1874,19 @@ const Demo = () => {
                   "Opponent"}
               </div>
               <div className="playerRole">OPPONENT</div>
+              {opponentTurnPowerUp && (
+                <div
+                  className="activePowerUpTag"
+                  style={{
+                    marginTop: "4px",
+                    color: "#eab308",
+                    fontWeight: 700,
+                    fontSize: isMobile ? "10px" : "12px",
+                  }}
+                >
+                  ⚡ {opponentTurnPowerUp}
+                </div>
+              )}
               <div className="playerStats">
                 <div className="statItem">
                   <span className="statLabel">Correct:</span>
@@ -1825,6 +2112,32 @@ const Demo = () => {
                   "You"}
               </div>
               <div className="playerRole">YOU</div>
+              {armedDefense && (
+                <div
+                  className="activePowerUpTag"
+                  style={{
+                    marginTop: "4px",
+                    color: "#22c55e",
+                    fontWeight: 700,
+                    fontSize: isMobile ? "10px" : "12px",
+                  }}
+                >
+                  🛡️ Armed: {armedDefense}
+                </div>
+              )}
+              {myTurnPowerUp && (
+                <div
+                  className="activePowerUpTag"
+                  style={{
+                    marginTop: "4px",
+                    color: "#eab308",
+                    fontWeight: 700,
+                    fontSize: isMobile ? "10px" : "12px",
+                  }}
+                >
+                  ⚡ {myTurnPowerUp}
+                </div>
+              )}
               <div className="playerStats">
                 <div className="statItem">
                   <span className="statLabel">Correct:</span>
@@ -1858,6 +2171,96 @@ const Demo = () => {
             </div>
           </div>
         </div>
+
+        {/* Taunt Overlay */}
+        {showTauntOverlay && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,0.25)",
+              zIndex: 1000,
+              pointerEvents: "none",
+              overflow: "hidden",
+            }}
+          >
+            {/* Confetti layer */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+              }}
+            >
+              {Array.from({ length: 48 }).map((_, i) => {
+                const left = Math.random() * 100;
+                const delay = `${(Math.random() * 0.6).toFixed(2)}s`;
+                const duration = `${(1.5 + Math.random() * 0.9).toFixed(2)}s`;
+                const size = 6 + Math.random() * 8;
+                const colors = [
+                  "#e11d48",
+                  "#f59e0b",
+                  "#10b981",
+                  "#3b82f6",
+                  "#a855f7",
+                ];
+                const color = colors[i % colors.length];
+                const rotate = Math.floor(Math.random() * 360);
+                return (
+                  <div
+                    key={`confetti-${i}`}
+                    style={{
+                      position: "absolute",
+                      top: -20,
+                      left: `${left}%`,
+                      width: size,
+                      height: size * 0.45,
+                      background: color,
+                      opacity: 0.9,
+                      transform: `rotate(${rotate}deg)`,
+                      borderRadius: 2,
+                      animation: `confetti-fall ${duration} linear ${delay} forwards`,
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Big bouncing/shaking emoji image */}
+            <img
+              src={tauntImgSrc}
+              alt="Taunt"
+              style={{
+                width: isMobile ? "200px" : "340px",
+                height: isMobile ? "200px" : "340px",
+                animation:
+                  "taunt-bounce 0.9s ease-in-out infinite, taunt-shake 0.6s ease-in-out infinite",
+                filter: "drop-shadow(0 14px 24px rgba(0,0,0,0.55))",
+              }}
+            />
+
+            <style>{`
+              @keyframes taunt-bounce {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-22px) scale(1.08); }
+              }
+              @keyframes taunt-shake {
+                0% { transform: translateX(0) rotate(0deg); }
+                25% { transform: translateX(-4px) rotate(-2deg); }
+                50% { transform: translateX(0) rotate(2deg); }
+                75% { transform: translateX(4px) rotate(-1deg); }
+                100% { transform: translateX(0) rotate(0deg); }
+              }
+              @keyframes confetti-fall {
+                0% { transform: translateY(-12vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(110vh) rotate(360deg); opacity: 0.8; }
+              }
+            `}</style>
+          </div>
+        )}
 
         {/* Victory Modal */}
         <VictoryModal
@@ -1966,11 +2369,18 @@ const Demo = () => {
           onClose={() => {
             console.log("🔒 QuestionModal onClose called");
             resetQuestionModalState(); // Only reset question modal, keep results modal
+            try {
+              localStorage.removeItem(`questionDeadline_${roomId}`);
+            } catch (e) {
+              console.warn("Failed to clear question deadline on close", e);
+            }
+            setQuestionDeadlineTs(null);
           }}
           cardData={opponentQuestion}
           onAnswerSubmit={handleAnswerSubmit}
           playerName={players[myPlayerIndex]?.name || "Player"}
           isProcessing={isProcessingAnswer}
+          deadlineTs={questionDeadlineTs}
         />
 
         {/* Quick Result Popup - Show Opponent's Answer and Damage */}
