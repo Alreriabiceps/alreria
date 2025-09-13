@@ -16,7 +16,6 @@ import "./pages/mobile.css";
 import { FaDice } from "react-icons/fa";
 
 // UI components
-import TargetCursor from "@components/TargetCursor";
 import FloatingStars from "../../components/FloatingStars/FloatingStars";
 
 // Contexts and hooks
@@ -1767,7 +1766,6 @@ const Demo = () => {
         style={{ position: "relative", zIndex: 2 }}
       >
         <FloatingStars />
-        <TargetCursor spinDuration={2} hideDefaultCursor={true} />
 
         {/* Power-ups Panel */}
         <PowerUpPanel
