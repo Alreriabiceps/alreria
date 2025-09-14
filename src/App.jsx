@@ -19,6 +19,7 @@ import Ranking from "./users/students/pages/ranking/pages/Ranking.jsx";
 import Profile from "./users/students/pages/profile/pages/Profile.jsx";
 import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
+import TeamWeeklyTest from "./users/students/pages/teamtest/pages/TeamWeeklyTest.jsx";
 import VersusModeLobby from "./users/students/pages/versusmodelobby/pages/VersusModeLobby.jsx";
 import AllChats from "./users/students/pages/chat/AllChats.jsx";
 import useSocket from "./hooks/useSocket";
@@ -73,6 +74,7 @@ const App = () => {
         <Route path="profile" element={<Profile />} />
         <Route path="crew" element={<Crew />} />
         <Route path="partymmr" element={<Partymmr />} />
+        <Route path="teamtest/:attemptId" element={<TeamWeeklyTest />} />
         <Route path="versusmodelobby" element={<VersusModeLobby />} />
         {/* Route removed: game now uses Demo component directly */}
         <Route

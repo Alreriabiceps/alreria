@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import styles from "./Profile.module.css";
-import Modal from "react-modal";
 import {
   FaLeaf,
   FaTree,
@@ -79,7 +78,6 @@ const TAB_WEEKLY = "weekly";
 const TAB_PVP = "pvp";
 const TAB_ANALYTICS = "analytics";
 const TAB_ACHIEVEMENTS = "achievements";
-const TAB_SETTINGS = "settings";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -592,14 +590,6 @@ const Profile = () => {
           }`}
         >
           Achievements
-        </button>
-        <button
-          onClick={() => setActiveTab(TAB_SETTINGS)}
-          className={`${styles.tabButton} ${
-            activeTab === TAB_SETTINGS ? styles.tabButtonActive : ""
-          }`}
-        >
-          Settings
         </button>
       </div>
 
@@ -1200,91 +1190,6 @@ const Profile = () => {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        </div>
-      )}
-      {activeTab === TAB_SETTINGS && (
-        <div
-          key={TAB_SETTINGS}
-          className={styles.profileSection}
-          style={{ maxWidth: 600, margin: "0 auto", animationDelay: "0.5s" }}
-        >
-          <h2 className={styles.sectionTitle}>Profile Settings</h2>
-
-          <div className={styles.settingsGrid}>
-            <div
-              className={styles.settingCard}
-              style={{ animationDelay: "0.2s" }}
-            >
-              <div className={styles.settingCardHeader}>
-                <FaUserShield className={styles.settingCardIcon} />
-                <div className={styles.settingCardTitle}>
-                  Account Information
-                </div>
-              </div>
-              <div className={styles.settingCardContent}>
-                <div className={styles.settingItem}>
-                  <label>Name:</label>
-                  <span>
-                    {studentData.firstName} {studentData.lastName}
-                  </span>
-                </div>
-                <div className={styles.settingItem}>
-                  <label>Student ID:</label>
-                  <span>{studentData.id}</span>
-                </div>
-                <div className={styles.settingItem}>
-                  <label>Email:</label>
-                  <span>{studentData.email || "Not set"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={styles.settingCard}
-              style={{ animationDelay: "0.3s" }}
-            >
-              <div className={styles.settingCardHeader}>
-                <FaBell className={styles.settingCardIcon} />
-                <div className={styles.settingCardTitle}>Preferences</div>
-              </div>
-              <div className={styles.settingCardContent}>
-                <div className={styles.settingItem}>
-                  <label>Theme:</label>
-                  <span>Blueprint Dark</span>
-                </div>
-                <div className={styles.settingItem}>
-                  <label>Notifications:</label>
-                  <span>Enabled</span>
-                </div>
-                <div className={styles.settingItem}>
-                  <label>Language:</label>
-                  <span>English</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={styles.settingCard}
-              style={{ animationDelay: "0.4s" }}
-            >
-              <div className={styles.settingCardHeader}>
-                <FaChartBar className={styles.settingCardIcon} />
-                <div className={styles.settingCardTitle}>Privacy & Data</div>
-              </div>
-              <div className={styles.settingCardContent}>
-                <div className={styles.settingItem}>
-                  <label>Profile Visibility:</label>
-                  <span>Public</span>
-                </div>
-                <div className={styles.settingItem}>
-                  <label>Data Export:</label>
-                  <button className={styles.settingButton}>
-                    Download Data
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -5,8 +5,6 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { useSwipeable } from "react-swipeable";
 import {
@@ -177,6 +175,13 @@ const ReviewerCard = React.memo(
     const [isHovered, setIsHovered] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState(0);
     const cardRef = useRef(null);
+    const timersRef = useRef({
+      progressIntervalId: null,
+      resetTimeoutId: null,
+    });
+    const expandBtnRef = useRef(null);
+    const detailsRef = useRef(null);
+    const focusTargetRef = useRef(null); // 'details' | 'toggle' | null
 
     // Swipe handlers for mobile
     const swipeHandlers = useSwipeable({
@@ -206,6 +211,9 @@ const ReviewerCard = React.memo(
       setDownloadProgress(10);
 
       // Simulate download progress
+      if (timersRef.current.progressIntervalId) {
+        clearInterval(timersRef.current.progressIntervalId);
+      }
       const progressInterval = setInterval(() => {
         setDownloadProgress((prev) => {
           if (prev >= 90) {
@@ -215,16 +223,63 @@ const ReviewerCard = React.memo(
           return prev + 10;
         });
       }, 100);
+      timersRef.current.progressIntervalId = progressInterval;
 
       try {
         await onAccess(reviewer.id, reviewer.url);
+        if (timersRef.current.progressIntervalId) {
+          clearInterval(timersRef.current.progressIntervalId);
+          timersRef.current.progressIntervalId = null;
+        }
         setDownloadProgress(100);
-        setTimeout(() => setDownloadProgress(0), 1000);
+        if (timersRef.current.resetTimeoutId) {
+          clearTimeout(timersRef.current.resetTimeoutId);
+        }
+        timersRef.current.resetTimeoutId = setTimeout(() => {
+          setDownloadProgress(0);
+          timersRef.current.resetTimeoutId = null;
+        }, 1000);
       } catch {
         setDownloadProgress(0);
-        clearInterval(progressInterval);
+        if (timersRef.current.progressIntervalId) {
+          clearInterval(timersRef.current.progressIntervalId);
+          timersRef.current.progressIntervalId = null;
+        }
       }
     }, [reviewer.id, reviewer.url, onAccess]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        if (timersRef.current.progressIntervalId) {
+          clearInterval(timersRef.current.progressIntervalId);
+          timersRef.current.progressIntervalId = null;
+        }
+        if (timersRef.current.resetTimeoutId) {
+          clearTimeout(timersRef.current.resetTimeoutId);
+          timersRef.current.resetTimeoutId = null;
+        }
+      };
+    }, []);
+
+    // Focus management when expanding/collapsing
+    useEffect(() => {
+      if (
+        focusTargetRef.current === "details" &&
+        isExpanded &&
+        detailsRef.current
+      ) {
+        detailsRef.current.focus();
+        focusTargetRef.current = null;
+      } else if (
+        focusTargetRef.current === "toggle" &&
+        !isExpanded &&
+        expandBtnRef.current
+      ) {
+        expandBtnRef.current.focus();
+        focusTargetRef.current = null;
+      }
+    }, [isExpanded]);
 
     return (
       <div
@@ -234,7 +289,10 @@ const ReviewerCard = React.memo(
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
         tabIndex={0}
+        aria-busy={downloadProgress > 0}
         {...swipeHandlers}
       >
         {/* Download Progress Bar */}
@@ -260,7 +318,11 @@ const ReviewerCard = React.memo(
           </div>
 
           <div className={styles.cardContent}>
-            <h3 className={styles.cardTitle} title={reviewer.title}>
+            <h3
+              id={`title-${reviewer.id}`}
+              className={styles.cardTitle}
+              title={reviewer.title}
+            >
               {reviewer.title}
             </h3>
             <div className={styles.cardMeta}>
@@ -311,8 +373,14 @@ const ReviewerCard = React.memo(
 
             <button
               className={styles.expandBtn}
-              onClick={() => setIsExpanded(!isExpanded)}
+              ref={expandBtnRef}
+              onClick={() => {
+                focusTargetRef.current = isExpanded ? "toggle" : "details";
+                setIsExpanded(!isExpanded);
+              }}
               title={isExpanded ? "Collapse details" : "Expand details"}
+              aria-expanded={isExpanded}
+              aria-controls={`details-${reviewer.id}`}
             >
               {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
             </button>
@@ -320,7 +388,14 @@ const ReviewerCard = React.memo(
         </div>
 
         {isExpanded && (
-          <div className={styles.cardDetails}>
+          <div
+            id={`details-${reviewer.id}`}
+            className={styles.cardDetails}
+            role="region"
+            aria-labelledby={`title-${reviewer.id}`}
+            ref={detailsRef}
+            tabIndex={-1}
+          >
             <p className={styles.description}>
               {reviewer.description || "No description available."}
             </p>
@@ -365,16 +440,48 @@ const Reviewers = () => {
     handleAccess,
   } = useReviewers();
 
+  // Local favorites for demo/fallback mode
+  const [localFavorites, setLocalFavorites] = useState(() => {
+    try {
+      const raw = localStorage.getItem("demoReviewerFavorites");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Use fallback data if API fails
   const reviewers = useMemo(() => {
+    return useFallbackData || apiReviewers.length === 0
+      ? SAMPLE_REVIEWERS
+      : apiReviewers;
+  }, [useFallbackData, apiReviewers]);
+
+  // React to API error outside of useMemo (side-effect safe)
+  useEffect(() => {
     if (error && !useFallbackData) {
       setUseFallbackData(true);
       toast.warning("Using sample data - Backend not available");
     }
-    return useFallbackData || apiReviewers.length === 0
-      ? SAMPLE_REVIEWERS
-      : apiReviewers;
-  }, [error, useFallbackData, apiReviewers]);
+  }, [error, useFallbackData]);
+
+  // Persist local favorites in demo mode
+  useEffect(() => {
+    if (useFallbackData) {
+      try {
+        localStorage.setItem(
+          "demoReviewerFavorites",
+          JSON.stringify(localFavorites)
+        );
+      } catch {}
+    }
+  }, [useFallbackData, localFavorites]);
+
+  // Effective favorites depending on mode
+  const effectiveFavorites = useMemo(
+    () => (useFallbackData ? localFavorites : favorites),
+    [useFallbackData, localFavorites, favorites]
+  );
 
   const uniqueSubjects = useMemo(() => {
     if (useFallbackData) {
@@ -468,7 +575,9 @@ const Reviewers = () => {
   const handleToggleFavorite = useCallback(
     (id) => {
       if (useFallbackData) {
-        toast.info("Favorites are not available in demo mode");
+        setLocalFavorites((prev) =>
+          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
         return;
       }
       toggleFavorite(id);
@@ -754,7 +863,7 @@ const Reviewers = () => {
                 <ReviewerCard
                   key={reviewer.id}
                   reviewer={reviewer}
-                  isFavorite={favorites.includes(reviewer.id)}
+                  isFavorite={effectiveFavorites.includes(reviewer.id)}
                   onToggleFavorite={handleToggleFavorite}
                   onAccess={handleAccessFile}
                   viewMode={viewMode}

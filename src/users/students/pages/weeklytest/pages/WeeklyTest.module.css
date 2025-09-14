@@ -89,27 +89,32 @@
 /* --- Page Header --- */
 .pageHeader {
   width: 100%;
-  max-width: 1000px; /* Match dashboard */
-  margin-bottom: 20px; /* Reduced from 25px */
-  text-align: center; /* Match dashboard */
+  max-width: 1000px;
+  margin: 10px auto 16px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   z-index: 1;
   position: relative;
-  /* animation: fadeInUp 0.7s cubic-bezier(.25,1.7,.45,.85) 0.2s both; */ /* Replaced by dashboard's powerUpBg */
-  opacity: 1; /* Ensure visible after animation change -- can be removed if children handle opacity */
+  opacity: 1;
 }
 .pageTitle {
-  font-family: var(--font-header); /* Match dashboard */
-  font-size: 3.5rem; /* Reduced from 4rem */
-  color: var(--blueprint-accent); /* Match dashboard (Yellow title) */
-  letter-spacing: 2.5px; /* Reduced from 3px */
-  text-shadow: /* Match dashboard */ 3px 3px 0 var(--dbz-black),
-    -1px -1px 0 var(--blueprint-bg), 1px -1px 0 var(--blueprint-bg),
-    -1px 1px 0 var(--blueprint-bg), 1px 1px 0 var(--blueprint-bg);
-  margin-bottom: 0.1rem; /* Reduced from 0.2rem */
-  line-height: 1.1; /* Match dashboard */
-  /* opacity: 0; */ /* Retain original opacity for WeeklyTest animation logic if needed, or remove if titleSmash handles it */
-  animation: titleSmash 0.5s ease-out 0.2s backwards; /* Match dashboard animation */
-  /* animation: titleSmash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards; */ /* Original WeeklyTest animation */
+  font-family: var(--font-header);
+  font-size: 2.6rem;
+  color: var(--blueprint-text);
+  letter-spacing: 1.2px;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+  margin: 0;
+  line-height: 1.1;
+  animation: none;
+}
+
+/* Centered, slightly tighter styling for Co‑op title */
+.coopTitle {
+  width: 100%;
+  text-align: center;
 }
 .pageSubtitle {
   font-family: var(--font-accent); /* Match dashboard */
@@ -1806,5 +1811,2477 @@
     font-size: 0.85rem; /* Smaller subtitle for mobile */
     margin-top: 2px;
     text-shadow: 1px 1px 2px var(--dbz-black);
+  }
+}
+
+/* ===== TEAM WEEKLY TEST CONTAINER & LAYOUT ===== */
+
+.teamTestContainer {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--blueprint-panel-bg);
+  border: 1.5px solid var(--blueprint-panel-border);
+  border-radius: 12px;
+  box-shadow: 0 5px 15px var(--blueprint-shadow),
+    inset 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  backdrop-filter: blur(3px);
+}
+
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rightSidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rosterSection {
+  background: rgba(20, 30, 45, 0.8);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.rosterTitle {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--blueprint-accent);
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+  text-align: center;
+  border-bottom: 1px dashed var(--blueprint-grid-line);
+  padding-bottom: 8px;
+}
+
+.rosterGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rosterCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.rosterCard.activePlayer {
+  background: linear-gradient(
+    135deg,
+    rgba(243, 156, 18, 0.2),
+    rgba(241, 196, 15, 0.1)
+  );
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 16px rgba(243, 156, 18, 0.3);
+  animation: activePlayerGlow 2s infinite alternate;
+}
+
+.rosterCard.waitingPlayer {
+  background: rgba(52, 73, 94, 0.3);
+  border-color: rgba(52, 73, 94, 0.5);
+}
+
+@keyframes activePlayerGlow {
+  0% {
+    box-shadow: 0 0 16px rgba(243, 156, 18, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(243, 156, 18, 0.5);
+  }
+}
+
+.playerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--dbz-dark-gray),
+    var(--dbz-dark-blue)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-header);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  border: 2px solid var(--blueprint-grid-line);
+  flex-shrink: 0;
+}
+
+.rosterCard.activePlayer .playerAvatar {
+  background: linear-gradient(
+    135deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  );
+  color: var(--blueprint-accent-text-dark);
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 12px rgba(243, 156, 18, 0.4);
+}
+
+.playerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.playerName {
+  font-family: var(--font-header);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--blueprint-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rosterCard.activePlayer .playerName {
+  color: var(--blueprint-accent);
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.playerStatus {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+  color: var(--blueprint-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rosterCard.activePlayer .playerStatus {
+  color: var(--dbz-orange);
+  opacity: 1;
+  animation: statusBlink 2s infinite;
+}
+
+@keyframes statusBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ===== MOBILE RESPONSIVENESS FOR TEAM TEST ===== */
+
+/* Tablet and smaller desktop */
+@media (max-width: 1200px) {
+  .teamTestContainer {
+    max-width: 100%;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .rightSidebar {
+    width: 240px;
+  }
+
+  .rosterSection,
+  .sidebarTurnStatus,
+  .sidebarProgressContainer {
+    padding: 14px;
+  }
+
+  .rosterTitle {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .rosterCard {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .playerAvatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .compactTurnProgress {
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+
+  .compactQuestionDot {
+    width: 32px;
+    height: 32px;
+  }
+
+  .compactDotNumber {
+    font-size: 0.8rem;
+  }
+}
+
+/* Large tablets */
+@media (max-width: 968px) {
+  .teamTestContainer {
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px;
+  }
+
+  .mainContent {
+    width: 100%;
+    order: 1;
+  }
+
+  .rightSidebar {
+    width: 100%;
+    order: 2;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .rosterSection {
+    flex: 1;
+  }
+
+  .rosterGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .rosterCard {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .sidebarTurnStatus {
+    flex: 0 0 200px;
+  }
+
+  .sidebarProgressContainer {
+    flex: 0 0 180px;
+  }
+
+  .compactTurnProgress {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .compactProgressHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .compactQuestionDot {
+    width: 30px;
+    height: 30px;
+  }
+
+  .compactDotNumber {
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile phones and small tablets */
+@media (max-width: 768px) {
+  .teamTestContainer {
+    padding: 12px;
+    gap: 12px;
+    border-radius: 8px;
+  }
+
+  .rightSidebar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rosterSection,
+  .sidebarTurnStatus,
+  .sidebarProgressContainer {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .rosterTitle {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .rosterGrid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .rosterCard {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .playerAvatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .playerName {
+    font-size: 0.8rem;
+  }
+
+  .playerStatus {
+    font-size: 0.65rem;
+  }
+
+  .compactTurnProgress {
+    padding: 10px 14px;
+    margin-bottom: 12px;
+  }
+
+  .compactProgressTitle {
+    font-size: 1rem;
+  }
+
+  .compactQuestionDot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .compactDotNumber {
+    font-size: 0.7rem;
+  }
+
+  .compactQuestionDots {
+    gap: 6px;
+  }
+
+  .sidebarProgressTitle,
+  .turnLabel {
+    font-size: 0.9rem;
+  }
+
+  .sidebarProgressPercent,
+  .turnValue {
+    font-size: 1rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 480px) {
+  .teamTestContainer {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .rightSidebar {
+    gap: 10px;
+  }
+
+  .rosterSection,
+  .sidebarTurnStatus,
+  .sidebarProgressContainer {
+    padding: 10px;
+  }
+
+  .rosterGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .rosterCard {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .playerAvatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+
+  .playerName {
+    font-size: 0.75rem;
+  }
+
+  .playerStatus {
+    font-size: 0.6rem;
+  }
+
+  .compactTurnProgress {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+
+  .compactProgressTitle {
+    font-size: 0.9rem;
+  }
+
+  .nextPlayerBadge {
+    padding: 3px 6px;
+    font-size: 0.7rem;
+  }
+
+  .compactQuestionDot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .compactDotNumber {
+    font-size: 0.65rem;
+  }
+
+  .compactQuestionDots {
+    gap: 4px;
+  }
+
+  .compactMyIndicator {
+    font-size: 0.45rem;
+    padding: 1px 3px;
+    bottom: -6px;
+  }
+
+  .sidebarProgressTitle {
+    font-size: 0.8rem;
+  }
+
+  .sidebarProgressPercent {
+    font-size: 0.9rem;
+  }
+
+  .turnInfo {
+    gap: 12px;
+  }
+
+  .activePlayerStatus .statusText {
+    font-size: 0.8rem;
+  }
+}
+
+/* ===== COMPACT TURN PROGRESS STYLES ===== */
+
+.compactTurnProgress {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 45, 60, 0.9) 0%,
+    rgba(25, 35, 50, 0.9) 100%
+  );
+  border: 1px solid var(--blueprint-grid-line-strong);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.compactProgressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.compactProgressTitle {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  color: var(--blueprint-accent);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.refreshIndicator {
+  color: var(--dbz-orange);
+  animation: refreshBlink 1s infinite;
+  font-size: 0.8rem;
+}
+
+@keyframes refreshBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.nextPlayerBadge {
+  background: rgba(241, 196, 15, 0.15);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-accent);
+  font-weight: 600;
+}
+
+.compactQuestionDots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.compactQuestionDot {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.compactQuestionDot.compactUpcoming {
+  background: rgba(52, 73, 94, 0.6);
+  border-color: rgba(52, 73, 94, 0.8);
+}
+
+.compactQuestionDot.compactCompleted {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  border-color: #2ecc71;
+}
+
+.compactQuestionDot.compactCurrent {
+  background: linear-gradient(
+    135deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  );
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.5);
+  transform: scale(1.05);
+}
+
+.compactQuestionDot.compactMyTurn {
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+}
+
+.compactDotNumber {
+  font-family: var(--font-header);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--blueprint-text);
+}
+
+.compactQuestionDot.compactCurrent .compactDotNumber {
+  color: var(--blueprint-accent-text-dark);
+}
+
+.compactPulse {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--blueprint-accent);
+  animation: compactPulseRing 1.5s infinite;
+}
+
+@keyframes compactPulseRing {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.compactMyIndicator {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--dbz-orange);
+  color: var(--dbz-black);
+  font-family: var(--font-header);
+  font-size: 0.5rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  animation: compactBob 1.5s infinite;
+}
+
+@keyframes compactBob {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-1px);
+  }
+}
+
+/* ===== SIDEBAR STYLES ===== */
+
+.sidebarTurnStatus {
+  background: rgba(30, 45, 60, 0.8);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.sidebarProgressContainer {
+  background: rgba(20, 30, 45, 0.8);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.sidebarProgressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sidebarProgressTitle {
+  font-family: var(--font-header);
+  font-size: 1rem;
+  color: var(--blueprint-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.sidebarProgressPercent {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  color: var(--blueprint-accent);
+  font-weight: 800;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.sidebarProgressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(52, 73, 94, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.sidebarProgressFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  );
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.sidebarProgressStats {
+  text-align: center;
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* ===== ORIGINAL TURN PROGRESS STYLES (UNUSED NOW) ===== */
+
+.turnProgressContainer {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 45, 60, 0.95) 0%,
+    rgba(25, 35, 50, 0.95) 50%,
+    rgba(20, 30, 45, 0.95) 100%
+  );
+  border: 2px solid var(--blueprint-grid-line-strong);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.turnProgressContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--blueprint-accent) 50%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.progressTitle {
+  font-family: var(--font-header);
+  font-size: 1.4rem;
+  color: var(--blueprint-accent);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.nextPlayerInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(241, 196, 15, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.nextLabel {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.nextPlayer {
+  font-family: var(--font-header);
+  font-size: 1rem;
+  color: var(--blueprint-accent);
+  font-weight: 700;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.questionDots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+  padding: 0 8px;
+}
+
+.questionDot {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.questionDot.upcoming {
+  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+  border-color: #4a5f7a;
+  box-shadow: 0 4px 12px rgba(52, 73, 94, 0.4);
+}
+
+.questionDot.completed {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  border-color: #2ecc71;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.questionDot.current {
+  background: linear-gradient(135deg, var(--blueprint-accent) 0%, #f4d03f 100%);
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 24px rgba(241, 196, 15, 0.6),
+    0 4px 12px rgba(241, 196, 15, 0.4);
+  transform: scale(1.1);
+  z-index: 2;
+}
+
+.questionDot.myTurn {
+  border-color: var(--dbz-orange);
+  box-shadow: 0 0 16px rgba(243, 156, 18, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.questionDot:hover:not(.current) {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.dotInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.questionNumber {
+  font-family: var(--font-header);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--blueprint-text);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.questionDot.current .questionNumber {
+  color: var(--blueprint-accent-text-dark);
+}
+
+.playerInitial {
+  font-family: var(--font-header);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  line-height: 1;
+}
+
+.questionDot.current .playerInitial {
+  color: var(--blueprint-accent-text-dark);
+  opacity: 1;
+}
+
+.currentIndicator {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--blueprint-accent);
+  animation: pulseRing 2s infinite;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.myTurnIndicator {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--dbz-orange);
+  color: var(--dbz-black);
+  font-family: var(--font-header);
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--dbz-black);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: bobble 1.5s infinite;
+}
+
+@keyframes bobble {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+.progressStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--blueprint-grid-line);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
+}
+
+.statValue {
+  font-family: var(--font-header);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--blueprint-accent);
+  line-height: 1;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.statLabel {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.progressLine {
+  flex: 1;
+  height: 6px;
+  background: rgba(52, 73, 94, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  margin: 0 20px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--blueprint-accent) 0%,
+    var(--dbz-orange) 100%
+  );
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progressFill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+}
+
+/* Enhanced Mobile responsive for turn progress */
+@media (max-width: 968px) {
+  .turnProgressContainer {
+    margin: 0 auto 20px auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .questionDots {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .turnProgressContainer {
+    padding: 16px;
+    margin: 0 auto 16px auto;
+    width: 100%;
+  }
+
+  .progressTitle {
+    font-size: 1.2rem;
+  }
+
+  .questionDots {
+    gap: 8px;
+  }
+
+  .questionDot {
+    width: 48px;
+    height: 48px;
+  }
+
+  .questionNumber {
+    font-size: 0.8rem;
+  }
+
+  .playerInitial {
+    font-size: 0.6rem;
+  }
+
+  .nextPlayerInfo {
+    padding: 6px 12px;
+  }
+
+  .nextLabel {
+    font-size: 0.8rem;
+  }
+
+  .nextPlayer {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .progressHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .questionDots {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .questionDot {
+    width: 42px;
+    height: 42px;
+  }
+
+  .questionNumber {
+    font-size: 0.75rem;
+  }
+
+  .playerInitial {
+    font-size: 0.55rem;
+  }
+
+  .myTurnIndicator {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    bottom: -10px;
+  }
+
+  .progressStats {
+    gap: 12px;
+  }
+
+  .statValue {
+    font-size: 1.3rem;
+  }
+
+  .progressLine {
+    margin: 0 12px;
+  }
+}
+
+/* ===== ENHANCED TURN STATUS STYLES ===== */
+
+.turnStatusContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(30, 45, 60, 0.6);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  backdrop-filter: blur(8px);
+}
+
+.turnInfo {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.turnCounter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.turnLabel {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.turnValue {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--blueprint-accent);
+  font-weight: 800;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.bloomsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: 8px;
+}
+
+.bloomsLabel {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  color: var(--dbz-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.bloomsValue {
+  font-family: var(--font-header);
+  font-size: 0.9rem;
+  color: var(--dbz-blue);
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.activePlayerStatus {
+  flex-shrink: 0;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.statusDot.active {
+  background: var(--dbz-orange);
+  box-shadow: 0 0 16px rgba(243, 156, 18, 0.6),
+    inset 0 0 4px rgba(255, 255, 255, 0.3);
+  animation: activePulse 2s infinite;
+}
+
+.statusDot.waiting {
+  background: #95a5a6;
+  box-shadow: 0 0 8px rgba(149, 165, 166, 0.4), inset 0 0 4px rgba(0, 0, 0, 0.3);
+  animation: waitingBlink 3s infinite;
+}
+
+@keyframes activePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes waitingBlink {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.4;
+  }
+}
+
+.statusText {
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.statusIndicator .statusDot.active + .statusText {
+  color: var(--blueprint-accent);
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.statusIndicator .statusDot.waiting + .statusText {
+  color: var(--blueprint-text);
+  opacity: 0.8;
+}
+
+/* Enhanced responsive for turn status */
+@media (max-width: 968px) {
+  .turnStatusContainer {
+    width: 100%;
+    margin: 16px auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .turnStatusContainer {
+    padding: 12px 16px;
+    margin: 12px auto;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .turnInfo {
+    gap: 16px;
+  }
+
+  .turnValue {
+    font-size: 1.1rem;
+  }
+
+  .bloomsContainer {
+    padding: 6px 10px;
+  }
+
+  .bloomsValue {
+    font-size: 0.8rem;
+  }
+
+  .statusText {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .turnStatusContainer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .turnInfo {
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .activePlayerStatus {
+    align-self: center;
+  }
+
+  .statusIndicator {
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .statusText {
+    font-size: 0.85rem;
+    text-align: center;
+  }
+}
+
+/* ===== OVERALL PROGRESS BAR STYLES ===== */
+
+.overallProgressContainer {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(20, 30, 45, 0.6);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.overallProgressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(52, 73, 94, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.overallProgressFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--blueprint-accent) 0%,
+    var(--dbz-orange) 100%
+  );
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.overallProgressFill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  animation: progressShimmer 2.5s infinite;
+}
+
+@keyframes progressShimmer {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+}
+
+.overallProgressLabel {
+  text-align: center;
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  color: var(--blueprint-text);
+  font-weight: 600;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile responsive for overall progress */
+@media (max-width: 768px) {
+  .overallProgressContainer {
+    margin: 16px 0;
+    padding: 12px;
+  }
+
+  .overallProgressLabel {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .overallProgressContainer {
+    margin: 12px 0;
+    padding: 10px;
+  }
+
+  .overallProgressBar {
+    height: 6px;
+  }
+
+  .overallProgressLabel {
+    font-size: 0.75rem;
+  }
+}
+
+/* ===== CENTERED QUESTION CARD STYLES ===== */
+
+.centeredQuestionWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  margin: 8px 0 0 0;
+}
+
+.questionCard {
+  width: 100%;
+  max-width: 760px;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 45, 60, 0.95) 0%,
+    rgba(25, 35, 50, 0.95) 50%,
+    rgba(20, 30, 45, 0.95) 100%
+  );
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+  animation: questionCardFadeIn 0.4s ease-out;
+}
+
+@keyframes questionCardFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.questionCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--blueprint-accent) 50%,
+    transparent 100%
+  );
+  opacity: 0.8;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.questionCounter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.questionLabel {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.questionNumber {
+  font-family: var(--font-header);
+  font-size: 1.4rem;
+  color: var(--blueprint-accent);
+  font-weight: 800;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.bloomsBadge {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.2),
+    rgba(41, 128, 185, 0.3)
+  );
+  border: 1px solid var(--dbz-blue);
+  border-radius: 20px;
+  padding: 6px 12px;
+  backdrop-filter: blur(8px);
+}
+
+.bloomsText {
+  font-family: var(--font-header);
+  font-size: 0.8rem;
+  color: var(--dbz-blue);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.questionContent {
+  text-align: center;
+  margin: 16px 0;
+  padding: 0 12px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.questionText {
+  font-family: var(--font-header);
+  font-size: 1.4rem;
+  color: var(--blueprint-text);
+  line-height: 1.35;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.answerSection {
+  margin: 16px 0 0 0;
+}
+
+.answerGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.answerOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  min-height: 44px;
+  background: rgba(52, 73, 94, 0.35);
+  border: 1px solid rgba(52, 73, 94, 0.6);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.answerOption::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transition: left 0.6s ease;
+}
+
+.answerOption:hover::before {
+  left: 100%;
+}
+
+.answerOption:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(52, 73, 94, 0.6);
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.answerOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selectedOption {
+  background: linear-gradient(
+    135deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  ) !important;
+  border-color: var(--dbz-orange) !important;
+  color: var(--blueprint-accent-text-dark) !important;
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+.optionIndicator {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--dbz-dark-blue);
+  color: var(--blueprint-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-header);
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.selectedOption .optionIndicator {
+  background: var(--blueprint-accent-text-dark);
+  color: var(--blueprint-accent);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.optionText {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--blueprint-text);
+  flex: 1;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.selectedOption .optionText {
+  color: var(--blueprint-accent-text-dark);
+  font-weight: 600;
+}
+
+.actionArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--blueprint-grid-line);
+}
+
+.selectionStatus {
+  text-align: center;
+}
+
+.selectedText {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  color: var(--blueprint-accent);
+  font-weight: 600;
+  background: rgba(241, 196, 15, 0.15);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.promptText {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  color: var(--blueprint-text);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.submitButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--blueprint-text);
+  background: linear-gradient(
+    135deg,
+    var(--dbz-dark-gray),
+    var(--dbz-dark-blue)
+  );
+  padding: 16px 32px;
+  border-radius: 25px;
+  border: 2px solid var(--blueprint-grid-line);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.readyToSubmit {
+  background: linear-gradient(
+    135deg,
+    var(--dbz-orange),
+    var(--blueprint-accent)
+  ) !important;
+  border-color: var(--dbz-orange) !important;
+  color: var(--blueprint-accent-text-dark) !important;
+  box-shadow: 0 0 25px rgba(243, 156, 18, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  animation: readyPulse 2s infinite;
+}
+
+@keyframes readyPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 25px rgba(243, 156, 18, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(243, 156, 18, 0.7), 0 12px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.submitIcon {
+  font-size: 1.2rem;
+}
+
+.submitText {
+  font-size: 1rem;
+}
+
+/* ===== MOBILE RESPONSIVE FOR QUESTION CARD ===== */
+
+@media (max-width: 968px) {
+  .centeredQuestionWrapper {
+    margin: 12px 0 0 0;
+  }
+
+  .questionCard {
+    max-width: none;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .centeredQuestionWrapper {
+    margin: 8px 0 0 0;
+  }
+
+  .questionCard {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .questionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .questionText {
+    font-size: 1.1rem;
+  }
+
+  .answerGrid {
+    gap: 8px;
+  }
+
+  .answerOption {
+    padding: 9px 12px;
+    gap: 10px;
+  }
+
+  .optionIndicator {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+
+  .optionText {
+    font-size: 0.85rem;
+  }
+
+  .submitButton {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+
+  .actionArea {
+    margin-top: 20px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .centeredQuestionWrapper {
+    margin: 6px 0 0 0;
+  }
+
+  .questionCard {
+    padding: 12px;
+    margin: 0 4px;
+  }
+
+  .questionContent {
+    margin: 16px 0;
+    padding: 0 4px;
+  }
+
+  .questionText {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .answerSection {
+    margin: 16px 0;
+  }
+
+  .answerOption {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .optionIndicator {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .optionText {
+    font-size: 0.8rem;
+  }
+
+  .submitButton {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .submitIcon {
+    font-size: 0.9rem;
+  }
+
+  .selectedText,
+  .promptText {
+    font-size: 0.75rem;
+  }
+
+  .actionArea {
+    margin-top: 16px;
+    gap: 8px;
+  }
+}
+
+/* ===== BEAUTIFUL TEAM RESULTS STYLES ===== */
+
+.resultsContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+  animation: resultsSlideIn 0.8s ease-out forwards;
+  opacity: 1; /* Ensure visibility persists after animation */
+}
+
+@keyframes resultsSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultsHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.resultsTitle {
+  font-family: var(--font-header);
+  font-size: 1.8rem;
+  color: var(--blueprint-text);
+  margin: 0 0 8px 0;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+@keyframes titleBounce {
+  0% {
+    transform: scale(0.8) translateY(-20px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(5px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultsSubtitle {
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  color: var(--blueprint-text);
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Team Stats Grid */
+.teamStatsContainer {
+  margin-bottom: 48px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.statCard {
+  background: rgba(20, 30, 45, 0.7);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+
+.statCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.statCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.statCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.statCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+@keyframes statCardSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--blueprint-accent);
+}
+
+.statIcon {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+
+@keyframes iconBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.statValue {
+  font-family: var(--font-header);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--blueprint-accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-family: var(--font-accent);
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Questions Results */
+.questionsResultsContainer {
+  margin-bottom: 48px;
+}
+
+.questionsResultsTitle {
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--blueprint-text);
+  text-align: center;
+  margin: 0 0 12px 0;
+}
+
+.questionResultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.questionResultCard {
+  background: rgba(20, 30, 45, 0.7);
+  border: 1px solid var(--blueprint-grid-line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+@keyframes questionCardFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.questionResultCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: all 0.3s ease;
+}
+
+.correctCard::before {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.wrongCard::before {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.skippedCard::before {
+  background: linear-gradient(90deg, #95a5a6, #7f8c8d);
+}
+
+.userQuestionCard {
+  border-color: var(--dbz-orange);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 16px rgba(243, 156, 18, 0.3);
+}
+
+.questionResultCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.questionResultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.questionResultNumber {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--blueprint-accent);
+}
+
+.questionResultStatus {
+  font-family: var(--font-header);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.correctStatus {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid #2ecc71;
+}
+
+.wrongStatus {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+
+.skippedStatus {
+  background: rgba(149, 165, 166, 0.2);
+  color: #95a5a6;
+  border: 1px solid #95a5a6;
+}
+
+.questionResultContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.questionResultText {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--blueprint-text);
+  line-height: 1.3;
+}
+
+.answerDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.selectedAnswer,
+.correctAnswerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.answerLabel {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.answerValue {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.correctAnswer {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.wrongAnswer {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.answererInfo {
+  padding-top: 6px;
+}
+
+.answererLabel {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--blueprint-text);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.answererDetails {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.answererAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--blueprint-accent),
+    var(--dbz-orange)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-header);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--blueprint-accent-text-dark);
+  border: 2px solid var(--dbz-orange);
+  flex-shrink: 0;
+}
+
+.answererName {
+  font-family: var(--font-header);
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.youBadge {
+  background: var(--dbz-orange);
+  color: var(--dbz-black);
+  font-family: var(--font-header);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bloomsInfo {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.bloomsLabel {
+  font-family: var(--font-header);
+  font-size: 0.8rem;
+  color: var(--dbz-blue);
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Performance Summary */
+.performanceSummary {
+  margin-top: 48px;
+}
+
+.summaryTitle {
+  font-family: var(--font-header);
+  font-size: 2rem;
+  color: var(--blueprint-accent);
+  text-align: center;
+  margin: 0 0 32px 0;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.summaryCard {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 45, 60, 0.9),
+    rgba(25, 35, 50, 0.9)
+  );
+  border: 2px solid var(--blueprint-grid-line-strong);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.summaryCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--blueprint-accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 16px var(--blueprint-accent);
+}
+
+.summaryCardTitle {
+  font-family: var(--font-header);
+  font-size: 1.3rem;
+  color: var(--blueprint-accent);
+  margin: 0 0 16px 0;
+  text-shadow: 1px 1px 0 var(--dbz-black);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summaryContent {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--blueprint-text);
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Mobile Responsive for Results */
+@media (max-width: 968px) {
+  .resultsContainer {
+    padding: 24px 16px;
+  }
+
+  .resultsTitle {
+    font-size: 2.5rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 1.1rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .questionResultsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resultsTitle {
+    font-size: 2rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statCard {
+    padding: 20px;
+  }
+
+  .statValue {
+    font-size: 2.5rem;
+  }
+
+  .questionResultCard {
+    padding: 16px;
+  }
+
+  .questionResultsGrid {
+    gap: 12px;
+  }
+
+  .summaryCard {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .resultsContainer {
+    padding: 16px 12px;
+  }
+
+  .resultsTitle {
+    font-size: 1.8rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 1rem;
+  }
+
+  .statCard {
+    padding: 16px;
+  }
+
+  .statIcon {
+    font-size: 2rem;
+  }
+
+  .statValue {
+    font-size: 2rem;
+  }
+
+  .questionResultCard {
+    padding: 12px;
+  }
+
+  .answererDetails {
+    gap: 8px;
+  }
+
+  .answererAvatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+
+  .summaryCard {
+    padding: 16px;
   }
 }

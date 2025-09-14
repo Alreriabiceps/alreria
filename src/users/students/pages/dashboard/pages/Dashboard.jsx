@@ -15,48 +15,48 @@ import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // 
 import ApprovalStatus from "../../../components/ApprovalStatus";
 
 const rankingTiers = [
-  { name: "Trainee Technician", mmr: "0+", colorClass: styles.rankBronze },
-  { name: "Junior Technician", mmr: "1000+", colorClass: styles.rankSilver },
-  { name: "Senior Technician", mmr: "1300+", colorClass: styles.rankGold },
-  { name: "Lead Engineer", mmr: "1600+", colorClass: styles.rankPlatinum },
-  { name: "Project Director", mmr: "2400+", colorClass: styles.rankDiamond },
-  { name: "Chief Innovator", mmr: "3000+", colorClass: styles.rankMaster },
+  { name: "Absent Legend", mmr: "0+", colorClass: styles.rankBronze },
+  { name: "The Crammer", mmr: "150+", colorClass: styles.rankSilver },
+  { name: "Seatwarmer", mmr: "300+", colorClass: styles.rankGold },
+  { name: "Group Project Ghost", mmr: "450+", colorClass: styles.rankPlatinum },
   {
-    name: "Capsule Corp Visionary",
-    mmr: "3600+",
+    name: "Google Scholar (Unofficial)",
+    mmr: "600+",
+    colorClass: styles.rankDiamond,
+  },
+  { name: "The Lowkey Genius", mmr: "750+", colorClass: styles.rankMaster },
+  {
+    name: "Almost Valedictorian",
+    mmr: "900+",
+    colorClass: styles.rankGrandmaster,
+  },
+  {
+    name: "The Valedictornator",
+    mmr: "1050+",
     colorClass: styles.rankGrandmaster,
   },
 ];
 
-// Static definition for daily streak rewards
-const staticDailyStreakRewards = [
-  { days: 1, rewardText: "5 Upgrade Blueprints" },
-  { days: 3, rewardText: "15 Upgrade Blueprints" },
-  { days: 5, rewardText: "10 Data Crystals" },
-  { days: 7, rewardText: "Small Particle Accelerator" },
-  { days: 14, rewardText: "Advanced AI Core Schematics" },
-  {
-    days: 30,
-    rewardText: "Miniature Fusion Reactor + Capsule Corp Certification",
-  },
-];
+// Remove gamified reward text; keep milestones only (empty list shown)
+const staticDailyStreakRewards = [];
 
 // Helper function for rank color class
 const getRankClass = (rankName) => {
   switch (rankName?.toLowerCase()) {
-    case "trainee technician":
+    case "absent legend":
       return styles.rankBronze;
-    case "junior technician":
+    case "the crammer":
       return styles.rankSilver;
-    case "senior technician":
+    case "seatwarmer":
       return styles.rankGold;
-    case "lead engineer":
+    case "group project ghost":
       return styles.rankPlatinum;
-    case "project director":
+    case "google scholar (unofficial)":
       return styles.rankDiamond;
-    case "chief innovator":
+    case "the lowkey genius":
       return styles.rankMaster;
-    case "capsule corp visionary":
+    case "almost valedictorian":
+    case "the valedictornator":
       return styles.rankGrandmaster;
     default:
       return styles.rankBronze;
@@ -68,10 +68,9 @@ const Dashboard = () => {
 
   // Initialize state for all dashboard data
   const [userDataState, setUserDataState] = useState({
-    username: "eren", // Default/loading state
+    username: "Student",
     mmr: 0,
-    rankName: "Loading...",
-    currentStreak: 0,
+    rankName: "",
     testsCompleted: 0,
   });
 
@@ -99,200 +98,215 @@ const Dashboard = () => {
   });
 
   const [leaderboardDataState, setLeaderboardDataState] = useState({
-    subject: [],
-    global: [],
+    weekly: [],
+    pvp: [],
   });
 
   useEffect(() => {
-    // --- Fetch User Data ---
-    const fetchUserData = async () => {
-      try {
-        // Replace with your actual API endpoint
-        const response = await fetch("/api/dashboard/user-stats");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setUserDataState({
-          username: data.username || user?.firstName || "Innovator", // Fallback to auth context then generic
-          mmr: data.mmr ?? 0, // Default to 0 if API returns null/undefined
-          rankName: data.rankName || "Unranked", // If API returns falsy (null, undefined, empty), show "Unranked"
-          currentStreak: data.currentStreak ?? 0, // Default to 0
-          testsCompleted: data.projectsCompleted ?? 0, // Default to 0
-        });
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        // Set state to reflect error for user stats
-        setUserDataState({
-          username: user?.firstName || "Innovator", // Keep username if available from auth, else generic
-          mmr: 0, // Reset to default or indicate error
-          rankName: "Fetch Error", // Clearly indicate data couldn't be fetched for rank
-          currentStreak: 0, // Reset to default or indicate error
-          testsCompleted: 0, // Reset to default or indicate error
-        });
+    const backendurl = import.meta.env.VITE_BACKEND_URL;
+    const token = localStorage.getItem("token");
+    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+    // Helpers
+    const getTierNameFromMmr = (mmr) => {
+      const thresholds = [
+        { name: "The Valedictornator", min: 1050 },
+        { name: "Almost Valedictorian", min: 900 },
+        { name: "The Lowkey Genius", min: 750 },
+        { name: "Google Scholar (Unofficial)", min: 600 },
+        { name: "Group Project Ghost", min: 450 },
+        { name: "Seatwarmer", min: 300 },
+        { name: "The Crammer", min: 150 },
+        { name: "Absent Legend", min: 0 },
+      ];
+      for (let i = 0; i < thresholds.length; i++) {
+        if (mmr >= thresholds[i].min) return thresholds[i].name;
       }
+      return "Absent Legend";
     };
 
-    // --- Fetch MMR Progress Data ---
-    // This might depend on userDataState, or be a separate call
-    const fetchWeeklyRankProgress = async () => {
-      try {
-        // Replace with your actual API endpoint for weekly rank progress
-        const response = await fetch(
-          `/api/dashboard/weekly-rank-progress?userId=${user?.id}`
-        ); // Example: pass userId
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+    const computeDailyStreak = (results) => {
+      const daysSet = new Set(
+        results
+          .map((r) => r.completedAt)
+          .filter(Boolean)
+          .map((d) => new Date(d))
+          .map((dt) =>
+            new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime()
+          )
+      );
+      let streak = 0;
+      const today = new Date();
+      for (let i = 0; i < 365; i++) {
+        const day = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - i
+        ).getTime();
+        if (daysSet.has(day)) streak++;
+        else break;
+      }
+      // Progress toward next reward tier
+      const tiers = [1, 3, 5, 7, 14, 30];
+      const nextRewardDays = tiers.find((t) => t > streak) || 30;
+      const prevTier = [...tiers].reverse().find((t) => t <= streak) || 0;
+      const progressPercentStreak =
+        nextRewardDays > prevTier
+          ? Math.min(
+              100,
+              Math.round(
+                ((streak - prevTier) / (nextRewardDays - prevTier)) * 100
+              )
+            )
+          : 100;
+      const completedToday = daysSet.has(
+        new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        ).getTime()
+      );
+      return { streak, nextRewardDays, progressPercentStreak, completedToday };
+    };
 
-        // Calculate progressPercent and pointsNeeded based on fetched data
-        // This logic might need to be adjusted based on your API response
-        const rankThresholds = {
-          "Trainee Technician": 0,
-          "Junior Technician": 1000,
-          "Senior Technician": 1300,
-          "Lead Engineer": 1600,
-          "Project Director": 2400,
-          "Chief Innovator": 3000,
-          "Capsule Corp Visionary": 3600,
-        };
-        const currentRankLowerBound = rankThresholds[data.currentRankName] ?? 0;
-        const nextRankLowerBound = data.nextRankMmr;
-        let progressPercent = 0;
-        if (data.currentRankName === "Capsule Corp Visionary") {
-          progressPercent = 100;
-        } else if (
-          !data.nextRankName ||
-          data.currentMmr >= nextRankLowerBound
-        ) {
-          progressPercent = 100;
-        } else if (nextRankLowerBound > currentRankLowerBound) {
-          const totalNeededForNext = nextRankLowerBound - currentRankLowerBound;
-          const currentProgressInRank = data.currentMmr - currentRankLowerBound;
-          progressPercent = Math.round(
-            (currentProgressInRank / totalNeededForNext) * 100
+    const fetchAll = async () => {
+      try {
+        // Parallel fetches
+        const [studentRes, resultsRes, weeksRes, weeklyLbRes, pvpLbRes] =
+          await Promise.all([
+            fetch(`${backendurl}/api/students/${user.id}`, {
+              headers: authHeaders,
+            }),
+            fetch(`${backendurl}/api/weekly-test/results/student/${user.id}`, {
+              headers: authHeaders,
+            }),
+            fetch(`${backendurl}/api/weeks/active`, { headers: authHeaders }),
+            fetch(`${backendurl}/api/leaderboard/global?timeFrame=weekly`),
+            fetch(`${backendurl}/api/leaderboard/pvp`, {
+              headers: authHeaders,
+            }),
+          ]);
+
+        // Student data
+        if (studentRes.ok) {
+          const studentData = await studentRes.json();
+          const sd = studentData.data || {};
+          setUserDataState((prev) => ({
+            ...prev,
+            username: sd.firstName || user?.firstName || "Innovator",
+          }));
+        }
+
+        // Weekly test results
+        let results = [];
+        if (resultsRes.ok) {
+          const resData = await resultsRes.json();
+          results = resData.data?.results || [];
+          const testsCompleted = results.length;
+          const prPoints = results.reduce(
+            (acc, r) => acc + (r.pointsEarned || 0),
+            0
           );
-        }
-        progressPercent = Math.min(100, Math.max(0, progressPercent));
+          const tierName = getTierNameFromMmr(prPoints);
 
-        const pointsNeeded =
-          data.currentRankName === "Capsule Corp Visionary"
-            ? 0
-            : Math.max(0, data.nextRankMmr - data.currentMmr);
+          setUserDataState((prev) => ({
+            ...prev,
+            mmr: prPoints,
+            rankName: tierName,
+            testsCompleted,
+          }));
 
-        setWeeklyRankProgressDataState({
-          currentMmr: data.currentMmr,
-          currentRankName: data.currentRankName,
-          nextRankMmr: data.nextRankMmr,
-          nextRankName: data.nextRankName,
-          progressPercent: progressPercent,
-          pointsNeeded: pointsNeeded,
-        });
-      } catch (error) {
-        console.error("Failed to fetch weekly rank progress:", error);
-      }
-    };
-
-    // --- Fetch Weekly Challenge Data ---
-    const fetchWeeklyChallenges = async () => {
-      try {
-        // Replace with your actual API endpoint
-        const response = await fetch(
-          `/api/dashboard/weekly-challenges?userId=${user?.id || ""}`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setWeeklyChallengeDataState({
-          hasActiveTests: data.hasActiveProjects, // Assuming API returns hasActiveProjects
-          activeTests: data.activeProjects, // Assuming API returns activeProjects
-        });
-      } catch (error) {
-        console.error("Failed to fetch weekly challenges:", error);
-      }
-    };
-
-    // --- Fetch Daily Streak Data ---
-    const fetchDailyStreak = async () => {
-      try {
-        // Replace with your actual API endpoint
-        const response = await fetch(
-          `/api/dashboard/daily-streak?userId=${user?.id || ""}`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-
-        // Calculate nextRewardDays and progressPercent for streak
-        const tiers = [1, 3, 5, 7, 14, 30];
-        const nextRewardDays =
-          tiers.find((t) => t > data.currentStreakDays) || 30;
-        let progressPercentStreak = 0;
-        if (data.currentStreakDays >= 30) {
-          progressPercentStreak = 100;
-        } else {
-          let prevTier =
-            tiers
-              .slice()
-              .reverse()
-              .find((t) => t <= data.currentStreakDays) || 0;
-          let progressInTier = data.currentStreakDays - prevTier;
-          let neededForTier = nextRewardDays - prevTier;
-          progressPercentStreak =
-            neededForTier > 0
+          // Update weekly rank progress
+          const thresholdsMap = {
+            "Trainee Technician": 0,
+            "Junior Technician": 1000,
+            "Senior Technician": 1300,
+            "Lead Engineer": 1600,
+            "Project Director": 2400,
+            "Chief Innovator": 3000,
+            "Capsule Corp Visionary": 3600,
+          };
+          const currentMin = thresholdsMap[tierName] ?? 0;
+          const nextTier = rankingTiers.find(
+            (t) => thresholdsMap[t.name] > currentMin
+          );
+          const nextMin = nextTier ? thresholdsMap[nextTier.name] : currentMin;
+          const progressPercent =
+            nextTier && nextMin > currentMin
               ? Math.min(
                   100,
-                  Math.round((progressInTier / neededForTier) * 100)
+                  Math.round(
+                    ((prPoints - currentMin) / (nextMin - currentMin)) * 100
+                  )
                 )
-              : 0;
+              : 100;
+          const pointsNeeded = nextTier ? Math.max(0, nextMin - prPoints) : 0;
+
+          setWeeklyRankProgressDataState({
+            currentMmr: prPoints,
+            currentRankName: tierName,
+            nextRankMmr: nextMin,
+            nextRankName: nextTier ? nextTier.name : "",
+            progressPercent,
+            pointsNeeded,
+          });
+
+          // Daily streak
+          const {
+            streak,
+            nextRewardDays,
+            progressPercentStreak,
+            completedToday,
+          } = computeDailyStreak(results);
+          setDailyStreakDataState({
+            currentStreakDays: streak,
+            completedToday,
+            nextRewardDays,
+            progressPercent: progressPercentStreak,
+            rewards: staticDailyStreakRewards,
+          });
         }
 
-        setDailyStreakDataState({
-          currentStreakDays: data.currentStreakDays,
-          completedToday: data.completedToday,
-          nextRewardDays: nextRewardDays,
-          progressPercent: progressPercentStreak,
-          rewards: staticDailyStreakRewards, // Assuming rewards structure is static for now
-        });
-      } catch (error) {
-        console.error("Failed to fetch daily streak:", error);
-      }
-    };
-
-    // --- Fetch Leaderboard Data ---
-    const fetchLeaderboards = async () => {
-      try {
-        // Replace with your actual API endpoint
-        const subjectResponse = await fetch("/api/leaderboard/subject");
-        const globalResponse = await fetch("/api/leaderboard/global");
-
-        if (!subjectResponse.ok || !globalResponse.ok) {
-          console.error("Failed to fetch one or more leaderboards");
-          // Handle partial data or error state as needed
-          return;
+        // Weekly challenges from active weeks
+        if (weeksRes.ok) {
+          const weeksData = await weeksRes.json();
+          const scheduleArray = Array.isArray(weeksData) ? weeksData : [];
+          const activeTests = scheduleArray.slice(0, 5).map((w) => ({
+            id: w._id,
+            name: `Week ${w.weekNumber} — ${w.subjectId?.subject || "Subject"}`,
+          }));
+          setWeeklyChallengeDataState({
+            hasActiveTests: scheduleArray.length > 0,
+            activeTests,
+          });
         }
-        const subjectData = await subjectResponse.json();
-        const globalData = await globalResponse.json();
 
-        setLeaderboardDataState({
-          subject: subjectData.leaderboard || [], // Assuming API returns { leaderboard: [] }
-          global: globalData.leaderboard || [], // Assuming API returns { leaderboard: [] }
-        });
-      } catch (error) {
-        console.error("Failed to fetch leaderboard data:", error);
+        // Weekly test leaderboard
+        if (weeklyLbRes.ok) {
+          const lbData = await weeklyLbRes.json();
+          const leaderboard = lbData.leaderboard || [];
+          setLeaderboardDataState((prev) => ({
+            ...prev,
+            weekly: leaderboard,
+          }));
+        }
+
+        // PvP leaderboard
+        if (pvpLbRes.ok) {
+          const pvpData = await pvpLbRes.json();
+          const leaderboard = pvpData.leaderboard || [];
+          setLeaderboardDataState((prev) => ({
+            ...prev,
+            pvp: leaderboard,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
       }
     };
 
     if (user?.id) {
-      // Ensure user context is available before fetching
-      fetchUserData();
-      fetchWeeklyRankProgress();
-      fetchWeeklyChallenges();
-      fetchDailyStreak();
-      fetchLeaderboards();
+      fetchAll();
     }
     // Add user.id to dependency array if it's critical for re-fetching on user change
   }, [user]);
@@ -309,7 +323,7 @@ const Dashboard = () => {
           </span>
         </h1>
         <p className={styles.pageSubtitle}>
-          Monitor your project progress and system efficiency.
+          Your recent activity and progress.
         </p>
       </div>
       {/* Stats Cards Row */}
@@ -327,11 +341,10 @@ const Dashboard = () => {
           <span className={styles.statIcon}>
             <FaFire />
           </span>{" "}
-          {/* Consider changing icon to FaServer or FaNetworkWired for uptime */}
           <span className={styles.statValue}>
-            {userDataState.currentStreak}
+            {dailyStreakDataState.currentStreakDays}
           </span>
-          <span className={styles.statLabel}>Uptime Streak</span>
+          <span className={styles.statLabel}>Learning Streak</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statIcon}>
@@ -339,7 +352,7 @@ const Dashboard = () => {
           </span>{" "}
           {/* Consider FaMicrochip or FaBrain for Tech Level */}
           <span className={styles.statValue}>{userDataState.mmr}</span>
-          <span className={styles.statLabel}>Tech Level</span>
+          <span className={styles.statLabel}>Total Points</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statIcon}>
@@ -353,7 +366,7 @@ const Dashboard = () => {
           >
             {userDataState.rankName}
           </span>
-          <span className={styles.statLabel}>Designation</span>
+          <span className={styles.statLabel}>Rank</span>
         </div>
       </div>
       {/* Dashboard Layout Grid */}
@@ -372,7 +385,7 @@ const Dashboard = () => {
               <span className={styles.panelIcon}>
                 <FaChartBar />
               </span>{" "}
-              Weekly Rank Progression
+              Points Progress
             </h2>
             <div className={styles.mmrProgress}>
               <div className={styles.mmrInfo}>
@@ -430,7 +443,7 @@ const Dashboard = () => {
               <span className={styles.panelIcon}>
                 <FaBullseye />
               </span>{" "}
-              Innovation Lab (Challenges)
+              Weekly Challenges
             </h2>
             <div className={styles.weeklyChallengesContent}>
               {weeklyChallengeDataState.hasActiveTests ? (
@@ -440,26 +453,22 @@ const Dashboard = () => {
                       key={test.id || test.name}
                       className={styles.activeTestItem}
                     >
-                      {/* Adjust Link destination and test property for name as needed */}
                       <Link
-                        to={`/tests/${test.id || test.projectId}`}
+                        to={`/student/weeklytest`}
                         className={styles.activeTestLink}
                       >
                         {test.name || test.projectName || "Unnamed Project"}
                       </Link>
-                      {/* You can add more details here, e.g., test.dueDate, test.status */}
                     </li>
                   ))}
                 </ul>
               ) : (
                 <p className={styles.noTestsMessage}>
-                  No active projects. Time for R&D!
+                  No active weeks. Check back later!
                 </p>
               )}
-              <Link to="/tests" className={styles.browseButton}>
-                {" "}
-                {/* Assuming /tests is the path */}
-                Launch a Project
+              <Link to="/student/weeklytest" className={styles.browseButton}>
+                Go to Weekly Tests
               </Link>
             </div>
           </div>
@@ -473,7 +482,7 @@ const Dashboard = () => {
               <span className={styles.panelIcon}>
                 <FaCalendarAlt />
               </span>{" "}
-              System Check Streak
+              Learning Streak
             </h2>
             <div className={styles.dailyStreakContent}>
               <div className={styles.streakHeader}>
@@ -489,8 +498,8 @@ const Dashboard = () => {
                   }`}
                 >
                   {dailyStreakDataState.completedToday
-                    ? "System Check Complete!"
-                    : "Run System Check!"}
+                    ? "Did a test today!"
+                    : "Do a test today!"}
                 </span>
               </div>
               <div
@@ -507,8 +516,8 @@ const Dashboard = () => {
               <div className={styles.streakNextReward}>
                 Next Reward:{" "}
                 {dailyStreakDataState.currentStreakDays >= 30
-                  ? "Maximum system stability achieved!"
-                  : `Reach ${dailyStreakDataState.nextRewardDays} days for a new component!`}
+                  ? "Max streak achieved!"
+                  : `Reach ${dailyStreakDataState.nextRewardDays} days for a new reward!`}
               </div>
               <ul className={styles.streakRewardList}>
                 {dailyStreakDataState.rewards.map((reward) => (
@@ -533,86 +542,14 @@ const Dashboard = () => {
       {/* End Dashboard Layout Grid */}
       {/* Leaderboards Section */}
       <div className={styles.leaderboardSection}>
-        {/* Subject Leaderboard Panel */}
+        {/* Weekly Test Rankings */}
         <div className={`${styles.panel} ${styles.leaderboardPanel}`}>
           <div className={styles.leaderboardHeader}>
             <h2 className={`${styles.panelHeader} ${styles.leaderboardTitle}`}>
               <span className={styles.panelIcon}>
                 <FaTrophy />
               </span>{" "}
-              Top Innovators {/* Local Leaderboard */}
-            </h2>
-            <Link to="/leaderboard/subject" className={styles.viewAllLink}>
-              View All
-            </Link>
-          </div>
-          <table className={styles.leaderboardTable}>
-            <thead>
-              <tr>
-                <th className={styles.rankHeader}>#</th>
-                <th>Innovator</th>
-                <th className={styles.mmrHeader}>Tech Level</th>
-                <th className={styles.rankTierHeader}>Designation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Render placeholder or empty message if no data */}
-              {leaderboardDataState.subject.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="4"
-                    style={{
-                      textAlign: "center",
-                      padding: "15px",
-                      fontFamily: "var(--font-body)",
-                    }}
-                  >
-                    No Local Innovators Data
-                  </td>
-                </tr>
-              )}
-              {leaderboardDataState.subject.slice(0, 3).map((user, index) => (
-                <tr key={user.id}>
-                  <td className={styles.leaderboardRankNumber}>
-                    <span className={styles.leaderboardRankIcon}>
-                      <FaTrophy />
-                    </span>
-                    {index + 1}
-                  </td>
-                  <td>
-                    <div className={styles.leaderboardStudentCell}>
-                      <div className={styles.leaderboardAvatar}>
-                        {user.avatarInitial}
-                      </div>
-                      <div className={styles.leaderboardStudentInfo}>
-                        <span className={styles.leaderboardUsername}>
-                          {user.username}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className={styles.leaderboardMmrValue}>{user.mmr}</td>
-                  <td
-                    className={`${
-                      styles.leaderboardRankTierValue
-                    } ${getRankClass(user.rankName)}`}
-                  >
-                    {user.rankName}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Global Leaderboard Panel */}
-        <div className={`${styles.panel} ${styles.leaderboardPanel}`}>
-          <div className={styles.leaderboardHeader}>
-            <h2 className={`${styles.panelHeader} ${styles.leaderboardTitle}`}>
-              <span className={styles.panelIcon}>
-                <FaTrophy />
-              </span>{" "}
-              Global Tech Leaders
+              Weekly Test Rankings
             </h2>
             <Link to="/leaderboard/global" className={styles.viewAllLink}>
               View All
@@ -622,13 +559,13 @@ const Dashboard = () => {
             <thead>
               <tr>
                 <th className={styles.rankHeader}>#</th>
-                <th>Innovator</th>
-                <th className={styles.mmrHeader}>Tech Level</th>
-                <th className={styles.rankTierHeader}>Designation</th>
+                <th>Student</th>
+                <th className={styles.mmrHeader}>Points (Week)</th>
+                <th className={styles.rankTierHeader}>Rank</th>
               </tr>
             </thead>
             <tbody>
-              {leaderboardDataState.global.length === 0 && (
+              {leaderboardDataState.weekly.length === 0 && (
                 <tr>
                   <td
                     colSpan="4"
@@ -638,45 +575,129 @@ const Dashboard = () => {
                       fontFamily: "var(--font-body)",
                     }}
                   >
-                    No Global Innovators Data
+                    No Weekly Rankings
                   </td>
                 </tr>
               )}
-              {leaderboardDataState.global.slice(0, 3).map((user, index) => (
-                <tr key={user.id}>
-                  <td className={styles.leaderboardRankNumber}>
-                    <span className={styles.leaderboardRankIcon}>
-                      <FaTrophy />
-                    </span>
-                    {index + 1}
-                  </td>
-                  <td>
-                    <div className={styles.leaderboardStudentCell}>
-                      <div className={styles.leaderboardAvatar}>
-                        {user.avatarInitial}
+              {leaderboardDataState.weekly.slice(0, 3).map((u, index) => {
+                const displayName =
+                  u.username || u.name || u.user?.username || "Student";
+                const avatarInitial = (
+                  u.avatarInitial || displayName.charAt(0)
+                ).toUpperCase();
+                const weeklyPoints = u.pointsThisWeek ?? u.points ?? u.mmr ?? 0;
+                const rankName = u.rankName || "-";
+                return (
+                  <tr key={u.id || u._id || displayName + index}>
+                    <td className={styles.leaderboardRankNumber}>
+                      <span className={styles.leaderboardRankIcon}>
+                        <FaTrophy />
+                      </span>
+                      {index + 1}
+                    </td>
+                    <td>
+                      <div className={styles.leaderboardStudentCell}>
+                        <div className={styles.leaderboardAvatar}>
+                          {avatarInitial}
+                        </div>
+                        <div className={styles.leaderboardStudentInfo}>
+                          <span className={styles.leaderboardUsername}>
+                            {displayName}
+                          </span>
+                        </div>
                       </div>
-                      <div className={styles.leaderboardStudentInfo}>
-                        <span className={styles.leaderboardUsername}>
-                          {user.username}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className={styles.leaderboardMmrValue}>{user.mmr}</td>
+                    </td>
+                    <td className={styles.leaderboardMmrValue}>
+                      {weeklyPoints}
+                    </td>
+                    <td
+                      className={`${
+                        styles.leaderboardRankTierValue
+                      } ${getRankClass(rankName)}`}
+                    >
+                      {rankName}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* PvP Rankings */}
+        <div className={`${styles.panel} ${styles.leaderboardPanel}`}>
+          <div className={styles.leaderboardHeader}>
+            <h2 className={`${styles.panelHeader} ${styles.leaderboardTitle}`}>
+              <span className={styles.panelIcon}>
+                <FaTrophy />
+              </span>{" "}
+              PvP Rankings
+            </h2>
+          </div>
+          <table className={styles.leaderboardTable}>
+            <thead>
+              <tr>
+                <th className={styles.rankHeader}>#</th>
+                <th>Student</th>
+                <th className={styles.mmrHeader}>Stars</th>
+                <th className={styles.rankTierHeader}>Rank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboardDataState.pvp.length === 0 && (
+                <tr>
                   <td
-                    className={`${
-                      styles.leaderboardRankTierValue
-                    } ${getRankClass(user.rankName)}`}
+                    colSpan="4"
+                    style={{
+                      textAlign: "center",
+                      padding: "15px",
+                      fontFamily: "var(--font-body)",
+                    }}
                   >
-                    {user.rankName}
+                    No PvP Rankings
                   </td>
                 </tr>
-              ))}
+              )}
+              {leaderboardDataState.pvp.slice(0, 3).map((u, index) => {
+                const displayName =
+                  u.username || u.name || u.user?.username || "Student";
+                const avatarInitial = (
+                  u.avatarInitial || displayName.charAt(0)
+                ).toUpperCase();
+                const stars = u.stars ?? u.points ?? u.mmr ?? 0;
+                const rankName = u.rankName || "-";
+                return (
+                  <tr key={u.id || u._id || displayName + index}>
+                    <td className={styles.leaderboardRankNumber}>
+                      <span className={styles.leaderboardRankIcon}>
+                        <FaTrophy />
+                      </span>
+                      {index + 1}
+                    </td>
+                    <td>
+                      <div className={styles.leaderboardStudentCell}>
+                        <div className={styles.leaderboardAvatar}>
+                          {avatarInitial}
+                        </div>
+                        <div className={styles.leaderboardStudentInfo}>
+                          <span className={styles.leaderboardUsername}>
+                            {displayName}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className={styles.leaderboardMmrValue}>{stars}</td>
+                    <td className={styles.leaderboardRankTierValue}>
+                      {rankName}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
-    </div> // End Container
+    </div>
   );
 };
 

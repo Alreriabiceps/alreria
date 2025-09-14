@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from '../pages/WeeklyTest.module.css';
+import React from "react";
+import styles from "../pages/WeeklyTest.module.css";
 
 const QuestionDisplay = ({
   currentQuestion,
@@ -12,20 +12,20 @@ const QuestionDisplay = ({
   isTestStarted,
   showAnimation,
   handleSubmit,
-  setCurrentQuestionIndex
+  setCurrentQuestionIndex,
 }) => {
   if (!currentQuestion) return null;
   const options = Array.isArray(currentQuestion.choices)
     ? currentQuestion.choices
     : Array.isArray(currentQuestion.options)
-      ? currentQuestion.options
-      : [];
+    ? currentQuestion.options
+    : [];
   // Determine if all questions are answered
-  const allAnswered = tests.every(q => answers[q._id]);
+  const allAnswered = tests.every((q) => answers[q._id]);
   // Find unanswered question indices
   const unansweredIndices = tests
     .map((q, idx) => (!answers[q._id] ? idx : null))
-    .filter(idx => idx !== null);
+    .filter((idx) => idx !== null);
   const unansweredCount = unansweredIndices.length;
   // Handler to jump to first unanswered question
   const handleReviewUnanswered = () => {
@@ -33,7 +33,9 @@ const QuestionDisplay = ({
       // Use window event to communicate to parent (since navigation is in parent)
       // Or, if you want, you can lift a callback prop for setCurrentQuestionIndex
       // For now, use a custom event
-      const event = new CustomEvent('jumpToQuestionIndex', { detail: { index: unansweredIndices[0] } });
+      const event = new CustomEvent("jumpToQuestionIndex", {
+        detail: { index: unansweredIndices[0] },
+      });
       window.dispatchEvent(event);
     }
   };
@@ -69,13 +71,23 @@ const QuestionDisplay = ({
         })}
       </div>
       <div className={styles.questionHeader}>
-        <span className={styles.questionNumber}>Question {currentQuestionIndex + 1} of {tests.length}</span>
+        <span className={styles.questionNumber}>
+          Question {currentQuestionIndex + 1} of {tests.length}
+        </span>
         {currentQuestion.bloomsLevel && (
-          <span className={styles.bloomLevel}>Bloom's Level: {currentQuestion.bloomsLevel}</span>
+          <span className={styles.bloomLevel}>
+            Bloom's Level: {currentQuestion.bloomsLevel}
+          </span>
         )}
       </div>
-      <div className={`${styles.questionContainer} ${showAnimation ? styles.questionVisible : styles.questionHidden}`}>
-        <div className={styles.questionText}>{currentQuestion.questionText}</div>
+      <div
+        className={`${styles.questionContainer} ${
+          showAnimation ? styles.questionVisible : styles.questionHidden
+        }`}
+      >
+        <div className={styles.questionText}>
+          {currentQuestion.questionText}
+        </div>
         <div className={styles.answerOptions}>
           {options.length > 0 ? (
             options.map((option, idx) => (
@@ -93,7 +105,7 @@ const QuestionDisplay = ({
               </button>
             ))
           ) : (
-            <div style={{ color: 'red', fontWeight: 'bold', padding: '1em' }}>
+            <div style={{ color: "red", fontWeight: "bold", padding: "1em" }}>
               No answer options available for this question.
             </div>
           )}
@@ -109,11 +121,18 @@ const QuestionDisplay = ({
         </button>
         {currentQuestionIndex === tests.length - 1 ? (
           // On the last question
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
             {!allAnswered && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
                 <span className={styles.unansweredMessage}>
-                  {unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}.
+                  {unansweredCount} unanswered question
+                  {unansweredCount > 1 ? "s" : ""}.
                 </span>
                 <button
                   type="button"
@@ -148,4 +167,4 @@ const QuestionDisplay = ({
   );
 };
 
-export default QuestionDisplay; 
+export default QuestionDisplay;
