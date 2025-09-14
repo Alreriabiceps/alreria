@@ -7,12 +7,9 @@ import ApprovalStatus from "../components/ApprovalStatus";
 
 const BACKGROUND_MUSIC_SRC = "/shs.mp3";
 const INITIAL_VOLUME = 1;
-const SFX_VOLUME = 0.5;
-const SFX_CORRECT_SRC = "/dashboard.mp3";
-const SFX_INCORRECT_SRC = "/shs.mp3";
 const SFX_LAUNCH_SRC = "/GLEAS.mp3";
 
-const playSound = (src, volume = SFX_VOLUME) => {
+const playSound = (src, volume = 0.5) => {
   try {
     const sound = new Audio(src);
     sound.volume = volume;
@@ -53,6 +50,7 @@ const Start = () => {
     audioRef.current = new Audio(BACKGROUND_MUSIC_SRC);
     audioRef.current.loop = true;
     audioRef.current.volume = INITIAL_VOLUME;
+    audioRef.current.muted = false; // Start unmuted, will be set by mute effect
     audioRef.current.preload = "auto";
 
     // Add error handler
@@ -64,18 +62,16 @@ const Start = () => {
     // Add loadeddata handler to attempt autoplay once audio is ready
     const handleLoaded = () => {
       console.log("Audio loaded and ready to play");
-      if (!isMuted) {
-        audioRef.current
-          .play()
-          .then(() => {
-            console.log("Autoplay started successfully");
-            setIsPlaying(true);
-          })
-          .catch((e) => {
-            console.warn("Autoplay blocked:", e.message);
-            setIsPlaying(false);
-          });
-      }
+      audioRef.current
+        .play()
+        .then(() => {
+          console.log("Autoplay started successfully");
+          setIsPlaying(true);
+        })
+        .catch((e) => {
+          console.warn("Autoplay blocked:", e.message);
+          setIsPlaying(false);
+        });
     };
 
     // Event listeners for play/pause state
@@ -90,7 +86,7 @@ const Start = () => {
 
     // Attempt to play on first user interaction with the page
     const handleFirstInteraction = () => {
-      if (audioRef.current && audioRef.current.paused && !isMuted) {
+      if (audioRef.current && audioRef.current.paused) {
         audioRef.current
           .play()
           .then(() => console.log("Audio started after user interaction"))
@@ -120,21 +116,14 @@ const Start = () => {
       document.removeEventListener("click", handleFirstInteraction);
       document.removeEventListener("keydown", handleFirstInteraction);
     };
-  }, [isMuted]); // Only re-run if muted state changes
+  }, []); // Only run once on mount
 
   // Effect to handle mute/unmute
   useEffect(() => {
     if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.pause();
-      } else if (!audioRef.current.paused || isPlaying) {
-        // Only attempt to play if it was previously playing or isPlaying is true
-        audioRef.current
-          .play()
-          .catch((e) => console.warn("Play on unmute failed:", e));
-      }
+      audioRef.current.muted = isMuted;
     }
-  }, [isMuted, isPlaying]);
+  }, [isMuted]);
 
   // Separate effect for other initial setups like stars and event listeners
   useEffect(() => {
@@ -154,6 +143,7 @@ const Start = () => {
     if (audioRef.current && audioRef.current.paused) {
       // Only attempt to play if currently paused
       audioRef.current.volume = INITIAL_VOLUME; // Ensure volume is set
+      audioRef.current.muted = isMuted; // Respect current muted state
       audioRef.current
         .play()
         .then(() => {
@@ -164,7 +154,7 @@ const Start = () => {
           // Optionally give user feedback if play fails
         });
     }
-  }, []); // Dependencies are stable functions/refs
+  }, [isMuted]); // Dependencies are stable functions/refs
 
   // Handler for the mute button
   const handleMuteToggle = useCallback(() => {
@@ -355,10 +345,7 @@ const Start = () => {
       setButtonPosition({ top: isMobile ? "65%" : "65%", left: "50%" });
     }
 
-    if (correct) {
-      playSound(SFX_CORRECT_SRC);
-    } else {
-      playSound(SFX_INCORRECT_SRC);
+    if (!correct) {
       const securityBox = containerRef.current?.querySelector(
         `.${styles.securityPanel}`
       );

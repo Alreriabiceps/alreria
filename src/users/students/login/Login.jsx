@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import styles from "./Login.module.css";
-import { FaUserCircle, FaShoppingCart, FaCog } from "react-icons/fa";
+// Icons removed as requested
 import FloatingStars from "../components/FloatingStars/FloatingStars";
 
 // Old SVG Icons removed
@@ -62,14 +62,7 @@ const Login = () => {
       <nav className={styles.topNavBar}>
         <div className={styles.navBrand}>AGILA Adventure</div>
         <div className={styles.navActions}>
-          {/* Using FaUserCircle as a placeholder profile/login icon, can be removed if not needed on login page */}
-          {/* <span className={styles.navIcon}><FaUserCircle /></span>  */}
-          <span className={styles.navIcon} title="Shop (Placeholder)">
-            <FaShoppingCart />
-          </span>
-          <span className={styles.navIcon} title="Settings (Placeholder)">
-            <FaCog />
-          </span>
+          {/* Icons removed as requested */}
         </div>
       </nav>
 

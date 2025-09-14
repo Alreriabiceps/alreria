@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Add useState, useEffect when fetching data
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import styles from "./Dashboard.module.css";
@@ -10,29 +10,36 @@ import {
   FaCalendarAlt,
   FaGift,
   FaTasks,
+  FaSpinner,
+  FaExclamationTriangle,
+  FaRedo,
+  FaStar,
+  FaGamepad,
+  FaUsers,
+  FaClock,
 } from "react-icons/fa";
-import FloatingStars from "../../../components/FloatingStars/FloatingStars"; // Corrected Import FloatingStars
+import FloatingStars from "../../../components/FloatingStars/FloatingStars";
 import ApprovalStatus from "../../../components/ApprovalStatus";
 
 const rankingTiers = [
-  { name: "Absent Legend", mmr: "0+", colorClass: styles.rankBronze },
-  { name: "The Crammer", mmr: "150+", colorClass: styles.rankSilver },
-  { name: "Seatwarmer", mmr: "300+", colorClass: styles.rankGold },
-  { name: "Group Project Ghost", mmr: "450+", colorClass: styles.rankPlatinum },
+  { name: "Absent Legend", mmr: 0, colorClass: styles.rankBronze },
+  { name: "The Crammer", mmr: 150, colorClass: styles.rankSilver },
+  { name: "Seatwarmer", mmr: 300, colorClass: styles.rankGold },
+  { name: "Group Project Ghost", mmr: 450, colorClass: styles.rankPlatinum },
   {
     name: "Google Scholar (Unofficial)",
-    mmr: "600+",
+    mmr: 600,
     colorClass: styles.rankDiamond,
   },
-  { name: "The Lowkey Genius", mmr: "750+", colorClass: styles.rankMaster },
+  { name: "The Lowkey Genius", mmr: 750, colorClass: styles.rankMaster },
   {
     name: "Almost Valedictorian",
-    mmr: "900+",
+    mmr: 900,
     colorClass: styles.rankGrandmaster,
   },
   {
     name: "The Valedictornator",
-    mmr: "1050+",
+    mmr: 1050,
     colorClass: styles.rankGrandmaster,
   },
 ];
@@ -66,40 +73,53 @@ const getRankClass = (rankName) => {
 const Dashboard = () => {
   const { user } = useAuth();
 
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
   // Initialize state for all dashboard data
   const [userDataState, setUserDataState] = useState({
     username: "Student",
     mmr: 0,
-    rankName: "",
+    rankName: "Absent Legend",
     testsCompleted: 0,
+    pvpStars: 0,
+    totalGamesPlayed: 0,
+    winRate: 0,
   });
 
   const [weeklyRankProgressDataState, setWeeklyRankProgressDataState] =
     useState({
       currentMmr: 0,
-      currentRankName: "Loading...",
-      nextRankMmr: 0,
-      nextRankName: "Loading...",
+      currentRankName: "Absent Legend",
+      nextRankMmr: 150,
+      nextRankName: "The Crammer",
       progressPercent: 0,
-      pointsNeeded: 0,
+      pointsNeeded: 150,
     });
 
   const [weeklyChallengeDataState, setWeeklyChallengeDataState] = useState({
     hasActiveTests: false,
     activeTests: [],
+    completedThisWeek: 0,
+    averageScore: 0,
   });
 
   const [dailyStreakDataState, setDailyStreakDataState] = useState({
     currentStreakDays: 0,
     completedToday: false,
-    nextRewardDays: 0,
+    nextRewardDays: 1,
     progressPercent: 0,
-    rewards: staticDailyStreakRewards, // Assuming rewards structure is static
+    rewards: staticDailyStreakRewards,
+    bestStreak: 0,
   });
 
   const [leaderboardDataState, setLeaderboardDataState] = useState({
     weekly: [],
     pvp: [],
+    myWeeklyRank: null,
+    myPvpRank: null,
   });
 
   useEffect(() => {
@@ -107,22 +127,33 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
-    // Helpers
+    // Enhanced helper functions
     const getTierNameFromMmr = (mmr) => {
-      const thresholds = [
-        { name: "The Valedictornator", min: 1050 },
-        { name: "Almost Valedictorian", min: 900 },
-        { name: "The Lowkey Genius", min: 750 },
-        { name: "Google Scholar (Unofficial)", min: 600 },
-        { name: "Group Project Ghost", min: 450 },
-        { name: "Seatwarmer", min: 300 },
-        { name: "The Crammer", min: 150 },
-        { name: "Absent Legend", min: 0 },
-      ];
-      for (let i = 0; i < thresholds.length; i++) {
-        if (mmr >= thresholds[i].min) return thresholds[i].name;
+      const sortedTiers = [...rankingTiers].sort((a, b) => b.mmr - a.mmr);
+      for (let tier of sortedTiers) {
+        if (mmr >= tier.mmr) return tier.name;
       }
       return "Absent Legend";
+    };
+
+    const getNextTierInfo = (currentMmr) => {
+      const sortedTiers = [...rankingTiers].sort((a, b) => a.mmr - b.mmr);
+      const nextTier = sortedTiers.find((tier) => tier.mmr > currentMmr);
+      return nextTier || null;
+    };
+
+    const calculateRankProgress = (currentMmr, currentTier, nextTier) => {
+      if (!nextTier) return { progressPercent: 100, pointsNeeded: 0 };
+
+      const currentTierMmr = currentTier?.mmr || 0;
+      const nextTierMmr = nextTier.mmr;
+      const progress = currentMmr - currentTierMmr;
+      const total = nextTierMmr - currentTierMmr;
+
+      return {
+        progressPercent: Math.min(100, Math.round((progress / total) * 100)),
+        pointsNeeded: Math.max(0, nextTierMmr - currentMmr),
+      };
     };
 
     const computeDailyStreak = (results) => {
@@ -171,33 +202,60 @@ const Dashboard = () => {
 
     const fetchAll = async () => {
       try {
-        // Parallel fetches
+        setIsLoading(true);
+        setError(null);
+
+        // Parallel fetches with timeout
+        const fetchWithTimeout = (url, options, timeout = 10000) => {
+          return Promise.race([
+            fetch(url, options),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Request timeout")), timeout)
+            ),
+          ]);
+        };
+
         const [studentRes, resultsRes, weeksRes, weeklyLbRes, pvpLbRes] =
           await Promise.all([
-            fetch(`${backendurl}/api/students/${user.id}`, {
+            fetchWithTimeout(`${backendurl}/api/students/${user.id}`, {
               headers: authHeaders,
             }),
-            fetch(`${backendurl}/api/weekly-test/results/student/${user.id}`, {
+            fetchWithTimeout(
+              `${backendurl}/api/weekly-test/results/student/${user.id}`,
+              {
+                headers: authHeaders,
+              }
+            ),
+            fetchWithTimeout(`${backendurl}/api/weeks/active`, {
               headers: authHeaders,
             }),
-            fetch(`${backendurl}/api/weeks/active`, { headers: authHeaders }),
-            fetch(`${backendurl}/api/leaderboard/global?timeFrame=weekly`),
-            fetch(`${backendurl}/api/leaderboard/pvp`, {
+            fetchWithTimeout(
+              `${backendurl}/api/leaderboard/global?timeFrame=weekly`
+            ),
+            fetchWithTimeout(`${backendurl}/api/leaderboard/pvp`, {
               headers: authHeaders,
             }),
           ]);
 
-        // Student data
+        // Enhanced student data processing
         if (studentRes.ok) {
           const studentData = await studentRes.json();
           const sd = studentData.data || {};
           setUserDataState((prev) => ({
             ...prev,
             username: sd.firstName || user?.firstName || "Innovator",
+            pvpStars: sd.pvpStars || 0,
+            totalGamesPlayed: sd.totalGamesPlayed || 0,
+            winRate:
+              sd.totalGamesPlayed > 0
+                ? Math.round(((sd.gamesWon || 0) / sd.totalGamesPlayed) * 100)
+                : 0,
           }));
+        } else {
+          console.warn("Failed to fetch student data:", studentRes.status);
         }
 
-        // Weekly test results
+        // Enhanced weekly test results processing
         let results = [];
         if (resultsRes.ok) {
           const resData = await resultsRes.json();
@@ -209,6 +267,21 @@ const Dashboard = () => {
           );
           const tierName = getTierNameFromMmr(prPoints);
 
+          // Calculate weekly stats
+          const now = new Date();
+          const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+          const weeklyResults = results.filter(
+            (r) => new Date(r.completedAt) >= weekStart
+          );
+          const completedThisWeek = weeklyResults.length;
+          const averageScore =
+            weeklyResults.length > 0
+              ? Math.round(
+                  weeklyResults.reduce((acc, r) => acc + (r.score || 0), 0) /
+                    weeklyResults.length
+                )
+              : 0;
+
           setUserDataState((prev) => ({
             ...prev,
             mmr: prPoints,
@@ -216,104 +289,302 @@ const Dashboard = () => {
             testsCompleted,
           }));
 
-          // Update weekly rank progress
-          const thresholdsMap = {
-            "Trainee Technician": 0,
-            "Junior Technician": 1000,
-            "Senior Technician": 1300,
-            "Lead Engineer": 1600,
-            "Project Director": 2400,
-            "Chief Innovator": 3000,
-            "Capsule Corp Visionary": 3600,
-          };
-          const currentMin = thresholdsMap[tierName] ?? 0;
-          const nextTier = rankingTiers.find(
-            (t) => thresholdsMap[t.name] > currentMin
+          // Enhanced rank progress calculation
+          const currentTier = rankingTiers.find(
+            (tier) => tier.name === tierName
           );
-          const nextMin = nextTier ? thresholdsMap[nextTier.name] : currentMin;
-          const progressPercent =
-            nextTier && nextMin > currentMin
-              ? Math.min(
-                  100,
-                  Math.round(
-                    ((prPoints - currentMin) / (nextMin - currentMin)) * 100
-                  )
-                )
-              : 100;
-          const pointsNeeded = nextTier ? Math.max(0, nextMin - prPoints) : 0;
+          const nextTier = getNextTierInfo(prPoints);
+          const { progressPercent, pointsNeeded } = calculateRankProgress(
+            prPoints,
+            currentTier,
+            nextTier
+          );
 
           setWeeklyRankProgressDataState({
             currentMmr: prPoints,
             currentRankName: tierName,
-            nextRankMmr: nextMin,
-            nextRankName: nextTier ? nextTier.name : "",
+            nextRankMmr: nextTier?.mmr || prPoints,
+            nextRankName: nextTier?.name || "Max Rank",
             progressPercent,
             pointsNeeded,
           });
 
-          // Daily streak
+          // Update weekly challenge data
+          setWeeklyChallengeDataState((prev) => ({
+            ...prev,
+            completedThisWeek,
+            averageScore,
+          }));
+
+          // Enhanced daily streak calculation
           const {
             streak,
             nextRewardDays,
             progressPercentStreak,
             completedToday,
           } = computeDailyStreak(results);
+
+          // Calculate best streak from historical data
+          const bestStreak = Math.max(
+            streak,
+            results.length > 0
+              ? Math.max(...results.map((r) => r.streak || 0))
+              : 0
+          );
+
           setDailyStreakDataState({
             currentStreakDays: streak,
             completedToday,
             nextRewardDays,
             progressPercent: progressPercentStreak,
             rewards: staticDailyStreakRewards,
+            bestStreak,
           });
+        } else {
+          console.warn("Failed to fetch test results:", resultsRes.status);
         }
 
-        // Weekly challenges from active weeks
+        // Enhanced weekly challenges processing
         if (weeksRes.ok) {
           const weeksData = await weeksRes.json();
           const scheduleArray = Array.isArray(weeksData) ? weeksData : [];
           const activeTests = scheduleArray.slice(0, 5).map((w) => ({
             id: w._id,
             name: `Week ${w.weekNumber} — ${w.subjectId?.subject || "Subject"}`,
+            difficulty: w.difficulty || "Medium",
+            deadline: w.deadline,
+            status: w.status || "active",
           }));
-          setWeeklyChallengeDataState({
+          setWeeklyChallengeDataState((prev) => ({
+            ...prev,
             hasActiveTests: scheduleArray.length > 0,
             activeTests,
-          });
+          }));
+        } else {
+          console.warn("Failed to fetch active weeks:", weeksRes.status);
         }
 
-        // Weekly test leaderboard
+        // Enhanced leaderboard processing
         if (weeklyLbRes.ok) {
           const lbData = await weeklyLbRes.json();
           const leaderboard = lbData.leaderboard || [];
+          const myRank =
+            leaderboard.findIndex(
+              (player) => player.id === user.id || player._id === user.id
+            ) + 1;
+
           setLeaderboardDataState((prev) => ({
             ...prev,
             weekly: leaderboard,
+            myWeeklyRank: myRank > 0 ? myRank : null,
           }));
+        } else {
+          console.warn(
+            "Failed to fetch weekly leaderboard:",
+            weeklyLbRes.status
+          );
         }
 
-        // PvP leaderboard
+        // Enhanced PvP leaderboard processing
         if (pvpLbRes.ok) {
           const pvpData = await pvpLbRes.json();
           const leaderboard = pvpData.leaderboard || [];
+          const myRank =
+            leaderboard.findIndex(
+              (player) => player.id === user.id || player._id === user.id
+            ) + 1;
+
           setLeaderboardDataState((prev) => ({
             ...prev,
             pvp: leaderboard,
+            myPvpRank: myRank > 0 ? myRank : null,
           }));
+        } else {
+          console.warn("Failed to fetch PvP leaderboard:", pvpLbRes.status);
         }
+
+        setLastUpdated(new Date());
       } catch (err) {
         console.error("Failed to load dashboard:", err);
+        setError(err.message || "Failed to load dashboard data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (user?.id) {
       fetchAll();
     }
-    // Add user.id to dependency array if it's critical for re-fetching on user change
-  }, [user]);
+  }, [user?.id]);
+
+  // Refresh function for manual data refresh
+  const handleRefresh = useCallback(() => {
+    if (user?.id && !isLoading) {
+      const backendurl = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem("token");
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // Reuse the same fetchAll logic but as a callback
+      const refreshData = async () => {
+        try {
+          setIsLoading(true);
+          setError(null);
+
+          // Same fetch logic as in useEffect
+          const fetchWithTimeout = (url, options, timeout = 10000) => {
+            return Promise.race([
+              fetch(url, options),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Request timeout")), timeout)
+              ),
+            ]);
+          };
+
+          // Simplified refresh - just fetch the most critical data
+          const [studentRes, resultsRes] = await Promise.all([
+            fetchWithTimeout(`${backendurl}/api/students/${user.id}`, {
+              headers: authHeaders,
+            }),
+            fetchWithTimeout(
+              `${backendurl}/api/weekly-test/results/student/${user.id}`,
+              {
+                headers: authHeaders,
+              }
+            ),
+          ]);
+
+          if (resultsRes.ok) {
+            const resData = await resultsRes.json();
+            const results = resData.data?.results || [];
+            const prPoints = results.reduce(
+              (acc, r) => acc + (r.pointsEarned || 0),
+              0
+            );
+            const tierName = getTierNameFromMmr(prPoints);
+
+            setUserDataState((prev) => ({
+              ...prev,
+              mmr: prPoints,
+              rankName: tierName,
+              testsCompleted: results.length,
+            }));
+          }
+
+          setLastUpdated(new Date());
+        } catch (err) {
+          console.error("Failed to refresh dashboard:", err);
+          setError("Failed to refresh data");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      refreshData();
+    }
+  }, [user?.id, isLoading]);
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user?.id && !isLoading) {
+        handleRefresh();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [user?.id, isLoading, handleRefresh]);
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className={styles.dashboardContainer}>
+      <FloatingStars />
+      <div className={styles.pageHeader}>
+        <div
+          style={{
+            height: "40px",
+            backgroundColor: "rgba(255,255,255,0.1)",
+            borderRadius: "8px",
+            marginBottom: "10px",
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}
+        />
+        <div
+          style={{
+            height: "20px",
+            backgroundColor: "rgba(255,255,255,0.1)",
+            borderRadius: "4px",
+            width: "60%",
+          }}
+        />
+      </div>
+      <div className={styles.statsGrid}>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className={styles.statCard} style={{ opacity: 0.3 }}>
+            <FaSpinner style={{ animation: "spin 1s linear infinite" }} />
+            <span>Loading...</span>
+            <span>Please wait</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Error component
+  const ErrorDisplay = () => (
+    <div className={styles.dashboardContainer}>
+      <FloatingStars />
+      <div className={styles.pageHeader}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            color: "#ef4444",
+            marginBottom: "20px",
+          }}
+        >
+          <FaExclamationTriangle />
+          <h2>Failed to Load Dashboard</h2>
+        </div>
+        <p style={{ color: "#6b7280", marginBottom: "20px" }}>{error}</p>
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading}
+          style={{
+            background: "var(--legendary-gold)",
+            color: "#1f2937",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            fontWeight: "700",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          {isLoading ? (
+            <FaSpinner style={{ animation: "spin 1s linear infinite" }} />
+          ) : (
+            <FaRedo />
+          )}
+          {isLoading ? "Refreshing..." : "Retry"}
+        </button>
+      </div>
+    </div>
+  );
+
+  if (isLoading && !lastUpdated) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error && !lastUpdated) {
+    return <ErrorDisplay />;
+  }
 
   return (
     <div className={styles.dashboardContainer}>
-      <FloatingStars /> {/* Add FloatingStars component here */}
+      <FloatingStars />
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>
@@ -322,43 +593,86 @@ const Dashboard = () => {
             {userDataState.username || "Innovator"}!
           </span>
         </h1>
-        <p className={styles.pageSubtitle}>
-          Your recent activity and progress.
-        </p>
       </div>
-      {/* Stats Cards Row */}
+      {/* Enhanced Stats Cards Row */}
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
+        <div
+          className={styles.statCard}
+          title={`${weeklyChallengeDataState.completedThisWeek} completed this week`}
+        >
           <span className={styles.statIcon}>
             <FaTasks />
           </span>
           <span className={styles.statValue}>
             {weeklyChallengeDataState.activeTests.length}
           </span>
-          <span className={styles.statLabel}>Active Projects</span>
+          <span className={styles.statLabel}>Active Tests</span>
+          {weeklyChallengeDataState.completedThisWeek > 0 && (
+            <span style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "2px" }}>
+              +{weeklyChallengeDataState.completedThisWeek} this week
+            </span>
+          )}
         </div>
-        <div className={styles.statCard}>
+
+        <div
+          className={styles.statCard}
+          title={`Best streak: ${dailyStreakDataState.bestStreak} days`}
+        >
           <span className={styles.statIcon}>
             <FaFire />
-          </span>{" "}
+          </span>
           <span className={styles.statValue}>
             {dailyStreakDataState.currentStreakDays}
           </span>
-          <span className={styles.statLabel}>Learning Streak</span>
+          <span className={styles.statLabel}>Day Streak</span>
+          {dailyStreakDataState.bestStreak >
+            dailyStreakDataState.currentStreakDays && (
+            <span style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "2px" }}>
+              Best: {dailyStreakDataState.bestStreak}
+            </span>
+          )}
         </div>
-        <div className={styles.statCard}>
+
+        <div
+          className={styles.statCard}
+          title={`${userDataState.testsCompleted} total tests completed`}
+        >
           <span className={styles.statIcon}>
             <FaBullseye />
-          </span>{" "}
-          {/* Consider FaMicrochip or FaBrain for Tech Level */}
+          </span>
           <span className={styles.statValue}>{userDataState.mmr}</span>
           <span className={styles.statLabel}>Total Points</span>
+          {leaderboardDataState.myWeeklyRank && (
+            <span style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "2px" }}>
+              Rank #{leaderboardDataState.myWeeklyRank}
+            </span>
+          )}
         </div>
-        <div className={styles.statCard}>
+
+        <div
+          className={styles.statCard}
+          title={`${userDataState.totalGamesPlayed} PvP games played`}
+        >
+          <span className={styles.statIcon}>
+            <FaGamepad />
+          </span>
+          <span className={styles.statValue}>{userDataState.pvpStars}</span>
+          <span className={styles.statLabel}>PvP Stars</span>
+          {userDataState.totalGamesPlayed > 0 && (
+            <span style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "2px" }}>
+              {userDataState.winRate}% win rate
+            </span>
+          )}
+        </div>
+
+        {/* Additional rank card */}
+        <div
+          className={`${styles.statCard} ${styles.rankCard}`}
+          style={{ gridColumn: "span 2" }}
+        >
           <span className={styles.statIcon}>
             <FaTrophy />
-          </span>{" "}
-          {/* Consider FaIdBadge or FaUserTie for Designation */}
+          </span>
           <span
             className={`${styles.statValue} ${getRankClass(
               userDataState.rankName
@@ -366,7 +680,38 @@ const Dashboard = () => {
           >
             {userDataState.rankName}
           </span>
-          <span className={styles.statLabel}>Rank</span>
+          <span className={styles.statLabel}>Current Rank</span>
+          <div
+            style={{
+              fontSize: "0.8em",
+              opacity: 0.9,
+              marginTop: "5px",
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <span>
+              Progress: {weeklyRankProgressDataState.progressPercent}%
+            </span>
+            {weeklyRankProgressDataState.pointsNeeded > 0 && (
+              <span>{weeklyRankProgressDataState.pointsNeeded} pts needed</span>
+            )}
+          </div>
+        </div>
+
+        {/* Weekly performance card */}
+        <div className={styles.statCard} title="This week's performance">
+          <span className={styles.statIcon}>
+            <FaClock />
+          </span>
+          <span className={styles.statValue}>
+            {weeklyChallengeDataState.averageScore}%
+          </span>
+          <span className={styles.statLabel}>Avg Score</span>
+          <span style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "2px" }}>
+            This week
+          </span>
         </div>
       </div>
       {/* Dashboard Layout Grid */}
@@ -427,11 +772,41 @@ const Dashboard = () => {
             </div>
             <div className={styles.tierInfoGrid}>
               {rankingTiers.map((tier) => (
-                <div key={tier.name} className={styles.tierBox}>
+                <div
+                  key={tier.name}
+                  className={`${styles.tierBox} ${
+                    tier.name === userDataState.rankName
+                      ? styles.currentTier
+                      : ""
+                  }`}
+                  style={{
+                    opacity: tier.name === userDataState.rankName ? 1 : 0.7,
+                    transform:
+                      tier.name === userDataState.rankName
+                        ? "scale(1.05)"
+                        : "scale(1)",
+                    border:
+                      tier.name === userDataState.rankName
+                        ? "2px solid var(--legendary-gold)"
+                        : "1px solid rgba(255,255,255,0.1)",
+                  }}
+                >
                   <span className={styles.tierName}>{tier.name}</span>
                   <span className={`${styles.tierMmr} ${tier.colorClass}`}>
-                    {tier.mmr}
+                    {tier.mmr}+ pts
                   </span>
+                  {tier.name === userDataState.rankName && (
+                    <div
+                      style={{
+                        fontSize: "0.7em",
+                        color: "var(--legendary-gold)",
+                        marginTop: "4px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      ← Current
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

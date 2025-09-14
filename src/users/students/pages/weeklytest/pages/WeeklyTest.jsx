@@ -35,9 +35,9 @@ const WEEKS = [
 
 // Constants for sound effects
 const SOUNDS = {
-  correct: "/dashboard.mp3",
+  correct: "/shs.mp3",
   wrong: "/shs.mp3",
-  complete: "/dashboard.mp3",
+  complete: "/shs.mp3",
 };
 
 // New Rank System based on user request

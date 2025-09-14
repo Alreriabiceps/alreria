@@ -39,20 +39,14 @@ const Icons = {
 };
 
 const MUSIC_MAP = {
-  dashboard: [
-    "/student/dashboard",
-    "/student/reviewers",
-    "/student/ranking",
-    "/student/profile",
-    "/student/crew",
-  ],
   weekly: ["/student/weeklytest"],
+  demo: ["/student/demo"], // Demo page gets no music
 };
 
 const getMusicTrack = (path) => {
-  if (MUSIC_MAP.dashboard.includes(path)) return "/dashboard.mp3";
-  if (MUSIC_MAP.weekly.includes(path)) return "/GLEAS.mp3"; // Using existing GLEAS.mp3
-  return "/shs.mp3"; // Using existing shs.mp3 as default
+  if (MUSIC_MAP.weekly.includes(path)) return "/weeklytest.mp3";
+  if (MUSIC_MAP.demo.includes(path)) return null; // No music on demo page
+  return "/dashboard.mp3"; // Dashboard music for all other pages
 };
 
 const BURGER_BREAKPOINT = 1200;
@@ -134,34 +128,86 @@ const GameNavbar = () => {
     }
   };
 
+  // Initial audio setup
   useEffect(() => {
-    const newTrack = getMusicTrack(location.pathname);
-    if (newTrack !== currentTrack) {
-      const audio = audioRef.current;
-      audio.pause();
-      audio.src = newTrack;
+    const audio = audioRef.current;
+    if (audio && currentTrack) {
+      audio.src = currentTrack;
       audio.load();
       audio.volume = 0;
-      setCurrentTrack(newTrack);
+
       const delay = 500;
       const fadeDuration = 2000;
 
       setTimeout(() => {
-        audio.play().then(() => {
-          let vol = 0;
-          const step = 0.05;
-          const interval = setInterval(() => {
-            vol += step;
-            if (vol >= volume / 100) {
-              vol = volume / 100;
-              clearInterval(interval);
-            }
-            audio.volume = vol;
-          }, fadeDuration * step);
-        });
+        audio
+          .play()
+          .then(() => {
+            let vol = 0;
+            const step = 0.05;
+            const interval = setInterval(() => {
+              vol += step;
+              if (vol >= volume / 100) {
+                vol = volume / 100;
+                clearInterval(interval);
+              }
+              audio.volume = vol;
+            }, fadeDuration * step);
+          })
+          .catch((error) => {
+            console.log("Audio play failed:", error);
+          });
       }, delay);
     }
-  }, [location.pathname]);
+  }, []); // Only run once on mount
+
+  // Handle track changes
+  useEffect(() => {
+    const newTrack = getMusicTrack(location.pathname);
+    if (newTrack !== currentTrack) {
+      const audio = audioRef.current;
+
+      // Stop current audio
+      audio.pause();
+      audio.currentTime = 0;
+
+      // If no track (null), just stop and don't play anything
+      if (!newTrack) {
+        setCurrentTrack(null);
+        return;
+      }
+
+      // Set new track
+      audio.src = newTrack;
+      audio.load();
+      audio.volume = 0;
+      setCurrentTrack(newTrack);
+
+      const delay = 500;
+      const fadeDuration = 2000;
+
+      setTimeout(() => {
+        // Play the new track
+        audio
+          .play()
+          .then(() => {
+            let vol = 0;
+            const step = 0.05;
+            const interval = setInterval(() => {
+              vol += step;
+              if (vol >= volume / 100) {
+                vol = volume / 100;
+                clearInterval(interval);
+              }
+              audio.volume = vol;
+            }, fadeDuration * step);
+          })
+          .catch((error) => {
+            console.log("Audio play failed:", error);
+          });
+      }, delay);
+    }
+  }, [location.pathname, currentTrack, volume]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -353,7 +399,7 @@ const GameNavbar = () => {
           style={{ width: "100px", cursor: "pointer" }}
         />
       </div>
-      <audio ref={audioRef} autoPlay loop muted={isMuted}>
+      <audio ref={audioRef} loop muted={isMuted}>
         <source src={currentTrack} type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
