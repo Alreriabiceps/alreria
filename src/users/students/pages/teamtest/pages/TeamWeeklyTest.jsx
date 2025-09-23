@@ -124,7 +124,7 @@ const TeamWeeklyTest = () => {
 
   useEffect(() => {
     if (attemptId) fetchState(false);
-  }, [attemptId, fetchState, state]);
+  }, [attemptId, fetchState]);
 
   // Polling for updates (kept even when socket is live as a safety net)
   useEffect(() => {
@@ -146,7 +146,6 @@ const TeamWeeklyTest = () => {
     state?.currentIndex,
     state?.questions?.length,
     live,
-    state,
     fetchState,
   ]);
 
