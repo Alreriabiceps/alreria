@@ -126,9 +126,7 @@ const Signup = () => {
         setWarning(data.warning);
       }
 
-      setSuccess(
-        "Registration started! Please check your email to confirm your account."
-      );
+      setSuccess("Registration successful! You can now log in.");
     } catch (err) {
       if (err.name === "AbortError") {
         setError(
@@ -156,7 +154,7 @@ const Signup = () => {
             <div className={styles.successBox}>{success}</div>
             <button
               className={styles.primaryBtn}
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/")}
               type="button"
             >
               Go to Login
