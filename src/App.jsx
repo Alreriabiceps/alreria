@@ -113,21 +113,6 @@ const App = () => {
           element={<StudentPerformanceDetail />}
         />
       </Route>
-
-      {/* Redirect root to appropriate dashboard */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            {({ isAdmin }) => (
-              <Navigate
-                to={isAdmin ? "/admin/dashboard" : "/student/dashboard"}
-                replace
-              />
-            )}
-          </ProtectedRoute>
-        }
-      />
     </Routes>
   );
 };
