@@ -19,6 +19,7 @@ const Signup = () => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [warning, setWarning] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
@@ -80,6 +81,7 @@ const Signup = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setWarning("");
 
     if (!validatePassword()) {
       return;
@@ -95,6 +97,9 @@ const Signup = () => {
         );
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const response = await fetch(`${backendUrl}/api/auth/student-register`, {
         method: "POST",
         headers: {
@@ -104,9 +109,11 @@ const Signup = () => {
           ...formData,
           studentId: Number(formData.studentId),
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(
@@ -115,11 +122,21 @@ const Signup = () => {
         );
       }
 
+      if (data?.warning) {
+        setWarning(data.warning);
+      }
+
       setSuccess(
-        "Registration successful! Please check your email to confirm your account."
+        "Registration started! Please check your email to confirm your account."
       );
     } catch (err) {
-      setError(err.message);
+      if (err.name === "AbortError") {
+        setError(
+          "Network is slow. Your registration may have been created. Please check your email or try again."
+        );
+      } else {
+        setError(err.message || "Registration failed");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -133,32 +150,16 @@ const Signup = () => {
 
         {success ? (
           <div>
-            <div className={styles.successMessagePanel}>
-              <FaEnvelope className={styles.successIcon} />
-              <div>
-                <h2 className={styles.successTitle}>Check Your Email!</h2>
-                <p className={styles.successText}>
-                  We've sent a confirmation link to your email address.
-                  <br />
-                  <b>
-                    Don't forget to check your <span>Spam</span> or{" "}
-                    <span>Promotions</span> folder
-                  </b>{" "}
-                  if you don't see it in your inbox.
-                  <br />
-                  <span>
-                    You must confirm your email before you can log in.
-                  </span>
-                </p>
-              </div>
-            </div>
+            {warning ? (
+              <div className={styles.warningBox}>{warning}</div>
+            ) : null}
+            <div className={styles.successBox}>{success}</div>
             <button
+              className={styles.primaryBtn}
+              onClick={() => navigate("/login")}
               type="button"
-              className={`${styles.signupButton} ${styles.backToLoginButton}`}
-              style={{ marginTop: "2rem" }}
-              onClick={() => navigate("/")}
             >
-              Back to Log In
+              Go to Login
             </button>
           </div>
         ) : (
@@ -339,18 +340,15 @@ const Signup = () => {
               </div>
             </div>
 
-            {error && (
-              <p className={`${styles.messageBox} ${styles.errorMessage}`}>
-                {error}
-              </p>
-            )}
+            {error && <div className={styles.errorBox}>{error}</div>}
+            {warning && <div className={styles.warningBox}>{warning}</div>}
 
             <button
               type="submit"
-              className={styles.signupButton}
+              className={styles.primaryBtn}
               disabled={isLoading}
             >
-              {isLoading ? "REGISTERING..." : "SIGN UP"}
+              {isLoading ? "Registering..." : "Register"}
             </button>
           </form>
         )}

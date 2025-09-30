@@ -105,132 +105,131 @@ const Profile = () => {
   const [pvpStats, setPvpStats] = useState(null);
   const [pvpLoading, setPvpLoading] = useState(true);
 
-  // New Rank System - Updated to match WeeklyTest.jsx (8-Tier Funny School Ranking)
+  // Weekly Test Rank System - Pinoy-themed
   const RANKS = [
     {
       min: 0,
       max: 149,
-      name: "Absent Legend",
+      name: "Bagito",
       prIcon: "FaBed",
-      description: "Technically enrolled.",
+      description: "Bagong pasok, clueless vibes.",
       color: "var(--blueprint-text-muted)",
-    }, // Using FaBed for 🛌
+    },
     {
       min: 150,
       max: 299,
-      name: "The Crammer",
+      name: "Tambay",
       prIcon: "FaClock",
-      description:
-        "Studies best under extreme pressure—like 5 minutes before class.",
+      description: "Laging nasa hallway, wala sa klase.",
       color: "#FFC107",
-    }, // FaClock for ⏰
+    },
     {
       min: 300,
       max: 449,
-      name: "Seatwarmer",
+      name: "Kodigo",
       prIcon: "FaBookOpen",
-      description: "Physically present, mentally... buffering.",
+      description: "Umaasa sa sikreto at mabilisang sagot.",
       color: "#A0522D",
-    }, // FaBookOpen for 📖
+    },
     {
       min: 450,
       max: 599,
-      name: "Group Project Ghost",
+      name: "Sipag-sipagan",
       prIcon: "FaPaperclip",
-      description: "Appears only during final presentation day.",
+      description: "Kunwari masipag, pero sakto lang.",
       color: "#B0C4DE",
-    }, // FaPaperclip for 📎
+    },
     {
       min: 600,
       max: 749,
-      name: "Google Scholar (Unofficial)",
+      name: "Diskarte",
       prIcon: "FaSearch",
-      description: 'Master of Ctrl+F and "Quizlet."',
+      description: "Laging may palusot, nakakalusot.",
       color: "var(--blueprint-success)",
-    }, // FaSearch for 🔍
+    },
     {
       min: 750,
       max: 899,
-      name: "The Lowkey Genius",
+      name: "Petiks",
       prIcon: "FaBookReader",
-      description: "Never recites, still gets the highest score.",
+      description: "Chill lang—di sobrang galing, di rin bagsak.",
       color: "var(--blueprint-accent-secondary)",
-    }, // FaBookReader for 📚 (FaBook is taken)
+    },
     {
       min: 900,
       max: 1049,
-      name: "Almost Valedictorian",
+      name: "Honor Slayer",
       prIcon: "FaMedal",
-      description: "Always 0.01 short—every time.",
+      description: "Malapit na sa top, grind mode.",
       color: "var(--blueprint-accent)",
-    }, // FaMedal for 🏅
+    },
     {
       min: 1050,
       max: Infinity,
-      name: "The Valedictornator",
+      name: "Legendaryo",
       prIcon: "FaMicrophoneAlt",
-      description: "Delivers speeches, aces tests, and might run the school.",
+      description: "Pinaka solid—dean’s lister / top student.",
       color: "var(--blueprint-danger)",
-    }, // FaMicrophoneAlt for 🎤
+    },
   ];
 
-  // PvP Rank System - Updated Colors
+  // PvP Rank System - Pinoy-themed
   const PVP_RANKS = [
     {
       min: 0,
       max: 79,
-      name: "Grasshopper",
+      name: "Buhangin",
       pvpIcon: "FaBug",
-      description: "Newbie — Just starting out.",
-      color: "var(--blueprint-success)",
+      description: "Pinakamadali, sabog agad, common.",
+      color: "#C2B280",
     },
     {
       min: 80,
       max: 159,
-      name: "Knight",
+      name: "Bato",
       pvpIcon: "FaUserShield",
-      description: "Rising Warrior — Showing promise.",
-      color: "#B0C4DE",
+      description: "Matibay ng konti, basic lakas.",
+      color: "#7f8c8d",
     },
     {
       min: 160,
       max: 239,
-      name: "Gladiator",
+      name: "Kahoy",
       pvpIcon: "FaShieldAlt",
-      description: "Skilled Fighter — Battle-ready.",
-      color: "#C0C0C0",
+      description: "Mas matibay kaysa bato, pero kaya pa ring masira.",
+      color: "#8e5a2a",
     },
     {
       min: 240,
       max: 319,
-      name: "Elite",
-      pvpIcon: "FaCrown",
-      description: "Champion in the Making.",
-      color: "var(--blueprint-accent)",
+      name: "Bakal",
+      pvpIcon: "FaFistRaised",
+      description: "Solid na, mahirap tibagin.",
+      color: "#95a5a6",
     },
     {
       min: 320,
       max: 399,
-      name: "Legend",
-      pvpIcon: "FaStar",
-      description: "Feared by many.",
-      color: "var(--blueprint-accent-secondary)",
+      name: "Ginto",
+      pvpIcon: "FaAward",
+      description: "Bihira at mataas ang halaga.",
+      color: "#f1c40f",
     },
     {
       min: 400,
       max: 479,
-      name: "Titan",
-      pvpIcon: "FaFistRaised",
-      description: "Legendary Force — Near unstoppable.",
-      color: "#D8A2FF",
+      name: "Diamante",
+      pvpIcon: "FaGem",
+      description: "Sobrang tigas at napakabihira.",
+      color: "#00d1ff",
     },
     {
       min: 480,
       max: 500,
-      name: "Supreme",
-      pvpIcon: "FaAward",
-      description: "Absolute Peak — Top of the ranks.",
-      color: "var(--blueprint-danger)",
+      name: "Perlas",
+      pvpIcon: "FaCrown",
+      description: "Pinakamataas—Pinoy pride at pinakamahalaga.",
+      color: "#e0e7ff",
     },
   ];
 

@@ -10,6 +10,7 @@
   --dbz-blue: #3498db;
   --dbz-red: #e74c3c;
   --dbz-yellow: #f1c40f;
+  --dbz-green: #27ae60;
   --dbz-dark-blue: #2c3e50;
   --dbz-light-gray: #ecf0f1;
   --dbz-dark-gray: #34495e;
@@ -468,10 +469,10 @@
   transform: translateX(5px);
 }
 .choiceSelected {
-  background-color: var(--blueprint-accent); /* Accent color for selected */
-  border-color: var(--blueprint-accent);
-  color: var(--blueprint-accent-text-dark); /* Dark text on accent background */
-  box-shadow: 0 0 10px var(--blueprint-accent);
+  background-color: #27ae60 !important; /* Green background for selected */
+  border-color: #27ae60 !important; /* Green border */
+  color: #ffffff !important; /* White text for readability */
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.3); /* Green glow */
 }
 .radioInput {
   margin-right: 12px;
@@ -854,7 +855,252 @@
   }
 }
 
+/* Simple Result Modal Styles */
+.simpleModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.simpleModal {
+  background: #1b2330; /* simple dark theme */
+  border: 1px solid #2a3648;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 320px;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.simpleCloseBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--blueprint-text);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.simpleCloseBtn:hover {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+}
+
+.simpleContent {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.simpleScore {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--dbz-orange);
+  font-family: var(--font-header);
+  margin-bottom: 10px;
+}
+
+.simplePoints {
+  font-size: 1.2rem;
+  color: var(--blueprint-text);
+  margin-bottom: 20px;
+  font-family: var(--font-body);
+}
+
+.simpleBtn {
+  background: #2a3648; /* muted button */
+  color: #e0f2f7;
+  border: 1px solid #36465e;
+  padding: 8px 14px; /* smaller height */
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  font-size: 0.95rem; /* slightly smaller text */
+}
+
+.simpleBtn:hover {
+  background: #3a4961;
+}
+
+.simpleLoading,
+.simpleError {
+  color: var(--blueprint-text);
+  font-family: var(--font-body);
+  margin-bottom: 15px;
+}
+
+.simpleError {
+  color: var(--dbz-red);
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .simpleModal {
+    width: 95%;
+    max-width: 300px;
+    padding: 16px;
+  }
+
+  .simpleScore {
+    font-size: 2rem;
+  }
+
+  .simplePoints {
+    font-size: 1rem;
+  }
+
+  .simpleBtn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Button row for actions inside simple result modal */
+.simpleButtonRow {
+  display: flex;
+  gap: 12px; /* more breathing room between buttons */
+  margin-top: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* add vertical spacing when stacked */
+.simpleButtonRow .simpleBtn {
+  margin: 4px 0;
+}
+
+@media (max-width: 480px) {
+  .simpleButtonRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
 /* Result Modal Content Styles */
+.modalCloseButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--blueprint-panel-bg);
+  border: 1px solid var(--blueprint-panel-border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--blueprint-text);
+  transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  background: var(--blueprint-accent);
+  color: var(--blueprint-accent-text-dark);
+  border-color: var(--blueprint-accent);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.trophyIcon {
+  color: var(--dbz-orange);
+}
+
+.modalTitle {
+  font-family: var(--font-header);
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--dbz-orange);
+  font-weight: 700;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+}
+
+.modalContent {
+  text-align: center;
+}
+
+.modalLoadingContainer,
+.modalErrorContainer,
+.modalNoResultsContainer {
+  text-align: center;
+  padding: 2em;
+}
+
+.errorTitle {
+  color: var(--dbz-red);
+  margin-bottom: 1em;
+  font-family: var(--font-header);
+}
+
+.scoreDisplay {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--blueprint-panel-bg);
+  border-radius: 15px;
+  border: 1px solid var(--blueprint-panel-border);
+}
+
+.scoreNumber {
+  font-size: 4rem;
+  font-weight: 900;
+  text-shadow: 2px 2px 0 var(--dbz-black);
+  line-height: 1;
+  font-family: var(--font-header);
+}
+
+.scoreTotal {
+  font-size: 2rem;
+  color: var(--blueprint-text);
+  margin-left: 8px;
+}
+
+.accuracyText {
+  font-size: 1.2rem;
+  margin-top: 8px;
+  color: var(--blueprint-text-muted);
+  font-family: var(--font-body);
+}
+
+.pointsDisplay {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--blueprint-panel-bg);
+  border-radius: 12px;
+  border: 1px solid var(--blueprint-panel-border);
+}
+
+.pointsLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--blueprint-text-muted);
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+}
+
+.pointsValue {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-header);
+}
+
 .resultTitle {
   font-family: var(--font-header);
   font-size: 2.2rem;
@@ -1273,30 +1519,79 @@
   /* No themedButton active shadow */
 }
 
+/* ULTRA SPECIFIC - Force green styling for selected answers */
+div[class*="answerOptions"] button[class*="selectedAnswer"],
+div[class*="answerOptions"] button.selectedAnswer,
+.questionPanel div[class*="answerOptions"] button[class*="selectedAnswer"],
+.questionPanel div[class*="answerOptions"] button.selectedAnswer,
+button[class*="selectedAnswer"],
+button.selectedAnswer {
+  background-color: #27ae60 !important;
+  color: #ffffff !important;
+  border: 2px solid #27ae60 !important;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+div[class*="answerOptions"] button[class*="selectedAnswer"]:hover,
+div[class*="answerOptions"] button.selectedAnswer:hover,
+.questionPanel
+  div[class*="answerOptions"]
+  button[class*="selectedAnswer"]:hover,
+.questionPanel div[class*="answerOptions"] button.selectedAnswer:hover,
+button[class*="selectedAnswer"]:hover,
+button.selectedAnswer:hover {
+  background-color: #2ecc71 !important;
+  color: #ffffff !important;
+  border: 2px solid #2ecc71 !important;
+}
+
+/* Force green styling for selected answers - highest specificity */
+.answerOptions button.selectedAnswer,
+.answerOptions .selectedAnswer,
+button.selectedAnswer,
+.questionPanel .answerOptions button.selectedAnswer,
+.questionPanel .answerOptions .selectedAnswer {
+  background-color: #27ae60 !important;
+  color: #ffffff !important;
+  border: 2px solid #27ae60 !important;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.3) !important;
+}
+
+.answerOptions button.selectedAnswer:hover,
+.answerOptions .selectedAnswer:hover,
+button.selectedAnswer:hover,
+.questionPanel .answerOptions button.selectedAnswer:hover,
+.questionPanel .answerOptions .selectedAnswer:hover {
+  background-color: #2ecc71 !important;
+  color: #ffffff !important;
+  border: 2px solid #2ecc71 !important;
+}
+
 .selectedAnswer {
-  font-family: var(--font-body);
-  font-size: 1rem; /* Was 1.05rem */
-  letter-spacing: 0.5px;
-  padding: 12px 18px; /* Was 14px 20px */
-  border-radius: 6px; /* Was 8px */
-  text-transform: none;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, transform 0.1s ease-out;
-  text-decoration: none;
-  display: block;
-  width: 100%;
-  text-align: left;
-  background-color: var(--blueprint-accent);
-  color: var(--blueprint-accent-text-dark);
-  border: 2px solid var(--dbz-black);
-  font-weight: 700;
-  box-shadow: none;
+  font-family: var(--font-body) !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.5px !important;
+  padding: 12px 18px !important;
+  border-radius: 6px !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s ease-out !important;
+  text-decoration: none !important;
+  display: block !important;
+  width: 100% !important;
+  text-align: left !important;
+  background-color: #27ae60 !important; /* Green background */
+  color: #ffffff !important; /* White text for readability */
+  border: 2px solid #27ae60 !important; /* Green border */
+  font-weight: 700 !important;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.3) !important; /* Green glow */
 }
 
 .selectedAnswer:hover:not(:disabled) {
-  background-color: var(--dbz-yellow); /* Keep accent color on hover */
-  color: var(--blueprint-accent-text-dark);
-  border: 2px solid var(--dbz-black);
+  background-color: #2ecc71 !important; /* Slightly lighter green on hover */
+  color: #ffffff !important; /* Keep white text */
+  border: 2px solid #2ecc71 !important; /* Lighter green border */
   transform: translateY(0); /* No transform on selected hover */
 }
 
@@ -3442,14 +3737,10 @@
 }
 
 .selectedOption {
-  background: linear-gradient(
-    135deg,
-    var(--blueprint-accent),
-    var(--dbz-orange)
-  ) !important;
-  border-color: var(--dbz-orange) !important;
-  color: var(--blueprint-accent-text-dark) !important;
-  box-shadow: 0 0 20px rgba(241, 196, 15, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  background: #27ae60 !important; /* Green background */
+  border-color: #27ae60 !important; /* Green border */
+  color: #ffffff !important; /* White text for readability */
+  box-shadow: 0 0 20px rgba(39, 174, 96, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3) !important;
   transform: translateY(-2px) !important;
 }
 

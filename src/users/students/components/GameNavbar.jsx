@@ -15,6 +15,7 @@ import {
   FaVolumeMute,
   FaBookOpen,
   FaUserNinja,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import {
   GiCrossedSwords,
@@ -31,6 +32,7 @@ const Icons = {
   Rankings: <FaTrophy />,
   Crew: <FaUsers />,
   Profile: <FaUser />,
+  Help: <FaQuestionCircle />,
   Logout: <FaSignOutAlt />,
   MenuOpen: <FaBars />,
   MenuClose: <FaTimes />,
@@ -331,6 +333,10 @@ const GameNavbar = () => {
       >
         {isMobile && <span className={styles.panelIcon}>{Icons.Profile}</span>}{" "}
         Profile
+      </NavLink>
+      <NavLink to="/student/help" className={navLinkClass} onClick={closeMenus}>
+        {isMobile && <span className={styles.panelIcon}>{Icons.Help}</span>}{" "}
+        Help
       </NavLink>
       <button className={styles.navbarLink} onClick={handleLogout}>
         {isMobile && <span className={styles.panelIcon}>{Icons.Logout}</span>}{" "}

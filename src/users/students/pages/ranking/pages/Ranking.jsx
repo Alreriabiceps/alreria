@@ -37,6 +37,7 @@ import {
   FaCrown,
   FaFistRaised,
   FaAward,
+  FaGem,
   FaChartLine,
   FaLocationArrow,
   FaSync,
@@ -63,6 +64,7 @@ const iconComponents = {
   FaStar,
   FaFistRaised,
   FaAward,
+  FaGem,
 };
 
 const IconComponent = ({ iconName, ...props }) => {
@@ -76,66 +78,65 @@ const weeklyRanks = [
   {
     min: 0,
     max: 149,
-    name: "Absent Legend",
+    name: "Bagito",
     prIcon: "FaBed",
-    description: "Technically enrolled.",
+    description: "Bagong pasok, clueless vibes.",
     color: "#888",
   },
   {
     min: 150,
     max: 299,
-    name: "The Crammer",
+    name: "Tambay",
     prIcon: "FaClock",
-    description:
-      "Studies best under extreme pressure—like 5 minutes before class.",
+    description: "Laging nasa hallway, wala sa klase.",
     color: "#FFC107",
   },
   {
     min: 300,
     max: 449,
-    name: "Seatwarmer",
+    name: "Kodigo",
     prIcon: "FaBookOpen",
-    description: "Physically present, mentally... buffering.",
+    description: "Umaasa sa sikreto at mabilisang sagot.",
     color: "#A0522D",
   },
   {
     min: 450,
     max: 599,
-    name: "Group Project Ghost",
+    name: "Sipag-sipagan",
     prIcon: "FaPaperclip",
-    description: "Appears only during final presentation day.",
+    description: "Kunwari masipag, pero sakto lang.",
     color: "#B0C4DE",
   },
   {
     min: 600,
     max: 749,
-    name: "Google Scholar (Unofficial)",
+    name: "Diskarte",
     prIcon: "FaSearch",
-    description: 'Master of Ctrl+F and "Quizlet."',
+    description: "Laging may palusot, nakakalusot.",
     color: "#27ae60",
   },
   {
     min: 750,
     max: 899,
-    name: "The Lowkey Genius",
+    name: "Petiks",
     prIcon: "FaBookReader",
-    description: "Never recites, still gets the highest score.",
+    description: "Chill lang—di sobrang galing, di rin bagsak.",
     color: "#3498db",
   },
   {
     min: 900,
     max: 1049,
-    name: "Almost Valedictorian",
+    name: "Honor Slayer",
     prIcon: "FaMedal",
-    description: "Always 0.01 short—every time.",
+    description: "Malapit na sa top, grind mode.",
     color: "#f1c40f",
   },
   {
     min: 1050,
     max: Infinity,
-    name: "The Valedictornator",
+    name: "Legendaryo",
     prIcon: "FaMicrophoneAlt",
-    description: "Delivers speeches, aces tests, and might run the school.",
+    description: "Pinaka solid—dean’s lister / top student.",
     color: "#e74c3c",
   },
 ];
@@ -144,58 +145,58 @@ const pvpRanks = [
   {
     min: 0,
     max: 79,
-    name: "Grasshopper",
+    name: "Buhangin",
     pvpIcon: "FaBug",
-    description: "Newbie — Just starting out.",
-    color: "#27ae60",
+    description: "Pinakamadali, sabog agad, common.",
+    color: "#C2B280",
   },
   {
     min: 80,
     max: 159,
-    name: "Knight",
+    name: "Bato",
     pvpIcon: "FaUserShield",
-    description: "Rising Warrior — Showing promise.",
-    color: "#B0C4DE",
+    description: "Matibay ng konti, basic lakas.",
+    color: "#7f8c8d",
   },
   {
     min: 160,
     max: 239,
-    name: "Gladiator",
+    name: "Kahoy",
     pvpIcon: "FaShieldAlt",
-    description: "Skilled Fighter — Battle-ready.",
-    color: "#C0C0C0",
+    description: "Mas matibay kaysa bato, pero kaya pa ring masira.",
+    color: "#8e5a2a",
   },
   {
     min: 240,
     max: 319,
-    name: "Elite",
-    pvpIcon: "FaCrown",
-    description: "Champion in the Making.",
-    color: "#f1c40f",
+    name: "Bakal",
+    pvpIcon: "FaFistRaised",
+    description: "Solid na, mahirap tibagin.",
+    color: "#95a5a6",
   },
   {
     min: 320,
     max: 399,
-    name: "Legend",
-    pvpIcon: "FaStar",
-    description: "Feared by many.",
-    color: "#3498db",
+    name: "Ginto",
+    pvpIcon: "FaAward",
+    description: "Bihira at mataas ang halaga.",
+    color: "#f1c40f",
   },
   {
     min: 400,
     max: 479,
-    name: "Titan",
-    pvpIcon: "FaFistRaised",
-    description: "Legendary Force — Near unstoppable.",
-    color: "#D8A2FF",
+    name: "Diamante",
+    pvpIcon: "FaGem",
+    description: "Sobrang tigas at napakabihira.",
+    color: "#00d1ff",
   },
   {
     min: 480,
     max: 500,
-    name: "Supreme",
-    pvpIcon: "FaAward",
-    description: "Absolute Peak — Top of the ranks.",
-    color: "#e74c3c",
+    name: "Perlas",
+    pvpIcon: "FaCrown",
+    description: "Pinakamataas—Pinoy pride at pinakamahalaga.",
+    color: "#e0e7ff",
   },
 ];
 
@@ -209,17 +210,37 @@ const fetchLeaderboard = async ({ queryKey, pageParam = 1 }) => {
   });
 
   // Align with backend routes: /api/leaderboard/global for weekly totals
-  const endpoint =
-    type === "pvp" ? "/api/pvp/leaderboard" : "/api/leaderboard/global";
-  const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}${endpoint}?${params}`,
-    {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch leaderboard");
-  return response.json();
+  if (type === "program") {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/leaderboard/pvp?${params}`,
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch PvP leaderboard");
+    return response.json();
+  } else {
+    // Weekly ranking: fetch both weekly points and full student list (from PvP endpoint) to include users with zero
+    const [weeklyRes, pvpRes] = await Promise.all([
+      fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/leaderboard/global?${params}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      ),
+      fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/leaderboard/pvp?limit=5000`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      ),
+    ]);
+    if (!weeklyRes.ok) throw new Error("Failed to fetch weekly leaderboard");
+    if (!pvpRes.ok) throw new Error("Failed to fetch student roster");
+    const weekly = await weeklyRes.json();
+    const pvp = await pvpRes.json();
+    return { weekly, pvp };
+  }
 };
 
 const fetchMyPosition = async (timeFrame = "total") => {
@@ -517,37 +538,6 @@ const Ranking = () => {
   // Flatten all pages data
   const isPvpLeaderboard = leaderboardType === "program";
 
-  const allStudents = useMemo(() => {
-    if (!leaderboardData?.pages) return [];
-
-    return leaderboardData.pages.reduce((acc, page) => {
-      let students = [];
-
-      // Handle PvP API response structure
-      if (isPvpLeaderboard && page.data?.leaderboard) {
-        students = page.data.leaderboard.map((player) => ({
-          ...player,
-          id: player.studentId,
-          username: player.name,
-          mmr: player.pvpStars,
-          position: player.rank,
-          // Add default values for missing fields
-          avatarInitial: player.name?.charAt(0) || "?",
-          handle: "",
-          yearLevel: "",
-          rankName: getPvpRankName(player.pvpStars),
-          pointsThisWeek: 0,
-          trend: "neutral",
-        }));
-      } else {
-        // Handle regular leaderboard response structure
-        students = page.leaderboard || [];
-      }
-
-      return [...acc, ...students];
-    }, []);
-  }, [leaderboardData, isPvpLeaderboard]);
-
   // Helper function to get PvP rank name based on stars
   const getPvpRankName = (stars) => {
     for (let i = pvpRanks.length - 1; i >= 0; i--) {
@@ -557,6 +547,74 @@ const Ranking = () => {
     }
     return pvpRanks[0].name;
   };
+
+  // Helper function to get Weekly rank name based on points
+  const getWeeklyRankName = (points) => {
+    for (let i = weeklyRanks.length - 1; i >= 0; i--) {
+      if (points >= weeklyRanks[i].min) {
+        return weeklyRanks[i].name;
+      }
+    }
+    return weeklyRanks[0].name;
+  };
+
+  const allStudents = useMemo(() => {
+    if (!leaderboardData?.pages) return [];
+
+    return leaderboardData.pages.reduce((acc, page) => {
+      let students = [];
+
+      // Handle PvP API response structure
+      if (isPvpLeaderboard && (page.leaderboard || page.data?.leaderboard)) {
+        const list = page.leaderboard || page.data.leaderboard;
+        students = list.map((player) => ({
+          id: player.id || player._id,
+          username: player.username || player.name || "Student",
+          mmr:
+            typeof player.stars === "number"
+              ? player.stars
+              : player.pvpStars || 0,
+          position: player.position || player.rank || 0,
+          avatarInitial:
+            player.avatarInitial ||
+            (player.username || player.name || "?").charAt(0),
+          handle: player.handle || "",
+          yearLevel: "",
+          rankName: getPvpRankName(
+            typeof player.stars === "number"
+              ? player.stars
+              : player.pvpStars || 0
+          ),
+          pointsThisWeek: 0,
+          trend: "neutral",
+        }));
+      } else {
+        // Handle regular leaderboard response structure (weekly)
+        const list = page.leaderboard || [];
+        students = list.map((row) => {
+          // Normalize points field
+          const pts =
+            row.pointsThisWeek ?? row.points ?? row.mmr ?? row.totalPoints ?? 0;
+          const username =
+            row.username || row.name || row.user?.username || "Student";
+          return {
+            ...row,
+            id: row.id || row._id,
+            username,
+            mmr: pts,
+            rankName: getWeeklyRankName(pts),
+            avatarInitial: (
+              row.avatarInitial ||
+              username.charAt(0) ||
+              "?"
+            ).toUpperCase(),
+          };
+        });
+      }
+
+      return [...acc, ...students];
+    }, []);
+  }, [leaderboardData, isPvpLeaderboard]);
 
   // Get filter options from first page
   const filterOptions = leaderboardData?.pages?.[0]?.filters || {
@@ -654,9 +712,11 @@ const Ranking = () => {
                     onChange={(e) => setLeaderboardType(e.target.value)}
                     className={styles.filterSelect}
                   >
-                    <option value="global">Global Ranking (Weekly)</option>
+                    <option value="global">Weekly Test Ranking</option>
                     <option value="program">PvP Arena Ranking</option>
-                    <option value="class">Class Ranking (Weekly)</option>
+                    <option value="class" disabled>
+                      Class Ranking (Weekly)
+                    </option>
                   </select>
                 </div>
               </div>

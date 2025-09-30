@@ -17,31 +17,21 @@ import {
   FaGamepad,
   FaUsers,
   FaClock,
+  FaGem,
+  FaAward,
 } from "react-icons/fa";
 import FloatingStars from "../../../components/FloatingStars/FloatingStars";
 import ApprovalStatus from "../../../components/ApprovalStatus";
 
 const rankingTiers = [
-  { name: "Absent Legend", mmr: 0, colorClass: styles.rankBronze },
-  { name: "The Crammer", mmr: 150, colorClass: styles.rankSilver },
-  { name: "Seatwarmer", mmr: 300, colorClass: styles.rankGold },
-  { name: "Group Project Ghost", mmr: 450, colorClass: styles.rankPlatinum },
-  {
-    name: "Google Scholar (Unofficial)",
-    mmr: 600,
-    colorClass: styles.rankDiamond,
-  },
-  { name: "The Lowkey Genius", mmr: 750, colorClass: styles.rankMaster },
-  {
-    name: "Almost Valedictorian",
-    mmr: 900,
-    colorClass: styles.rankGrandmaster,
-  },
-  {
-    name: "The Valedictornator",
-    mmr: 1050,
-    colorClass: styles.rankGrandmaster,
-  },
+  { name: "Bagito", mmr: 0, colorClass: styles.rankBronze },
+  { name: "Tambay", mmr: 150, colorClass: styles.rankSilver },
+  { name: "Kodigo", mmr: 300, colorClass: styles.rankGold },
+  { name: "Sipag-sipagan", mmr: 450, colorClass: styles.rankPlatinum },
+  { name: "Diskarte", mmr: 600, colorClass: styles.rankDiamond },
+  { name: "Petiks", mmr: 750, colorClass: styles.rankMaster },
+  { name: "Honor Slayer", mmr: 900, colorClass: styles.rankGrandmaster },
+  { name: "Legendaryo", mmr: 1050, colorClass: styles.rankGrandmaster },
 ];
 
 // Remove gamified reward text; keep milestones only (empty list shown)
@@ -50,20 +40,20 @@ const staticDailyStreakRewards = [];
 // Helper function for rank color class
 const getRankClass = (rankName) => {
   switch (rankName?.toLowerCase()) {
-    case "absent legend":
+    case "bagito":
       return styles.rankBronze;
-    case "the crammer":
+    case "tambay":
       return styles.rankSilver;
-    case "seatwarmer":
+    case "kodigo":
       return styles.rankGold;
-    case "group project ghost":
+    case "sipag-sipagan":
       return styles.rankPlatinum;
-    case "google scholar (unofficial)":
+    case "diskarte":
       return styles.rankDiamond;
-    case "the lowkey genius":
+    case "petiks":
       return styles.rankMaster;
-    case "almost valedictorian":
-    case "the valedictornator":
+    case "honor slayer":
+    case "legendaryo":
       return styles.rankGrandmaster;
     default:
       return styles.rankBronze;
@@ -133,7 +123,7 @@ const Dashboard = () => {
       for (let tier of sortedTiers) {
         if (mmr >= tier.mmr) return tier.name;
       }
-      return "Absent Legend";
+      return "Bagito";
     };
 
     const getNextTierInfo = (currentMmr) => {

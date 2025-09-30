@@ -8,6 +8,7 @@ import React, {
 import { useParams } from "react-router-dom";
 import styles from "../../weeklytest/pages/WeeklyTest.module.css";
 import FloatingStars from "../../../components/FloatingStars/FloatingStars";
+import ResultModal from "../../weeklytest/components/ResultModal";
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -36,6 +37,7 @@ const TeamWeeklyTest = () => {
   const useLiveRef = useRef(false);
   const [live, setLive] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
 
   const fetchState = useCallback(
     async (silent = false) => {
@@ -428,6 +430,21 @@ const TeamWeeklyTest = () => {
     };
   }, [state?.turnIndex, state?.currentIndex, state?.status, state]);
 
+  // Determine end state and prepare simple result values (must run every render)
+  const isEnded =
+    finished ||
+    state?.status === "ended" ||
+    (state && state.currentIndex >= (state.questions?.length || 0));
+  const correctCount = isEnded
+    ? (state?.questions || []).filter((q) => q.isCorrect).length
+    : 0;
+  const totalQuestions = state?.questions?.length || 0;
+
+  // Open simple result modal when ended (keep hook before any early returns)
+  useEffect(() => {
+    if (isEnded) setShowResultModal(true);
+  }, [isEnded]);
+
   if (loading) {
     return (
       <div className={styles.dashboardContainer}>
@@ -451,11 +468,6 @@ const TeamWeeklyTest = () => {
     );
   }
 
-  // Check if test should show results - either officially ended or completed all questions
-  const isEnded =
-    finished ||
-    state.status === "ended" ||
-    (state && state.currentIndex >= (state.questions?.length || 0));
   const currentDisplayIndex = Math.min(
     (state?.currentIndex || 0) + 1,
     Math.max(1, state?.questions?.length || 1)
@@ -476,8 +488,6 @@ const TeamWeeklyTest = () => {
     ? currentQuestion.options
     : [];
 
-  const totalQuestions = state.questions.length;
-
   return (
     <div className={styles.dashboardContainer}>
       <FloatingStars />
@@ -487,250 +497,12 @@ const TeamWeeklyTest = () => {
         </h1>
         <p className={styles.pageSubtitle}>
           {isEnded
-            ? "Results"
+            ? "Team test completed"
             : `Question ${currentDisplayIndex} of ${state.questions.length}`}
         </p>
       </div>
 
-      {isEnded ? (
-        <div className={styles.resultsContainer} style={{ opacity: 1 }}>
-          <div className={styles.resultsHeader}>
-            <h1 className={styles.resultsTitle}>🏆 Team Test Complete!</h1>
-            <p className={styles.resultsSubtitle}>
-              Great job working together! Here's how your team performed:
-            </p>
-          </div>
-
-          {/* Overall Team Stats */}
-          <div className={styles.teamStatsContainer}>
-            <div className={styles.statsGrid}>
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>
-                  <FaCheckCircle />
-                </div>
-                <div className={styles.statValue}>
-                  {state.questions.filter((q) => q.isCorrect).length}
-                </div>
-                <div className={styles.statLabel}>Correct</div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>
-                  <FaTimesCircle />
-                </div>
-                <div className={styles.statValue}>
-                  {
-                    state.questions.filter((q) => q.selected && !q.isCorrect)
-                      .length
-                  }
-                </div>
-                <div className={styles.statLabel}>Wrong</div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>
-                  <FaForward />
-                </div>
-                <div className={styles.statValue}>
-                  {state.questions.filter((q) => !q.selected).length}
-                </div>
-                <div className={styles.statLabel}>Skipped</div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>
-                  <FaBullseye />
-                </div>
-                <div className={styles.statValue}>
-                  {Math.round(
-                    (state.questions.filter((q) => q.isCorrect).length /
-                      state.questions.length) *
-                      100
-                  )}
-                  %
-                </div>
-                <div className={styles.statLabel}>Accuracy</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Individual Question Results */}
-          <div className={styles.questionsResultsContainer}>
-            <h3 className={styles.questionsResultsTitle}>
-              Question-by-Question Breakdown
-            </h3>
-            <div className={styles.questionResultsGrid}>
-              {state.questions.map((q, i) => {
-                // Find who answered this question using the existing assignment logic
-                const questionAnswererIndex = assignIndexForQuestion(i);
-                const questionAnswerer = state.roster[questionAnswererIndex];
-
-                const answererId = questionAnswerer?._id || questionAnswerer;
-                const answererName =
-                  questionAnswerer?.firstName || questionAnswerer?.lastName
-                    ? `${questionAnswerer.firstName || ""} ${
-                        questionAnswerer.lastName || ""
-                      }`.trim()
-                    : `Player ${questionAnswererIndex + 1}`;
-
-                const isUserQuestion = String(answererId) === String(user?.id);
-
-                return (
-                  <div
-                    key={i}
-                    className={`${styles.questionResultCard} ${
-                      q.isCorrect
-                        ? styles.correctCard
-                        : q.selected
-                        ? styles.wrongCard
-                        : styles.skippedCard
-                    } ${isUserQuestion ? styles.userQuestionCard : ""}`}
-                  >
-                    <div className={styles.questionResultHeader}>
-                      <div className={styles.questionResultNumber}>
-                        Q{i + 1}
-                      </div>
-                      <div
-                        className={`${styles.questionResultStatus} ${
-                          q.isCorrect
-                            ? styles.correctStatus
-                            : q.selected
-                            ? styles.wrongStatus
-                            : styles.skippedStatus
-                        }`}
-                      >
-                        {q.isCorrect
-                          ? "✓ CORRECT"
-                          : q.selected
-                          ? "✗ WRONG"
-                          : "⏭ SKIPPED"}
-                      </div>
-                    </div>
-
-                    <div className={styles.questionResultContent}>
-                      <div className={styles.questionResultText}>
-                        {q.questionId?.questionText ||
-                          "Question text not available"}
-                      </div>
-
-                      <div className={styles.answerDetails}>
-                        {q.selected && (
-                          <div className={styles.selectedAnswer}>
-                            <span className={styles.answerLabel}>
-                              Team Answer:
-                            </span>
-                            <span
-                              className={`${styles.answerValue} ${
-                                q.isCorrect
-                                  ? styles.correctAnswer
-                                  : styles.wrongAnswer
-                              }`}
-                            >
-                              {q.selected}
-                            </span>
-                          </div>
-                        )}
-
-                        {q.questionId?.correctAnswer && (
-                          <div className={styles.correctAnswerInfo}>
-                            <span className={styles.answerLabel}>
-                              Correct Answer:
-                            </span>
-                            <span className={styles.answerValue}>
-                              {q.questionId.correctAnswer}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className={styles.answererInfo}>
-                        <div className={styles.answererLabel}>Answered by:</div>
-                        <div className={styles.answererDetails}>
-                          <div className={styles.answererAvatar}>
-                            {(answererName[0] || "?").toUpperCase()}
-                          </div>
-                          <div className={styles.answererName}>
-                            {answererName}{" "}
-                            {isUserQuestion && (
-                              <span className={styles.youBadge}>YOU</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {q.questionId?.bloomsLevel && (
-                        <div className={styles.bloomsInfo}>
-                          <span className={styles.bloomsLabel}>
-                            Bloom's Level {q.questionId.bloomsLevel}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Team Performance Summary */}
-          <div className={styles.performanceSummary}>
-            <h3 className={styles.summaryTitle}>Team Performance Analysis</h3>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryCard}>
-                <h4 className={styles.summaryCardTitle}>🌟 Strengths</h4>
-                <div className={styles.summaryContent}>
-                  {(() => {
-                    const correctCount = state.questions.filter(
-                      (q) => q.isCorrect
-                    ).length;
-                    const totalQuestions = state.questions.length;
-                    const accuracy = Math.round(
-                      (correctCount / totalQuestions) * 100
-                    );
-
-                    if (accuracy >= 80)
-                      return "Excellent teamwork! Your team showed strong collaboration and knowledge.";
-                    if (accuracy >= 60)
-                      return "Good performance! Your team worked well together on most questions.";
-                    if (accuracy >= 40)
-                      return "Decent effort! There's room for improvement in team coordination.";
-                    return "Keep practicing! Focus on better communication and preparation.";
-                  })()}
-                </div>
-              </div>
-
-              <div className={styles.summaryCard}>
-                <h4 className={styles.summaryCardTitle}>
-                  💡 Areas for Improvement
-                </h4>
-                <div className={styles.summaryContent}>
-                  {(() => {
-                    const wrongCount = state.questions.filter(
-                      (q) => q.selected && !q.isCorrect
-                    ).length;
-                    const skippedCount = state.questions.filter(
-                      (q) => !q.selected
-                    ).length;
-
-                    if (skippedCount > wrongCount && skippedCount > 0) {
-                      return "Consider taking more time to attempt questions rather than skipping them.";
-                    } else if (wrongCount > 0) {
-                      return "Review the topics from incorrect answers to strengthen team knowledge.";
-                    } else {
-                      return "Perfect execution! Keep up this level of teamwork and preparation.";
-                    }
-                  })()}
-                </div>
-              </div>
-
-              <div className={styles.summaryCard}>
-                <h4 className={styles.summaryCardTitle}>🎯 Next Steps</h4>
-                <div className={styles.summaryContent}>
-                  Practice more team tests to improve coordination and
-                  communication between team members.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
+      {isEnded ? null : (
         <div className={styles.teamTestContainer}>
           {/* Main Content Area */}
           <div className={styles.mainContent}>
@@ -990,6 +762,31 @@ const TeamWeeklyTest = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Simple result modal shared with WeeklyTest */}
+      {isEnded && (
+        <ResultModal
+          showResultModal={showResultModal}
+          setShowResultModal={setShowResultModal}
+          title={"Team Weekly Test Completed"}
+          testResult={{ totalQuestions: state.questions.length }}
+          score={correctCount}
+          pointsEarned={0}
+          loading={false}
+          error={null}
+          extraInfo={[
+            {
+              label: "Accuracy",
+              value: `${Math.round(
+                (correctCount / Math.max(1, totalQuestions)) * 100
+              )}%`,
+            },
+            { label: "Questions", value: `${totalQuestions}` },
+          ]}
+          onGoDashboard={() => (window.location.href = "/student/dashboard")}
+          onTakeAnother={() => (window.location.href = "/student/weeklytest")}
+        />
       )}
     </div>
   );

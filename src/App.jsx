@@ -16,6 +16,7 @@ import Dashboard from "./users/students/pages/dashboard/pages/Dashboard.jsx";
 import WeeklyTest from "./users/students/pages/weeklytest/pages/WeeklyTest.jsx";
 import Reviewers from "./users/students/pages/reviewers/pages/Reviewers.jsx";
 import Ranking from "./users/students/pages/ranking/pages/Ranking.jsx";
+import Help from "./users/students/pages/help/pages/Help.jsx";
 import Profile from "./users/students/pages/profile/pages/Profile.jsx";
 import Crew from "./users/students/pages/crew/pages/Crew.jsx";
 import Partymmr from "./users/students/pages/partymmr/pages/Partymmr.jsx";
@@ -71,6 +72,7 @@ const App = () => {
         <Route path="weeklytest" element={<WeeklyTest />} />
         <Route path="reviewers" element={<Reviewers />} />
         <Route path="ranking" element={<Ranking />} />
+        <Route path="help" element={<Help />} />
         <Route path="profile" element={<Profile />} />
         <Route path="crew" element={<Crew />} />
         <Route path="partymmr" element={<Partymmr />} />

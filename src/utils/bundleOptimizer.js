@@ -66,18 +66,11 @@ class BundleOptimizer {
 
   // Setup lazy loading for non-critical components
   setupLazyLoading() {
-    // Lazy load heavy components
-    this.lazyLoadComponent("QuestionModal", () =>
-      import("../users/students/pages/demo/components/QuestionModal")
+    // Note: Demo components are already statically imported via index.js
+    // Dynamic imports here would conflict with static imports
+    console.log(
+      "🔄 Lazy loading setup - components already statically imported"
     );
-    this.lazyLoadComponent("VictoryModal", () =>
-      import("../users/students/pages/demo/components/VictoryModal")
-    );
-    this.lazyLoadComponent("BattleField", () =>
-      import("../users/students/pages/demo/components/BattleField")
-    );
-
-    console.log("🔄 Lazy loading setup complete");
   }
 
   // Lazy load a component
@@ -242,38 +235,18 @@ class BundleOptimizer {
 
   // Preload critical resources
   preloadCriticalResources() {
-    const criticalResources = [
-      "/src/users/students/pages/demo/components/QuestionModal.jsx",
-      "/src/users/students/pages/demo/components/VictoryModal.jsx",
-      "/src/users/students/pages/demo/components/BattleField.jsx",
-    ];
-
-    criticalResources.forEach((resource) => {
-      const link = document.createElement("link");
-      link.rel = "preload";
-      link.href = resource;
-      link.as = "script";
-      document.head.appendChild(link);
-    });
-
-    console.log("⚡ Preloaded critical resources");
+    // Note: Components are already statically imported, no need to preload
+    console.log("⚡ Preload skipped - components already statically imported");
   }
 
   // Implement code splitting for routes
   splitRoutes() {
-    const routes = [
-      { path: "/game", component: "GameComponent" },
-      { path: "/lobby", component: "LobbyComponent" },
-      { path: "/profile", component: "ProfileComponent" },
-    ];
-
-    routes.forEach((route) => {
-      this.lazyLoadComponent(route.component, () =>
-        import(`../pages/${route.component}`)
-      );
-    });
-
-    console.log("🔄 Route-based code splitting implemented");
+    // Note: Components are already statically imported in App.jsx
+    // Dynamic imports here would conflict with static imports
+    // Consider using React.lazy() in App.jsx for true code splitting
+    console.log(
+      "🔄 Route-based code splitting - components already statically imported"
+    );
   }
 
   // Monitor bundle performance

@@ -40,64 +40,63 @@ const SOUNDS = {
   complete: "/shs.mp3",
 };
 
-// New Rank System based on user request
+// Weekly Test Tier Naming (Pinoy-themed)
 const RANKS = [
   {
     min: 0,
     max: 149,
-    name: "Absent Legend",
-    emoji: "🛌",
-    description: "Technically enrolled.",
+    name: "Bagito",
+    emoji: "🍼",
+    description: "Bagong pasok, clueless vibes.",
   },
   {
     min: 150,
     max: 299,
-    name: "The Crammer",
-    emoji: "⏰",
-    description:
-      "Studies best under extreme pressure—like 5 minutes before class.",
+    name: "Tambay",
+    emoji: "🧢",
+    description: "Laging nasa hallway, wala sa klase.",
   },
   {
     min: 300,
     max: 449,
-    name: "Seatwarmer",
-    emoji: "📖",
-    description: "Physically present, mentally... buffering.",
+    name: "Kodigo",
+    emoji: "📝",
+    description: "Umaasa sa sikreto at mabilisang sagot.",
   },
   {
     min: 450,
     max: 599,
-    name: "Group Project Ghost",
-    emoji: "📎",
-    description: "Appears only during final presentation day.",
+    name: "Sipag-sipagan",
+    emoji: "🧹",
+    description: "Kunwari masipag, pero sakto lang.",
   },
   {
     min: 600,
     max: 749,
-    name: "Google Scholar (Unofficial)",
-    emoji: "🔍",
-    description: 'Master of Ctrl+F and "Quizlet."',
+    name: "Diskarte",
+    emoji: "🧠",
+    description: "Laging may palusot, nakakalusot.",
   },
   {
     min: 750,
     max: 899,
-    name: "The Lowkey Genius",
-    emoji: "📚",
-    description: "Never recites, still gets the highest score.",
+    name: "Petiks",
+    emoji: "😎",
+    description: "Chill lang—di sobrang galing, di rin bagsak.",
   },
   {
     min: 900,
     max: 1049,
-    name: "Almost Valedictorian",
+    name: "Honor Slayer",
     emoji: "🏅",
-    description: "Always 0.01 short—every time.",
+    description: "Malapit na sa top, grind mode.",
   },
   {
     min: 1050,
     max: Infinity,
-    name: "The Valedictornator",
-    emoji: "🎤",
-    description: "Delivers speeches, aces tests, and might run the school.",
+    name: "Legendaryo",
+    emoji: "🔥",
+    description: "Pinaka solid—dean’s lister / top student.",
   },
 ];
 
@@ -224,6 +223,7 @@ const WeeklyTest = () => {
   const [currentRank, setCurrentRank] = useState(null);
   const [pointsChange, setPointsChange] = useState(0);
   const [testResult, setTestResult] = useState(null);
+  const [isTestCompleted, setIsTestCompleted] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
   const [filteredWeeks, setFilteredWeeks] = useState([]);
@@ -545,6 +545,86 @@ const WeeklyTest = () => {
         return;
       }
       setCurrentSchedule(schedule);
+
+      // Check if test has already been completed
+      try {
+        const completionCheckResponse = await fetch(
+          `${backendurl}/api/weekly-test/results/student/${user.id}`,
+          { headers: getAuthHeaders() }
+        );
+
+        if (completionCheckResponse.ok) {
+          const completionData = await completionCheckResponse.json();
+          console.log("Completion check response:", completionData); // Debug log
+
+          const resultsArray = completionData?.data?.results || [];
+
+          // Find if there's a result for this specific week schedule
+          const existingResult = resultsArray.find(
+            (result) => String(result.weekScheduleId) === String(schedule._id)
+          );
+
+          if (existingResult) {
+            setIsTestCompleted(true);
+            setScore(existingResult.score);
+            setPointsEarned(existingResult.pointsEarned);
+            setCurrentRank(
+              getRank(existingResult.totalPoints || existingResult.pointsEarned)
+            );
+            setTestResult(existingResult);
+            // Keep tests and do not set error so the detailed locked panel can render
+          }
+        } else {
+          // Other error status codes
+          console.warn(
+            "Unexpected status when checking completion:",
+            completionCheckResponse.status
+          );
+        }
+      } catch (completionErr) {
+        // If we can't check completion status, continue normally
+        console.warn("Could not check test completion status:", completionErr);
+      }
+      // Check if test has already been completed
+      try {
+        const completionCheckResponse = await fetch(
+          `${backendurl}/api/weekly-test/results/student/${user.id}`,
+          { headers: getAuthHeaders() }
+        );
+
+        if (completionCheckResponse.ok) {
+          const completionData = await completionCheckResponse.json();
+          console.log("Completion check response:", completionData); // Debug log
+
+          const resultsArray = completionData?.data?.results || [];
+
+          // Find if there's a result for this specific week schedule
+          const existingResult = resultsArray.find(
+            (result) => String(result.weekScheduleId) === String(schedule._id)
+          );
+
+          if (existingResult) {
+            setIsTestCompleted(true);
+            setScore(existingResult.score);
+            setPointsEarned(existingResult.pointsEarned);
+            setCurrentRank(
+              getRank(existingResult.totalPoints || existingResult.pointsEarned)
+            );
+            setTestResult(existingResult);
+            // Keep tests and do not set error so the detailed locked panel can render
+          }
+        } else {
+          // Other error status codes
+          console.warn(
+            "Unexpected status when checking completion:",
+            completionCheckResponse.status
+          );
+        }
+      } catch (completionErr) {
+        // If we can't check completion status, continue normally
+        console.warn("Could not check test completion status:", completionErr);
+      }
+
       if (schedule.questionIds && schedule.questionIds.length > 0) {
         setTests(schedule.questionIds);
         setError(null);
@@ -748,16 +828,16 @@ const WeeklyTest = () => {
         const isCorrect = currentQuestion.correctAnswer === answer;
         setAnswers((prev) => ({ ...prev, [questionId]: answer }));
 
-        // Play sound based on answer
-        if (isCorrect) {
-          playSound("correct");
-        } else {
-          playSound("wrong");
-        }
+        // Audio disabled - no sound when clicking choices
+        // if (isCorrect) {
+        //   playSound("correct");
+        // } else {
+        //   playSound("wrong");
+        // }
         // No auto-advance; user must click Next
       }
     },
-    [isTestStarted, tests, currentQuestionIndex, playSound]
+    [isTestStarted, tests, currentQuestionIndex]
   );
 
   // --- Handle Test Completion ---
@@ -771,7 +851,7 @@ const WeeklyTest = () => {
       return;
     }
     setIsTestStarted(false);
-    playSound("complete");
+    // playSound("complete"); // Audio disabled
     setResultLoading(true);
     setShowResultModal(true);
 
@@ -841,6 +921,7 @@ const WeeklyTest = () => {
               setPointsEarned(previousResults.data.pointsEarned);
               setCurrentRank(getRank(previousResults.data.totalPoints));
               setTestResult(previousResults.data);
+              setIsTestCompleted(true); // Mark as completed
             } else {
               // Failed to fetch previous results, but test IS already completed.
               console.error(
@@ -851,6 +932,7 @@ const WeeklyTest = () => {
                 "You have already completed this test. Failed to load your previous score."
               );
               setTestResult(null); // Explicitly nullify testResult on fetch failure
+              setIsTestCompleted(true); // Mark as completed even if we can't load results
             }
           } catch (fetchErr) {
             console.error(
@@ -861,6 +943,7 @@ const WeeklyTest = () => {
               "You have already completed this test. Error fetching your previous score."
             );
             setTestResult(null); // Explicitly nullify testResult on fetch failure
+            setIsTestCompleted(true); // Mark as completed even if we can't load results
           } finally {
             // Whether fetching previous results succeeded or failed, the original test submission was for an already completed test.
             // Clear localStorage to prevent re-submission attempts on refresh.
@@ -891,6 +974,7 @@ const WeeklyTest = () => {
         score: data.data.testResult.score,
         totalQuestions: data.data.testResult.totalQuestions,
       });
+      setIsTestCompleted(true); // Mark test as completed
       setResultLoading(false);
       clearLocalStorageTestData(); // Clear after successful save
 
@@ -936,7 +1020,6 @@ const WeeklyTest = () => {
   }, [
     currentSchedule,
     user,
-    playSound,
     getAuthHeaders,
     backendurl,
     answers,
@@ -982,6 +1065,13 @@ const WeeklyTest = () => {
 
   // Start the test view
   const handleStartTest = useCallback(() => {
+    if (isTestCompleted) {
+      setError(
+        "Weekly tests can only be taken once per subject. You have already completed this test."
+      );
+      return;
+    }
+
     if (tests.length > 0) {
       setIsTestStarted(true);
       setCurrentQuestionIndex(0); // Go to the first question
@@ -991,7 +1081,7 @@ const WeeklyTest = () => {
       setTestTimerActive(true);
       setShowTestTimerWarning(false);
     }
-  }, [tests.length]);
+  }, [tests.length, isTestCompleted]);
 
   // Navigate to the next question
   const handleNextQuestion = useCallback(() => {
@@ -1032,6 +1122,7 @@ const WeeklyTest = () => {
     setCurrentSchedule(null);
     setError(null);
     setShowResultModal(false); // Hide modal on reset
+    setIsTestCompleted(false); // Reset completion status
     clearLocalStorageTestData(); // Clear on filter reset
     setTestTimeLeft(TEST_TIME_LIMIT);
     setTestTimerActive(false);
@@ -1113,6 +1204,7 @@ const WeeklyTest = () => {
         setTests([]);
         setCurrentSchedule(null);
         setShowResultModal(false);
+        setIsTestCompleted(false); // Reset completion status
         clearLocalStorageTestData();
       }
       setSelectedSubject(val);
@@ -1134,6 +1226,7 @@ const WeeklyTest = () => {
         setTests([]);
         setCurrentSchedule(null);
         setShowResultModal(false);
+        setIsTestCompleted(false); // Reset completion status
         clearLocalStorageTestData();
       }
       setSelectedWeek(val);
@@ -1494,47 +1587,115 @@ const WeeklyTest = () => {
               Week: {selectedWeek ? selectedWeek.display : ""}
             </p>
             <p style={{ marginBottom: "20px" }}>Questions: {tests.length}</p>
-            <p
-              style={{
-                marginBottom: "20px",
-                color: theme.accent,
-                fontWeight: 600,
-              }}
-            >
-              <span role="img" aria-label="timer">
-                ⏰
-              </span>{" "}
-              You will have {Math.floor(TEST_TIME_LIMIT / 60)} minutes for the
-              entire test.
-              <br />
-              The test will auto-submit when time runs out.
-            </p>
+            {isTestCompleted ? (
+              <div
+                style={{
+                  color: theme.text,
+                  fontSize: "1rem",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                  fontWeight: 600,
+                  padding: "12px",
+                  background: theme.panelBg,
+                  borderRadius: "8px",
+                  border: `1px solid ${theme.panelBorder}`,
+                }}
+              >
+                <div
+                  style={{
+                    color: "#e74c3c",
+                    marginBottom: 6,
+                  }}
+                >
+                  🔒 Weekly tests can only be taken once per subject
+                </div>
+                {typeof score === "number" && (
+                  <div style={{ marginTop: 6 }}>
+                    <span style={{ color: theme.accent }}>Your score:</span>{" "}
+                    {score}
+                    {testResult?.totalQuestions
+                      ? ` / ${testResult.totalQuestions}`
+                      : ""}
+                  </div>
+                )}
+                {typeof pointsEarned === "number" && (
+                  <div style={{ marginTop: 4 }}>
+                    <span style={{ color: theme.accent }}>Points earned:</span>{" "}
+                    {pointsEarned}
+                  </div>
+                )}
+                {currentRank && (
+                  <div style={{ marginTop: 4 }}>
+                    <span style={{ color: theme.accent }}>Rank:</span>{" "}
+                    {currentRank.emoji} {currentRank.name}
+                  </div>
+                )}
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    onClick={() => setShowResultModal(true)}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 8,
+                      background: theme.accent,
+                      color: theme.bubbleDarkText,
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p
+                style={{
+                  marginBottom: "20px",
+                  color: theme.accent,
+                  fontWeight: 600,
+                }}
+              >
+                <span role="img" aria-label="timer">
+                  ⏰
+                </span>{" "}
+                You will have {Math.floor(TEST_TIME_LIMIT / 60)} minutes for the
+                entire test.
+                <br />
+                The test will auto-submit when time runs out.
+              </p>
+            )}
             <button
               onClick={handleStartTest}
+              disabled={isTestCompleted}
               className={styles.startButton_themed}
               style={{
-                background: theme.accent,
-                color: theme.bubbleDarkText,
+                background: isTestCompleted ? "#666" : theme.accent,
+                color: isTestCompleted ? "#999" : theme.bubbleDarkText,
                 fontFamily: theme.fontBody,
                 fontSize: "1.1rem",
                 fontWeight: 700,
                 padding: "12px 30px",
                 borderRadius: "8px",
                 border: "none",
-                cursor: "pointer",
+                cursor: isTestCompleted ? "not-allowed" : "pointer",
                 boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
                 transition: "background-color 0.2s, transform 0.2s",
+                opacity: isTestCompleted ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#e0b00d";
-                e.currentTarget.style.transform = "scale(1.05)";
+                if (!isTestCompleted) {
+                  e.currentTarget.style.background = "#e0b00d";
+                  e.currentTarget.style.transform = "scale(1.05)";
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = theme.accent;
-                e.currentTarget.style.transform = "scale(1)";
+                if (!isTestCompleted) {
+                  e.currentTarget.style.background = theme.accent;
+                  e.currentTarget.style.transform = "scale(1)";
+                }
               }}
             >
-              Initiate Test
+              {isTestCompleted ? "Test Already Completed" : "Initiate Test"}
             </button>
           </div>
         ) : isTestStarted && currentQuestion ? (
@@ -1614,6 +1775,7 @@ const WeeklyTest = () => {
         <ResultModal
           showResultModal={showResultModal}
           setShowResultModal={setShowResultModal}
+          title={"Weekly Test Completed"}
           testResult={testResult}
           score={score}
           pointsEarned={pointsEarned}
@@ -1626,6 +1788,8 @@ const WeeklyTest = () => {
           user={user}
           selectedSubject={selectedSubject}
           selectedWeek={selectedWeek}
+          onGoDashboard={() => (window.location.href = "/student/dashboard")}
+          onTakeAnother={() => (window.location.href = "/student/weeklytest")}
         />
       )}
       {/* Listen for custom event to jump to a question index (from Review Unanswered button) */}
