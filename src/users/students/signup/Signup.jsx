@@ -126,7 +126,8 @@ const Signup = () => {
         setWarning(data.warning);
       }
 
-      setSuccess("Registration successful! You can now log in.");
+      // Redirect directly to login/home after successful registration
+      navigate("/", { replace: true });
     } catch (err) {
       if (err.name === "AbortError") {
         setError(
