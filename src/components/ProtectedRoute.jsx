@@ -1,5 +1,5 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute = ({ children, requireStudent, requireAdmin }) => {
   const { isAuthenticated, isStudent, isAdmin, loading } = useAuth();
@@ -15,8 +15,14 @@ const ProtectedRoute = ({ children, requireStudent, requireAdmin }) => {
 
   if (!isAuthenticated) {
     // Redirect to appropriate login page based on the route
-    const isAdminRoute = location.pathname.startsWith('/admin');
-    return <Navigate to={isAdminRoute ? "/alogin" : "/login"} state={{ from: location }} replace />;
+    const isAdminRoute = location.pathname.startsWith("/admin");
+    return (
+      <Navigate
+        to={isAdminRoute ? "/alogin" : "/"}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   if (requireStudent && !isStudent) {
@@ -30,4 +36,4 @@ const ProtectedRoute = ({ children, requireStudent, requireAdmin }) => {
   return children;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

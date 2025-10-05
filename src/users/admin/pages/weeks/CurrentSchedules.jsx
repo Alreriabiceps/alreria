@@ -233,7 +233,7 @@ const CurrentSchedules = () => {
           err.message.includes("token") ||
           err.message.includes("authentication")
         ) {
-          window.location.href = "/admin/login";
+          window.location.href = "/alogin";
         }
       } finally {
         setIsLoading(false);
@@ -524,7 +524,7 @@ const CurrentSchedules = () => {
         err.message.includes("token") ||
         err.message.includes("authentication")
       ) {
-        window.location.href = "/admin/login";
+        window.location.href = "/alogin";
       }
     }
   };
@@ -562,7 +562,7 @@ const CurrentSchedules = () => {
         err.message.includes("token") ||
         err.message.includes("authentication")
       ) {
-        window.location.href = "/admin/login";
+        window.location.href = "/alogin";
       } else {
         setError(err.message || "Failed to delete schedule. Please try again.");
       }
@@ -637,7 +637,7 @@ const CurrentSchedules = () => {
         err.message.includes("token") ||
         err.message.includes("authentication")
       ) {
-        window.location.href = "/admin/login";
+        window.location.href = "/alogin";
       }
     }
   };

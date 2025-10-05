@@ -61,13 +61,13 @@ const AdminDashboard = () => {
 
         if (!token) {
           console.error("No token found in AuthContext");
-          navigate("/admin/login");
+          navigate("/alogin");
           return;
         }
 
         if (!user || user.role !== "admin") {
           console.error("User is not an admin:", user);
-          navigate("/admin/login");
+          navigate("/alogin");
           return;
         }
 
@@ -137,7 +137,7 @@ const AdminDashboard = () => {
           err.message.includes("token") ||
           err.message.includes("unauthorized")
         ) {
-          navigate("/admin/login");
+          navigate("/alogin");
         }
       } finally {
         setIsLoading(false);

@@ -226,7 +226,7 @@ const SideMenu = () => {
 
   const handleLogout = () => {
     logout();
-    navigate(user?.role === "admin" ? "/alogin" : "/login");
+    navigate(user?.role === "admin" ? "/alogin" : "/");
   };
 
   // Initialize expanded sections based on current path

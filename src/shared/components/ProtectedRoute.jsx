@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children, requireStudent, requireAdmin }) => {
     const isAdminRoute = location.pathname.startsWith("/admin");
     return (
       <Navigate
-        to={isAdminRoute ? "/alogin" : "/login"}
+        to={isAdminRoute ? "/alogin" : "/"}
         state={{ from: location }}
         replace
       />

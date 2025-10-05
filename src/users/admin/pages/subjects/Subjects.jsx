@@ -185,7 +185,7 @@ const Subjects = () => {
           err.message.includes("token") ||
           err.message.includes("authentication")
         ) {
-          window.location.href = "/admin/login";
+          window.location.href = "/alogin";
         }
       } finally {
         setLoading(false);
