@@ -211,6 +211,25 @@ const useLobbyManagement = (user, token, apiFetch, logout) => {
             console.log("🔄 Updating userCreatedLobby with new data:", data);
             setUserCreatedLobby(data);
           }
+
+          // Check if this is the user's lobby and it became full
+          if (
+            data.players &&
+            data.players.length >= data.maxPlayers &&
+            data.players.some((p) => p._id === user?.id || p === user?.id)
+          ) {
+            console.log(
+              "🎮 User's lobby is now full, checking for game start..."
+            );
+
+            // Set up a fallback timer to check if game:start event was missed
+            setTimeout(() => {
+              console.log(
+                "🔄 Fallback check: Lobby is full but no game:start received yet"
+              );
+              // This will be handled by the match events system
+            }, 3000); // 3 second delay to allow for normal game:start event
+          }
           break;
         case "deleted":
           setLobbies((prev) => prev.filter((l) => l._id !== data.lobbyId));

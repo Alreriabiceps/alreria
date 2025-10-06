@@ -40,6 +40,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               draggable
               pauseOnHover
               theme="dark"
+              enableMultiContainer={false}
+              limit={5}
               toastStyle={{
                 background: "rgba(30, 45, 60, 0.95)",
                 border: "1px solid #f1c40f",

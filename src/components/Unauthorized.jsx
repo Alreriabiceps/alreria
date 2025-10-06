@@ -16,7 +16,6 @@ const Unauthorized = () => {
         <h1 className="text-3xl font-bold text-error mb-4">Access Denied</h1>
         <p className="text-base-content/70 mb-6">
           You don't have permission to access this page.
-          asdasdsadsadasadasdasdasd
         </p>
         <div className="space-y-4">
           <button

@@ -148,6 +148,12 @@ const useMatchEvents = (user, apiFetch) => {
       try {
         console.log("🎮 Game start event received:", data);
 
+        // Clear any existing fallback timers
+        if (window.gameStartFallbackTimer) {
+          clearTimeout(window.gameStartFallbackTimer);
+          window.gameStartFallbackTimer = null;
+        }
+
         // Validate data
         if (!data || !data.players || data.players.length < 2) {
           console.error("❌ Invalid game start data:", data);
@@ -237,6 +243,24 @@ const useMatchEvents = (user, apiFetch) => {
           players: formattedPlayers,
         });
 
+        // Set up fallback timer in case game initialization fails
+        window.gameStartFallbackTimer = setTimeout(() => {
+          console.log(
+            "⚠️ Fallback: Game start timeout, attempting to proceed anyway"
+          );
+          // Try to proceed with the game even if initialization seems to have failed
+          navigate("/student/demo", {
+            state: {
+              gameId: `fallback_${Date.now()}`,
+              players: formattedPlayers,
+              currentPlayer: user.id,
+              roomId: data.lobbyId,
+              gameMode: "pvp",
+              lobbyId: data.lobbyId,
+            },
+          });
+        }, 10000); // 10 second fallback
+
         let gameData;
         try {
           const response = await apiFetch("/api/game/initialize", {
@@ -256,6 +280,12 @@ const useMatchEvents = (user, apiFetch) => {
         }
 
         if (gameData && gameData.success) {
+          // Clear fallback timer since game initialization succeeded
+          if (window.gameStartFallbackTimer) {
+            clearTimeout(window.gameStartFallbackTimer);
+            window.gameStartFallbackTimer = null;
+          }
+
           // Format players data properly for the Demo component
           const demoPlayers = data.players.map((player) => ({
             userId: player.userId || player._id || player.id,

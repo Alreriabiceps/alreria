@@ -252,9 +252,25 @@ const CurrentSchedules = () => {
       }
 
       try {
+        console.log("🔍 Fetching questions for subject:", editSubject);
         const res = await fetch(`${backendurl}/api/questions/${editSubject}`);
-        if (!res.ok) throw new Error("Failed to fetch questions");
+        console.log("🔍 Questions API response status:", res.status);
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("🔍 Questions API error:", errorData);
+          throw new Error(
+            `Failed to fetch questions: ${res.status} ${res.statusText}`
+          );
+        }
+
         const data = await res.json();
+        console.log("🔍 Questions API response data:", data);
+        console.log(
+          "🔍 Questions count:",
+          Array.isArray(data) ? data.length : "Not an array"
+        );
+
         setAvailableQuestions(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch questions", err);

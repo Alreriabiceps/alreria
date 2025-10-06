@@ -1,6 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { useAuth } from "./contexts/AuthContext";
 
 import StudentLogin from "./users/students/login/Login.jsx";
 import StudentSignup from "./users/students/signup/Signup.jsx";
@@ -45,6 +47,7 @@ import StudentPerformanceDetail from "./users/admin/pages/reports/StudentPerform
 const App = () => {
   const currentUser = JSON.parse(localStorage.getItem("user")) || {};
   const socketRef = useSocket();
+  const { authKey } = useAuth();
 
   return (
     <Routes>
@@ -62,7 +65,7 @@ const App = () => {
       <Route
         path="/student/*"
         element={
-          <ProtectedRoute requireStudent>
+          <ProtectedRoute key={`student-${authKey}`} requireStudent>
             <StudentLayout />
           </ProtectedRoute>
         }
@@ -90,7 +93,7 @@ const App = () => {
       <Route
         path="/admin/*"
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute key={`admin-${authKey}`} requireAdmin>
             <AdminLayout />
           </ProtectedRoute>
         }

@@ -404,27 +404,81 @@ const WeeklyTest = () => {
 
       // Extract unique subjects and weeks from the weekschedules
       const subjectMap = {};
-      scheduleArray
-        .filter((item) => item && item.subjectId && item.isActive)
-        .forEach((item) => {
-          subjectMap[item.subjectId._id] = {
-            id: item.subjectId._id,
-            name: item.subjectId.subject || `Subject ${item.subjectId._id}`,
-          };
-        });
+      const filteredSchedules = scheduleArray.filter(
+        (item) => item && item.subjectId && item.isActive
+      );
+
+      console.log("🔍 Filtered schedules:", filteredSchedules.length);
+      console.log(
+        "🔍 Schedule details:",
+        filteredSchedules.map((s) => ({
+          id: s._id,
+          subjectId: s.subjectId?._id,
+          subjectName: s.subjectId?.subject,
+          weekNumber: s.weekNumber,
+          year: s.year,
+          isActive: s.isActive,
+          questionCount: s.questionIds?.length || 0,
+        }))
+      );
+
+      // Debug: Check for duplicate subjects
+      const subjectIds = filteredSchedules
+        .map((s) => s.subjectId?._id)
+        .filter(Boolean);
+      const uniqueSubjectIds = [...new Set(subjectIds)];
+      console.log("🔍 Subject IDs found:", subjectIds);
+      console.log("🔍 Unique Subject IDs:", uniqueSubjectIds);
+      console.log(
+        "🔍 Duplicate subjects?",
+        subjectIds.length !== uniqueSubjectIds.length
+      );
+
+      filteredSchedules.forEach((item) => {
+        subjectMap[item.subjectId._id] = {
+          id: item.subjectId._id,
+          name: item.subjectId.subject || `Subject ${item.subjectId._id}`,
+        };
+      });
       const uniqueSubjects = Object.values(subjectMap);
 
       // Filter weeks based on the selected subject
+      const filteredWeeks = scheduleArray.filter(
+        (item) => item && item.weekNumber && item.isActive && item.subjectId
+      );
+
+      console.log("🔍 Filtered weeks:", filteredWeeks.length);
+      console.log(
+        "🔍 Week details:",
+        filteredWeeks.map((w) => ({
+          id: w._id,
+          weekNumber: w.weekNumber,
+          year: w.year,
+          subjectId: w.subjectId?._id,
+          subjectName: w.subjectId?.subject,
+        }))
+      );
+
+      // Debug: Check for duplicate weeks
+      const weekKeys = filteredWeeks
+        .map((w) => `${w.weekNumber}-${w.year}-${w.subjectId?._id}`)
+        .filter(Boolean);
+      const uniqueWeekKeys = [...new Set(weekKeys)];
+      console.log("🔍 Week keys found:", weekKeys);
+      console.log("🔍 Unique week keys:", uniqueWeekKeys);
+      console.log(
+        "🔍 Duplicate weeks?",
+        weekKeys.length !== uniqueWeekKeys.length
+      );
+
       const uniqueWeeks = [
         ...new Set(
-          scheduleArray
-            .filter((item) => item && item.weekNumber && item.isActive)
-            .map((item) => ({
-              number: item.weekNumber,
-              display: `Week ${item.weekNumber}`,
-              year: item.year,
-              subjectId: item.subjectId._id, // Add subjectId to each week
-            }))
+          filteredWeeks.map((item) => ({
+            number: item.weekNumber,
+            display: `Week ${item.weekNumber}`,
+            year: item.year,
+            subjectId: item.subjectId._id, // Add subjectId to each week
+          }))
         ),
       ].sort((a, b) => a.number - b.number);
 

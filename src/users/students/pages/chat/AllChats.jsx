@@ -3,6 +3,38 @@ import FloatingStars from "../../components/FloatingStars/FloatingStars";
 import styles from "./AllChats.module.css"; // Import the CSS module
 // import ChatModal from './ChatModal';
 
+// Custom hook to handle mobile viewport issues
+const useMobileViewport = () => {
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newHeight = window.innerHeight;
+      const heightDifference = viewportHeight - newHeight;
+
+      // If height decreased significantly, keyboard is likely open
+      if (heightDifference > 150) {
+        setIsKeyboardOpen(true);
+      } else if (heightDifference < 50) {
+        setIsKeyboardOpen(false);
+      }
+
+      setViewportHeight(newHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, [viewportHeight]);
+
+  return { viewportHeight, isKeyboardOpen };
+};
+
 const EMOJIS = [
   "😀",
   "😂",
@@ -51,6 +83,24 @@ export default function AllChats({ currentUser, socketRef }) {
   const [showChatAreaMobile, setShowChatAreaMobile] = useState(false);
   const friendsAbortRef = useRef(null);
   const [friendsReload, setFriendsReload] = useState(0);
+
+  // Mobile viewport handling
+  const { viewportHeight, isKeyboardOpen } = useMobileViewport();
+
+  // Auto-scroll to bottom when keyboard opens on mobile
+  useEffect(() => {
+    if (isMobileView && isKeyboardOpen && selectedFriend) {
+      // Small delay to ensure keyboard is fully open
+      setTimeout(() => {
+        const messagesContainer = document.querySelector(
+          `.${styles.messagesContainer}`
+        );
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }, 300);
+    }
+  }, [isKeyboardOpen, isMobileView, selectedFriend]);
 
   // Removed theme object, styles are now in AllChats.module.css
 
@@ -186,8 +236,17 @@ export default function AllChats({ currentUser, socketRef }) {
     0
   );
 
+  // Dynamic style for mobile keyboard handling
+  const containerStyle =
+    isMobileView && isKeyboardOpen
+      ? {
+          height: `${viewportHeight}px`,
+          maxHeight: `${viewportHeight}px`,
+        }
+      : {};
+
   return (
-    <div className={styles.allChatsContainer}>
+    <div className={styles.allChatsContainer} style={containerStyle}>
       <FloatingStars />
       {/* Sidebar - Friends List Panel */}
       {(!isMobileView || !showChatAreaMobile) && (

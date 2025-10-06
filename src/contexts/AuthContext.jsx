@@ -1,38 +1,39 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 // Helper functions for storage
 const setAuthData = (token, user) => {
   try {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    sessionStorage.setItem('token', token);
-    sessionStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("user", JSON.stringify(user));
   } catch (error) {
-    console.error('Error setting auth data:', error);
+    console.error("Error setting auth data:", error);
   }
 };
 
 const getAuthData = () => {
   try {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    const user = localStorage.getItem("user") || sessionStorage.getItem("user");
     return { token, user };
   } catch (error) {
-    console.error('Error getting auth data:', error);
+    console.error("Error getting auth data:", error);
     return { token: null, user: null };
   }
 };
 
 const clearAuthData = () => {
   try {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
   } catch (error) {
-    console.error('Error clearing auth data:', error);
+    console.error("Error clearing auth data:", error);
   }
 };
 
@@ -40,20 +41,24 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
+  const [authKey, setAuthKey] = useState(0); // Force re-render key
 
   // Function to verify token
   const verifyToken = async (token) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/verify`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       const data = await response.json();
       return { success: response.ok && data.success, data };
     } catch (error) {
-      console.error('Token verification failed:', error);
+      console.error("Token verification failed:", error);
       return { success: false, error };
     }
   };
@@ -61,13 +66,16 @@ export const AuthProvider = ({ children }) => {
   // Function to refresh token
   const refreshToken = async (oldToken) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${oldToken}`
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${oldToken}`,
+          },
         }
-      });
+      );
 
       const data = await response.json();
       if (response.ok && data.token) {
@@ -75,7 +83,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, error: data.error };
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error("Token refresh failed:", error);
       return { success: false, error };
     }
   };
@@ -115,7 +123,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error("Auth check failed:", error);
         clearAuthData();
         setToken(null);
         setUser(null);
@@ -127,45 +135,78 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  const logout = () => {
+    console.log("Logging out user");
+    clearAuthData();
+    setToken(null);
+    setUser(null);
+    setAuthKey((prev) => prev + 1); // Force re-render
+  };
+
+  // Auto-refresh token before expiration
+  useEffect(() => {
+    if (!token) return;
+
+    // Set up automatic token refresh (refresh 10 minutes before expiration)
+    const refreshInterval = setInterval(async () => {
+      try {
+        const refreshResult = await refreshToken(token);
+        if (refreshResult.success) {
+          const { user: storedUser } = getAuthData();
+          setAuthData(refreshResult.token, storedUser);
+          setToken(refreshResult.token);
+          console.log("Token refreshed automatically");
+        } else {
+          console.log("Auto-refresh failed, logging out");
+          logout();
+        }
+      } catch (error) {
+        console.error("Auto-refresh error:", error);
+        logout();
+      }
+    }, 50 * 60 * 1000); // Refresh every 50 minutes (tokens expire in 2 hours)
+
+    return () => clearInterval(refreshInterval);
+  }, [token]);
+
   const login = async (credentials) => {
     try {
       // Determine if this is a student or admin login
-      const endpoint = credentials.studentId ? 'student-login' : 'admin-login';
+      const endpoint = credentials.studentId ? "student-login" : "admin-login";
 
-      console.log('Attempting login with:', { credentials, endpoint });
+      console.log("Attempting login with:", { credentials, endpoint });
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(credentials),
+        }
+      );
 
-      console.log('Login response status:', response.status);
+      console.log("Login response status:", response.status);
       const data = await response.json();
-      console.log('Login response data:', data);
+      console.log("Login response data:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || "Login failed");
       }
 
       // Store token and user data
-      const userData = credentials.studentId ? data.student : { role: 'admin', ...data.admin };
+      const userData = credentials.studentId
+        ? data.student
+        : { role: "admin", ...data.admin };
       setAuthData(data.token, userData);
       setUser(userData);
       setToken(data.token);
       return data;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw error;
     }
-  };
-
-  const logout = () => {
-    clearAuthData();
-    setToken(null);
-    setUser(null);
   };
 
   const value = {
@@ -174,9 +215,10 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     token,
+    authKey,
     isAuthenticated: !!user,
-    isStudent: user?.role === 'student',
-    isAdmin: user?.role === 'admin'
+    isStudent: user?.role === "student",
+    isAdmin: user?.role === "admin",
   };
 
   return (
@@ -189,9 +231,9 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-export default AuthContext; 
+export default AuthContext;
